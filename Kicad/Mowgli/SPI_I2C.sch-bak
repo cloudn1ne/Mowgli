@@ -1,0 +1,174 @@
+EESchema Schematic File Version 4
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 9 9
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L Sensor_Motion:LIS3DH U?
+U 1 1 62942035
+P 2900 2350
+F 0 "U?" H 2900 1661 50  0000 C CNN
+F 1 "LIS3DH" H 2900 1570 50  0000 C CNN
+F 2 "Package_LGA:LGA-16_3x3mm_P0.5mm_LayoutBorder3x5y" H 3000 1300 50  0001 C CNN
+F 3 "https://www.st.com/resource/en/datasheet/cd00274221.pdf" H 2700 2250 50  0001 C CNN
+	1    2900 2350
+	1    0    0    -1  
+$EndComp
+$Comp
+L Memory_Flash:ZD25D40 U?
+U 1 1 62943E5F
+P 6300 2350
+F 0 "U?" H 6200 2915 50  0000 C CNN
+F 1 "ZD25D40" H 6200 2824 50  0000 C CNN
+F 2 "" H 6300 2350 50  0001 C CNN
+F 3 "" H 6300 2350 50  0001 C CNN
+	1    6300 2350
+	1    0    0    -1  
+$EndComp
+Text Notes 5800 1250 0    79   ~ 16
+4M SPI Flash (SPI3)
+Text Notes 2300 1300 0    79   ~ 16
+3 Axis Accelerometer (I2C)
+$Comp
+L power:+3.3V #PWR?
+U 1 1 629454B8
+P 6950 1950
+F 0 "#PWR?" H 6950 1800 50  0001 C CNN
+F 1 "+3.3V" H 6965 2123 50  0000 C CNN
+F 2 "" H 6950 1950 50  0001 C CNN
+F 3 "" H 6950 1950 50  0001 C CNN
+	1    6950 1950
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6950 1950 6950 2050
+Wire Wire Line
+	6950 2200 6600 2200
+$Comp
+L power:GND #PWR?
+U 1 1 62946021
+P 5500 2900
+F 0 "#PWR?" H 5500 2650 50  0001 C CNN
+F 1 "GND" H 5505 2727 50  0000 C CNN
+F 2 "" H 5500 2900 50  0001 C CNN
+F 3 "" H 5500 2900 50  0001 C CNN
+	1    5500 2900
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5800 2650 5500 2650
+Wire Wire Line
+	5500 2650 5500 2900
+Text HLabel 7350 2650 2    50   BiDi ~ 0
+SPI3_DIO
+Wire Wire Line
+	7350 2650 6600 2650
+Text HLabel 7350 2500 2    50   Input ~ 0
+SPI3_CLK
+Wire Wire Line
+	7350 2500 6600 2500
+Text HLabel 5400 2200 0    50   BiDi ~ 0
+SPI3_FLASH_nCS
+Wire Wire Line
+	5800 2200 5400 2200
+Text HLabel 5350 2350 0    50   Output ~ 0
+SPI3_DO
+Wire Wire Line
+	5800 2350 5350 2350
+$Comp
+L Device:R R?
+U 1 1 6294991B
+P 7150 2200
+F 0 "R?" H 7220 2246 50  0000 L CNN
+F 1 "5k" H 7220 2155 50  0000 L CNN
+F 2 "" V 7080 2200 50  0001 C CNN
+F 3 "~" H 7150 2200 50  0001 C CNN
+	1    7150 2200
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7150 2050 6950 2050
+Connection ~ 6950 2050
+Wire Wire Line
+	6950 2050 6950 2200
+Wire Wire Line
+	7150 2350 6600 2350
+$Comp
+L Device:R R?
+U 1 1 6294A172
+P 5400 2500
+F 0 "R?" V 5400 2450 50  0000 C CNN
+F 1 "5k" V 5500 2500 50  0000 C CNN
+F 2 "" V 5330 2500 50  0001 C CNN
+F 3 "~" H 5400 2500 50  0001 C CNN
+	1    5400 2500
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	5800 2500 5550 2500
+$Comp
+L power:+3.3V #PWR?
+U 1 1 6294A924
+P 4750 2450
+F 0 "#PWR?" H 4750 2300 50  0001 C CNN
+F 1 "+3.3V" H 4600 2450 50  0000 C CNN
+F 2 "" H 4750 2450 50  0001 C CNN
+F 3 "" H 4750 2450 50  0001 C CNN
+	1    4750 2450
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5250 2500 4750 2500
+Wire Wire Line
+	4750 2500 4750 2450
+Text HLabel 1750 2550 0    50   Input ~ 0
+ACCEL_SCL
+Wire Wire Line
+	2400 2550 1750 2550
+Text HLabel 1750 2450 0    50   Input ~ 0
+ACCEL_SDA
+Wire Wire Line
+	2400 2450 1750 2450
+$Comp
+L power:GND #PWR?
+U 1 1 6294FDC5
+P 1050 2350
+F 0 "#PWR?" H 1050 2100 50  0001 C CNN
+F 1 "GND" H 1055 2177 50  0000 C CNN
+F 2 "" H 1050 2350 50  0001 C CNN
+F 3 "" H 1050 2350 50  0001 C CNN
+	1    1050 2350
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2400 2350 1050 2350
+$Comp
+L power:+3.3V #PWR?
+U 1 1 62950A9E
+P 1850 2850
+F 0 "#PWR?" H 1850 2700 50  0001 C CNN
+F 1 "+3.3V" H 1865 3023 50  0000 C CNN
+F 2 "" H 1850 2850 50  0001 C CNN
+F 3 "" H 1850 2850 50  0001 C CNN
+	1    1850 2850
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2400 2650 2250 2650
+Wire Wire Line
+	2250 2650 2250 2900
+Wire Wire Line
+	2250 2900 1850 2900
+Wire Wire Line
+	1850 2900 1850 2850
+$EndSCHEMATC

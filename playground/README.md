@@ -7,4 +7,7 @@
    Maybe something like a JST PH fits as well, but i dont have them yet.
    As the pins are unfortunatly in the wrong place on the original J5 connector i used a sharp pick tool to relocate the pins as in the image below.
    
+   <img src="/images/J18_serial.jpg" width="60%"/>
    
+ 
+   You can then send messages (see Python Joystick example) to the STM32 which will pass them along to either the Blade Motor Controller or the Drive Motors Controller.

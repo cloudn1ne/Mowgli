@@ -22,7 +22,7 @@ The custom firmware has no protections - no tilt sensing, no stop buttons will w
 - [Basic overview of the mainboard](./Kicad), [Datasheets](./Datasheets) for ICs
 - Motor Drivers for both Drive Motors and Blade Motor can be controlled
 - Firmware dump and [restore](./stm32/original_firmware) via an ST Link or other (e.g. JLink Segger) tools
-- [Demo Python code](./playground/pay_joydrive.py) to control the Mower via a Joystick (needs STM32 code for Blade Motor control)
+- [Demo Python code](./playground/) to control the Mower via a Joystick (needs STM32 code for Blade Motor control)
 
 ## In Progress
 - Custom software for the STM32 main cpu, thats acts as a UART proxy to the components on the board

@@ -3,7 +3,7 @@ EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
-Sheet 6 9
+Sheet 5 9
 Title ""
 Date ""
 Rev ""
@@ -14,11 +14,11 @@ Comment3 ""
 Comment4 ""
 $EndDescr
 $Comp
-L Connector:Conn_01x09_Male J?
+L Connector:Conn_01x09_Male J18
 U 1 1 6292746F
 P 5000 3350
-F 0 "J?" H 5108 3931 50  0000 C CNN
-F 1 "J18 (Red Connector)" H 5108 3840 50  0000 C CNN
+F 0 "J18" H 5108 3931 50  0000 C CNN
+F 1 "(Red Connector)" H 5108 3840 50  0000 C CNN
 F 2 "" H 5000 3350 50  0001 C CNN
 F 3 "~" H 5000 3350 50  0001 C CNN
 	1    5000 3350

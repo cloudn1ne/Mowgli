@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "*.cps": "javascript",
+        "stm32f1xx_hal_uart.h": "c"
+    }
+}

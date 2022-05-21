@@ -7,13 +7,22 @@
 
 This repo tracks my progress in reverse engineering the Yardforce GForce mainbord as used in the Yardforce 500 (and others) Mower Robots.
 
+In the end in would like to use it with [OpenMower](https://github.com/ClemensElflein/OpenMower) but without having to use that projects mainboard, instead recycling as much hardware as possible from the original GForce mainboard. 
+There should be no irreversible modifications to the GForce board required.
+
+## Safety
+
+The custom firmware has no protections - no tilt sensing, no stop buttons will work. If you stick your finger in the wrong place, you will lose it.
+- Remove the razor blades
+- Dont be stupid
+- Dont blame me for your lost finger
 
 ## Whats done ?
 
 - [Basic overview of the mainboard](./Kicad), [Datasheets](./Datasheets) for ICs
 - Motor Drivers for both Drive Motors and Blade Motor can be controlled
 - Firmware dump and [restore](./stm32/original_firmware) via an ST Link or other (e.g. JLink Segger) tools
-- [Demo Python code](./playground/pay_joydrive.py) to control the Mower via a Joystick (needs STM32 code for Blade Motor control)
+- [Demo Python code](./playground/) to control the Mower via a Joystick (needs STM32 code for Blade Motor control)
 
 ## In Progress
 - Custom software for the STM32 main cpu, thats acts as a UART proxy to the components on the board

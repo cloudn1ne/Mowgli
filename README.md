@@ -10,6 +10,12 @@ This repo tracks my progress in reverse engineering the Yardforce GForce mainbor
 In the end in would like to use it with [OpenMower](https://github.com/ClemensElflein/OpenMower) but without having to use that projects mainboard, instead recycling as much hardware as possible from the original GForce mainboard. 
 There should be no irreversible modifications to the GForce board required.
 
+## Safety
+
+The custom firmware has no protections - no tilt sensing, no stop buttons will work. If you stick your finger in the wrong place, you will lose it.
+- Remove the razor blades
+- Dont be stupid
+- Dont blame me for your lost finger
 
 ## Whats done ?
 

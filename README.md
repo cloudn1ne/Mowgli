@@ -11,11 +11,21 @@ In the end in would like to use it with [OpenMower](https://github.com/ClemensEl
 There should be no irreversible modifications to the GForce board required.
 
 ## Safety
-
-The custom firmware has no protections - no tilt sensing, no stop buttons will work. If you stick your finger in the wrong place, you will lose it.
-- Remove the razor blades
-- Dont be stupid
-- Dont blame me for your lost finger
+<table border=1>
+   <tr>
+      <td>
+The custom firmware has no protections - no tilt sensing, no stop buttons will work. If you stick your finger in the wrong place, you will lose it.<p>
+         <ul>
+<li>Remove the razor blades
+<li>Dont be stupid
+<li> Dont blame me for your lost finger
+         </ul>
+      </td>
+      <td>
+         <img src="./images/finger.png" align="right" width="150px"/>
+      </td>
+   </tr>
+</table>
 
 ## Whats done ?
 

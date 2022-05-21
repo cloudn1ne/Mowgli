@@ -34,11 +34,14 @@ The custom firmware has no protections - no tilt sensing, no stop buttons will w
 - Firmware dump and [restore](./stm32/original_firmware) via an ST Link or other (e.g. JLink Segger) tools
 - [Demo Python code](./playground/) to control the Mower via a Joystick (needs STM32 code for Blade Motor control)
 
-## In Progress
-- Custom software for the STM32 main cpu, thats acts as a UART proxy to the components on the board
+## Progress
+
+Custom software for the STM32 main cpu, thats acts as a UART proxy to the components on the board
+
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/Jlm87qAKzOk/0.jpg)](http://www.youtube.com/watch?v=Jlm87qAKzOk "Drive Motors and Blade Motor with custom firmware")
    - Drive Motor proxing working
    - Blade Motor proxing working
-
+   
 ## Todo
 - Serial protocol for the Control Panel, and why it needs to be plugged in for the drive motors to work
 - Accelerometer (I2C), Flash (SPI) support in the proxy software

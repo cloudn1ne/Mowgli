@@ -5,8 +5,8 @@ $Descr A3 16535 11693
 encoding utf-8
 Sheet 1 9
 Title "Project Mowgli"
-Date ""
-Rev "1.0"
+Date "2022-05-22"
+Rev "1.0.1"
 Comp ""
 Comment1 "(c) CyberNet / cn@warp.at"
 Comment2 "https://github.com/cloudn1ne/Mowgli"

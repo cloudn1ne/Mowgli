@@ -4,12 +4,12 @@ EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 3 9
-Title ""
-Date ""
-Rev ""
+Title "Project Mowgli"
+Date "2022-05-22"
+Rev "1.0.1"
 Comp ""
-Comment1 ""
-Comment2 ""
+Comment1 "(c) CyberNet / cn@warp.at"
+Comment2 "https://github.com/cloudn1ne/Mowgli"
 Comment3 ""
 Comment4 ""
 $EndDescr
@@ -156,4 +156,8 @@ Text HLabel 7200 3800 2    50   Output ~ 0
 ACCEL_SDA
 Wire Wire Line
 	7200 3800 6450 3800
+Text Notes 7700 3800 0    50   ~ 0
+(I2C Accelerometer)
+Text Notes 7650 3550 0    50   ~ 0
+(SPI3 Flash)
 $EndSCHEMATC

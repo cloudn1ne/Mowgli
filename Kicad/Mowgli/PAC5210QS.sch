@@ -4,12 +4,12 @@ EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 4 9
-Title ""
-Date ""
-Rev ""
+Title "Project Mowgli"
+Date "2022-05-22"
+Rev "1.0.1"
 Comp ""
-Comment1 ""
-Comment2 ""
+Comment1 "(c) CyberNet / cn@warp.at"
+Comment2 "https://github.com/cloudn1ne/Mowgli"
 Comment3 ""
 Comment4 ""
 $EndDescr

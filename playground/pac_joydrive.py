@@ -230,7 +230,7 @@ def main():
         drive_command = pac5210_message(left_dir, right_dir, left_speed, right_speed)
         print("TX (MOVE): ",['%02x' % int(i) for i in drive_command])
         ser.write(drive_command)
-        time.sleep(0.10)   
+        time.sleep(0.1) 
 
         # blade command
         if (blade_on):
@@ -240,7 +240,7 @@ def main():
 
         print("TX (BLADE): ",['%02x' % int(i) for i in blade_command])
         ser.write(blade_command)
-        time.sleep(0.10)   
+        time.sleep(0.1)   
     sys.exit()
  
 

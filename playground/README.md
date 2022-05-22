@@ -9,5 +9,8 @@
    
    <img src="/images/J18_serial.jpg" width="60%"/>
    
- 
+   You need to short out the connectors on the control(LED + Buttons) board and have that plugged into the mainboard.
+   
+   <img src="/images/bridged_connectors.jpg" height="200"/>
+   
    You can then send messages (see Python Joystick example) to the STM32 which will pass them along to either the Blade Motor Controller or the Drive Motors Controller.

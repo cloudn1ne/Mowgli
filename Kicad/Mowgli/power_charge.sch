@@ -424,4 +424,10 @@ Wire Wire Line
 	4250 1650 4050 1650
 Wire Wire Line
 	4050 1650 4050 1750
+Text HLabel 2850 1050 0    39   Output ~ 0
+Charge_Voltage
+Wire Wire Line
+	2850 1050 3100 1050
+Text Notes 3150 1050 0    39   ~ 0
+unknown ?
 $EndSCHEMATC

@@ -168,4 +168,8 @@ Wire Wire Line
 	4450 3900 3700 3900
 Wire Wire Line
 	4450 4000 3700 4000
+Text HLabel 7300 1700 2    50   Input ~ 0
+Charge_Voltage
+Wire Wire Line
+	7300 1700 6450 1700
 $EndSCHEMATC

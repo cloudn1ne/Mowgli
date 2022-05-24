@@ -1,0 +1,427 @@
+EESchema Schematic File Version 4
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 10 10
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L Connector_Generic:Conn_02x04_Odd_Even J3
+U 1 1 628DBC2C
+P 4550 3050
+F 0 "J3" H 4600 3000 50  0000 C CNN
+F 1 "POWER" H 4600 2750 50  0000 C CNN
+F 2 "" H 4550 3050 50  0001 C CNN
+F 3 "~" H 4550 3050 50  0001 C CNN
+	1    4550 3050
+	-1   0    0    1   
+$EndComp
+$Comp
+L Connector_Generic:Conn_02x01 J2
+U 1 1 628DFCBD
+P 4450 1650
+F 0 "J2" H 4500 1867 50  0000 C CNN
+F 1 "Charge" H 4500 1776 50  0000 C CNN
+F 2 "" H 4450 1650 50  0001 C CNN
+F 3 "~" H 4450 1650 50  0001 C CNN
+	1    4450 1650
+	1    0    0    -1  
+$EndComp
+Text GLabel 2450 3150 0    49   Input ~ 0
+BAT+(red)
+Wire Wire Line
+	4250 3150 4000 3150
+Wire Wire Line
+	4250 2950 4000 2950
+Wire Wire Line
+	4000 2950 4000 3150
+Connection ~ 4000 3150
+Wire Wire Line
+	4000 3150 2450 3150
+Text GLabel 2450 3050 0    49   Input ~ 0
+BAT-(black)
+Wire Wire Line
+	4250 3050 4150 3050
+Wire Wire Line
+	4750 3150 4800 3150
+Wire Wire Line
+	4750 3050 4900 3050
+Wire Wire Line
+	4900 3050 4900 3300
+Wire Wire Line
+	4900 3300 4150 3300
+Wire Wire Line
+	4150 3300 4150 3050
+Connection ~ 4150 3050
+Wire Wire Line
+	4150 3050 2450 3050
+$Comp
+L Switch:SW_SPST SW1
+U 1 1 628E3897
+P 4500 3650
+F 0 "SW1" H 4500 3885 50  0000 C CNN
+F 1 "Power Switch" H 4500 3794 50  0000 C CNN
+F 2 "" H 4500 3650 50  0001 C CNN
+F 3 "~" H 4500 3650 50  0001 C CNN
+	1    4500 3650
+	1    0    0    -1  
+$EndComp
+$Comp
+L Switch:SW_SPST SW1
+U 1 1 628E4961
+P 4500 2450
+F 0 "SW1" H 4500 2685 50  0000 C CNN
+F 1 "Power Switch" H 4500 2594 50  0000 C CNN
+F 2 "" H 4500 2450 50  0001 C CNN
+F 3 "~" H 4500 2450 50  0001 C CNN
+	1    4500 2450
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4000 2950 4000 2450
+Wire Wire Line
+	4000 2450 4300 2450
+Connection ~ 4000 2950
+Wire Wire Line
+	4750 2950 4900 2950
+Wire Wire Line
+	4900 2950 4900 2450
+Wire Wire Line
+	4900 2450 4700 2450
+Text GLabel 2450 2850 0    49   Input ~ 0
+TEMP1(yellow)
+Text GLabel 2450 2650 0    49   Input ~ 0
+TEMP1(green)
+Wire Wire Line
+	2450 2650 4800 2650
+Wire Wire Line
+	4800 2650 4800 2850
+Wire Wire Line
+	4800 2850 4750 2850
+Wire Wire Line
+	4250 2850 2450 2850
+Wire Wire Line
+	4900 3050 5300 3050
+Connection ~ 4900 3050
+$Comp
+L Device:Fuse F?
+U 1 1 628E6FDC
+P 5050 1650
+F 0 "F?" V 4853 1650 50  0000 C CNN
+F 1 "Fuse" V 4944 1650 50  0000 C CNN
+F 2 "" V 4980 1650 50  0001 C CNN
+F 3 "~" H 5050 1650 50  0001 C CNN
+	1    5050 1650
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	4900 1650 4750 1650
+$Comp
+L Device:Fuse F1
+U 1 1 628E8C23
+P 5150 2950
+F 0 "F1" V 4953 2950 50  0000 C CNN
+F 1 "Fuse" V 5044 2950 50  0000 C CNN
+F 2 "" V 5080 2950 50  0001 C CNN
+F 3 "~" H 5150 2950 50  0001 C CNN
+	1    5150 2950
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	5000 2950 4900 2950
+Connection ~ 4900 2950
+Wire Wire Line
+	4800 3150 4800 3650
+Wire Wire Line
+	4800 3650 4700 3650
+Wire Wire Line
+	4800 3150 5300 3150
+Connection ~ 4800 3150
+Text GLabel 2450 3650 0    49   Input ~ 0
+CHARGE+(white)
+Wire Wire Line
+	2450 3650 4300 3650
+$Comp
+L Transistor_FET:SUD08P06-155L TF4
+U 1 1 628F0AC6
+P 6300 3250
+F 0 "TF4" H 6505 3204 50  0000 L CNN
+F 1 "NCE60P25K" H 6505 3295 50  0000 L CNN
+F 2 "Package_TO_SOT_SMD:TO-252-2" H 6495 3175 50  0001 L CIN
+F 3 "https://www.vishay.com/docs/62843/sud08p06-155l-ge3.pdf" H 6300 3250 50  0001 C CNN
+	1    6300 3250
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	6200 2950 5300 2950
+Wire Wire Line
+	6200 3050 6200 2950
+Text GLabel 6300 3700 2    59   Input ~ 0
+Motors_24V
+Text HLabel 6750 3250 2    59   Input ~ 0
+TF4_24V
+Wire Wire Line
+	6750 3250 6500 3250
+Text Notes 7200 3300 0    59   ~ 0
+via driver circuit
+Text Notes 4950 3150 0    39   ~ 0
+Charge
+Text Notes 4950 3050 0    39   ~ 0
+Ground
+Text Notes 3600 3050 0    39   ~ 0
+Ground
+Text Notes 3600 3650 0    39   ~ 0
+Charge
+$Comp
+L pspice:DIODE D25
+U 1 1 628FF698
+P 6200 2750
+F 0 "D25" V 6246 2622 50  0000 R CNN
+F 1 "DIODE" V 6155 2622 50  0000 R CNN
+F 2 "" H 6200 2750 50  0001 C CNN
+F 3 "~" H 6200 2750 50  0001 C CNN
+	1    6200 2750
+	0    -1   -1   0   
+$EndComp
+Connection ~ 6200 2950
+$Comp
+L Device:R R21
+U 1 1 629016D5
+P 6200 2400
+F 0 "R21" H 6270 2446 50  0000 L CNN
+F 1 "R1" H 6270 2355 50  0000 L CNN
+F 2 "" V 6130 2400 50  0001 C CNN
+F 3 "~" H 6200 2400 50  0001 C CNN
+	1    6200 2400
+	1    0    0    -1  
+$EndComp
+$Comp
+L pspice:DIODE D18
+U 1 1 62902A2D
+P 6200 2050
+F 0 "D18" V 6246 1922 50  0000 R CNN
+F 1 "DIODE" V 6155 1922 50  0000 R CNN
+F 2 "" H 6200 2050 50  0001 C CNN
+F 3 "~" H 6200 2050 50  0001 C CNN
+	1    6200 2050
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	6200 1850 6200 1650
+Wire Wire Line
+	6200 1650 5200 1650
+Text Notes 6150 2500 1    39   ~ 0
+Shunt
+Text HLabel 8400 2050 0    39   Input ~ 0
+CHARGE_LOW_SIDE_DRIVER
+Text HLabel 8400 1950 0    39   Input ~ 0
+CHARGE_HIGH_SIDE_DRIVER
+$Comp
+L Driver_FET:LM5109MA U10
+U 1 1 629095ED
+P 9000 1850
+F 0 "U10" H 9000 2417 50  0000 C CNN
+F 1 "LM5109MA" H 9000 2326 50  0000 C CNN
+F 2 "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm" H 9000 1350 50  0001 C CIN
+F 3 "http://www.ti.com/lit/ds/symlink/lm5109.pdf" H 9000 1850 50  0001 C CNN
+	1    9000 1850
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8700 2050 8400 2050
+Wire Wire Line
+	8700 1950 8400 1950
+$Comp
+L Transistor_FET:IPP060N06N Q4
+U 1 1 6290C299
+P 9400 3150
+F 0 "Q4" V 9649 3150 50  0000 C CNN
+F 1 "N06N-LOW" V 9740 3150 50  0000 C CNN
+F 2 "Package_TO_SOT_THT:TO-220-3_Vertical" H 9650 3075 50  0001 L CIN
+F 3 "https://www.infineon.com/dgdl/Infineon-IPP060N06N-DS-v02_02-en.pdf?fileId=db3a30433727a44301372c06d9d7498a" H 9400 3150 50  0001 L CNN
+	1    9400 3150
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	9300 2150 9400 2150
+$Comp
+L Transistor_FET:IPP060N06N Q4
+U 1 1 6290F5B5
+P 10200 3150
+F 0 "Q4" V 10449 3150 50  0000 C CNN
+F 1 "N06N-HIGH" V 10540 3150 50  0000 C CNN
+F 2 "Package_TO_SOT_THT:TO-220-3_Vertical" H 10450 3075 50  0001 L CIN
+F 3 "https://www.infineon.com/dgdl/Infineon-IPP060N06N-DS-v02_02-en.pdf?fileId=db3a30433727a44301372c06d9d7498a" H 10200 3150 50  0001 L CNN
+	1    10200 3150
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	9300 1950 10200 1950
+Wire Wire Line
+	8700 2150 8650 2150
+$Comp
+L power:GND #PWR?
+U 1 1 6291542D
+P 4900 3350
+F 0 "#PWR?" H 4900 3100 50  0001 C CNN
+F 1 "GND" H 4905 3177 50  0000 C CNN
+F 2 "" H 4900 3350 50  0001 C CNN
+F 3 "" H 4900 3350 50  0001 C CNN
+	1    4900 3350
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4900 3300 4900 3350
+Connection ~ 4900 3300
+$Comp
+L pspice:DIODE D59
+U 1 1 62916C9F
+P 9100 1000
+F 0 "D59" H 9100 1265 50  0000 C CNN
+F 1 "DIODE" H 9100 1174 50  0000 C CNN
+F 2 "" H 9100 1000 50  0001 C CNN
+F 3 "~" H 9100 1000 50  0001 C CNN
+	1    9100 1000
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R R300
+U 1 1 62917DE4
+P 8650 1000
+F 0 "R300" V 8443 1000 50  0000 C CNN
+F 1 "R10" V 8534 1000 50  0000 C CNN
+F 2 "" V 8580 1000 50  0001 C CNN
+F 3 "~" H 8650 1000 50  0001 C CNN
+	1    8650 1000
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	8900 1000 8800 1000
+Wire Wire Line
+	9300 1550 9400 1550
+Wire Wire Line
+	9400 1550 9400 1000
+Wire Wire Line
+	9400 1000 9300 1000
+Wire Wire Line
+	8700 1550 8350 1550
+Wire Wire Line
+	8350 1550 8350 1000
+Wire Wire Line
+	8350 1000 8500 1000
+$Comp
+L Device:C C140
+U 1 1 6291B0FC
+P 9400 1750
+F 0 "C140" H 9515 1796 50  0000 L CNN
+F 1 "C" H 9515 1705 50  0000 L CNN
+F 2 "" H 9438 1600 50  0001 C CNN
+F 3 "~" H 9400 1750 50  0001 C CNN
+	1    9400 1750
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9400 1600 9400 1550
+Connection ~ 9400 1550
+Wire Wire Line
+	9400 1900 9400 2050
+Wire Wire Line
+	9400 2050 9300 2050
+Wire Wire Line
+	9400 2050 9800 2050
+Wire Wire Line
+	9800 2050 9800 3250
+Wire Wire Line
+	9800 3250 10000 3250
+Connection ~ 9400 2050
+Wire Wire Line
+	9800 3250 9600 3250
+Connection ~ 9800 3250
+$Comp
+L Device:R R301
+U 1 1 62920437
+P 10200 2500
+F 0 "R301" H 10270 2546 50  0000 L CNN
+F 1 "R100" H 10270 2455 50  0000 L CNN
+F 2 "" V 10130 2500 50  0001 C CNN
+F 3 "~" H 10200 2500 50  0001 C CNN
+	1    10200 2500
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	10200 1950 10200 2350
+Wire Wire Line
+	10200 2650 10200 2950
+$Comp
+L Device:R R302
+U 1 1 629226A2
+P 9400 2500
+F 0 "R302" H 9470 2546 50  0000 L CNN
+F 1 "R100" H 9470 2455 50  0000 L CNN
+F 2 "" V 9330 2500 50  0001 C CNN
+F 3 "~" H 9400 2500 50  0001 C CNN
+	1    9400 2500
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9400 2150 9400 2350
+Wire Wire Line
+	9400 2650 9400 2950
+Wire Wire Line
+	10400 3250 10600 3250
+Text Notes 10400 3250 0    39   ~ 0
+Charge
+Wire Wire Line
+	10600 3800 5300 3800
+Wire Wire Line
+	10600 3250 10600 3800
+Wire Wire Line
+	5300 3150 5300 3800
+Wire Wire Line
+	6300 3700 6200 3700
+Wire Wire Line
+	6200 3450 6200 3700
+Text Notes 7950 3800 0    39   ~ 0
+Charge
+$Comp
+L power:GND #PWR?
+U 1 1 6292B3E6
+P 8650 3350
+F 0 "#PWR?" H 8650 3100 50  0001 C CNN
+F 1 "GND" H 8655 3177 50  0000 C CNN
+F 2 "" H 8650 3350 50  0001 C CNN
+F 3 "" H 8650 3350 50  0001 C CNN
+	1    8650 3350
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8650 2150 8650 3250
+Wire Wire Line
+	9200 3250 8650 3250
+Connection ~ 8650 3250
+Wire Wire Line
+	8650 3250 8650 3350
+$Comp
+L power:GND #PWR?
+U 1 1 6292DF69
+P 4050 1750
+F 0 "#PWR?" H 4050 1500 50  0001 C CNN
+F 1 "GND" H 4055 1577 50  0000 C CNN
+F 2 "" H 4050 1750 50  0001 C CNN
+F 3 "" H 4050 1750 50  0001 C CNN
+	1    4050 1750
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4250 1650 4050 1650
+Wire Wire Line
+	4050 1650 4050 1750
+$EndSCHEMATC

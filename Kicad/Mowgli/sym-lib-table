@@ -1,3 +1,4 @@
 (sym_lib_table
   (lib (name Kicad-PAC-Library)(type Legacy)(uri ${KIPRJMOD}/Kicad-PAC-Library.lib)(options "")(descr ""))
+  (lib (name Mowgli-rescue)(type Legacy)(uri ${KIPRJMOD}/Mowgli-rescue.lib)(options "")(descr ""))
 )

@@ -3,7 +3,7 @@ EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
-Sheet 3 9
+Sheet 3 10
 Title "Project Mowgli"
 Date "2022-05-22"
 Rev "1.0.1"
@@ -160,4 +160,12 @@ Text Notes 7700 3800 0    50   ~ 0
 (I2C Accelerometer)
 Text Notes 7650 3550 0    50   ~ 0
 (SPI3 Flash)
+Text HLabel 3700 3900 0    50   Output ~ 0
+CHARGE_LOW_SIDE_DRIVER
+Text HLabel 3700 4000 0    50   Output ~ 0
+CHARGE_HIGHSIDE_DRIVER
+Wire Wire Line
+	4450 3900 3700 3900
+Wire Wire Line
+	4450 4000 3700 4000
 $EndSCHEMATC

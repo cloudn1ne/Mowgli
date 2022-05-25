@@ -168,8 +168,6 @@ Wire Wire Line
 	4450 3900 3700 3900
 Wire Wire Line
 	4450 4000 3700 4000
-Text HLabel 7300 1700 2    50   Input ~ 0
-Charge_Voltage_(ANALOG,input)
 Wire Wire Line
 	7300 1700 6450 1700
 Text HLabel 7300 2200 2    50   Input ~ 0
@@ -198,8 +196,6 @@ Text HLabel 7300 1500 2    50   Output ~ 0
 (ghidra:output,pushpull,alternatefunc?)-also_analog_in?
 Wire Wire Line
 	6450 1400 7300 1400
-Text HLabel 7300 1600 2    50   Input ~ 0
-(ghidra:ANALOG,input)
 Wire Wire Line
 	7300 1600 6450 1600
 Wire Wire Line
@@ -207,7 +203,7 @@ Wire Wire Line
 Text HLabel 7300 1900 2    50   Input ~ 0
 (ghidra:ANALOG,input)
 Text HLabel 7300 2000 2    50   Input ~ 0
-(ghidra:ANALOG,input)
+(ghidra:ANALOG,input;PERIMETERSENSE)
 Text HLabel 7300 2100 2    50   Input ~ 0
 (ghidra:ANALOG,input)
 Wire Wire Line
@@ -269,7 +265,7 @@ Text HLabel 3650 5900 0    50   Output ~ 0
 Wire Wire Line
 	4450 5900 3650 5900
 Text HLabel 3700 3400 0    50   Output ~ 0
-(ghidra:output,pushpull)
+(CHARGE?;ghidra:output,pushpull)
 Wire Wire Line
 	4450 3400 3700 3400
 Text HLabel 3700 3500 0    50   Output ~ 0
@@ -280,4 +276,8 @@ Text HLabel 7300 1800 2    50   Input ~ 0
 (ghidra:input,floating)
 Wire Wire Line
 	7300 1800 6450 1800
+Text HLabel 7300 1700 2    50   Input ~ 0
+BatteryVoltage
+Text HLabel 7300 1600 2    50   Input ~ 0
+Charge_Voltage
 $EndSCHEMATC

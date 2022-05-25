@@ -49,6 +49,9 @@ UART_HandleTypeDef BLADEMOTOR_USART_Handler; // UART  Handle
 
 I2C_HandleTypeDef I2C_Handle;
 
+ADC_HandleTypeDef ADC_Handle;
+
+
 
 /* USER CODE END EC */
 
@@ -71,6 +74,7 @@ void DRIVEMOTORS_USART_Init();
 void BLADEMOTOR_USART_Init();
 void SystemClock_Config();
 void I2C_Init(void);
+static void ADC1_Init(void);
 
 
 void debug_printf(const char *fmt, ...);

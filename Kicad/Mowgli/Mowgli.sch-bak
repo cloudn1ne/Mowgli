@@ -368,6 +368,8 @@ Wire Wire Line
 	12300 3550 9500 3550
 Wire Wire Line
 	12300 3700 9500 3700
+Text Notes 10800 7150 0    50   Italic 10
+I2C1
 Wire Bus Line
 	6450 8750 6450 9050
 Wire Bus Line

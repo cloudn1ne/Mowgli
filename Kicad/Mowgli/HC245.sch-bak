@@ -328,4 +328,6 @@ Wire Wire Line
 	4600 4150 4100 4150
 Wire Wire Line
 	4600 4250 4100 4250
+Text Notes 4950 1350 0    118  ~ 0
+Jumper
 $EndSCHEMATC

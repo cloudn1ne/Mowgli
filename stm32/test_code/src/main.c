@@ -110,7 +110,7 @@ int main(void)
     uint8_t drivemotors_off[] = { 0x55, 0xaa, 0x8, 0x10, 0x80, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x97};
     
     char *data= "Hello from USB\r\n";
-    
+
     HAL_Init();
     SystemClock_Config();
 
@@ -125,7 +125,7 @@ int main(void)
     I2C_Init();
     ADC1_Init();
     TIM1_Init();   
-    MX_USB_DEVICE_Init();
+//    MX_USB_DEVICE_Init();
 
 /*
     
@@ -171,7 +171,7 @@ int main(void)
 
     
     uint8_t d=0;
-    while (1)
+    while (0)
     {
        
         charge_voltage =  ADC_ChargeVoltage();            
@@ -202,6 +202,7 @@ int main(void)
         d++;
     }
 
+    // receive messages via master serial port and send to blade/drive motor PAC
     while (1)
     {                
         HAL_Delay(10);

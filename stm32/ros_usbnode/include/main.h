@@ -43,17 +43,6 @@ extern "C" {
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
 
-UART_HandleTypeDef MASTER_USART_Handler; // UART  Handle
-UART_HandleTypeDef DRIVEMOTORS_USART_Handler; // UART  Handle
-UART_HandleTypeDef BLADEMOTOR_USART_Handler; // UART  Handle
-
-I2C_HandleTypeDef I2C_Handle;
-
-ADC_HandleTypeDef ADC_Handle;
-
-TIM_HandleTypeDef TIM1_Handle;
-
-
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/

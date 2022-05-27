@@ -29,6 +29,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_cdc.h"
 
+void cdc_receive_put(uint8_t value);
+
 /* USER CODE BEGIN INCLUDE */
 
 /* USER CODE END INCLUDE */

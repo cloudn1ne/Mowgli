@@ -1,10 +1,12 @@
 /*
- * Project Mowgli - STM32 Proxy Code 
+ * Project Mowgli - STM32 ROS SERIAL USB
  * (c) Cybernet / cn@warp.at
  * 
  *  Version 1.0 
  *  
  *  compile with -DBOARD_YARDFORCE500 to enable the YF500 GForce pinout
+ * 
+ * ROS part as shown here: https://github.com/Itamare4/ROS_stm32f1_rosserial_USB_VCP
  *  
  */
 
@@ -15,11 +17,14 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
-
+// stm32 custom
 #include "board.h"
 #include "lis3dh_reg.h"
 #include "usb_device.h"
 #include "usbd_cdc_if.h"
+// ros
+#include <cpp_main.h>
+#include "ringbuffer.h"
 
 static int32_t platform_write(void *handle, uint8_t reg, const uint8_t *bufp,
                               uint16_t len);
@@ -38,6 +43,14 @@ uint8_t  master_rx_STATUS = RX_WAIT;
 
 int    blade_motor = 0;
 uint8_t rcvd_data;
+
+UART_HandleTypeDef MASTER_USART_Handler; // UART  Handle
+UART_HandleTypeDef DRIVEMOTORS_USART_Handler; // UART  Handle
+UART_HandleTypeDef BLADEMOTOR_USART_Handler; // UART  Handle
+
+I2C_HandleTypeDef I2C_Handle;
+ADC_HandleTypeDef ADC_Handle;
+TIM_HandleTypeDef TIM1_Handle;
 
 
 /*
@@ -125,7 +138,18 @@ int main(void)
     I2C_Init();
     ADC1_Init();
     TIM1_Init();   
-//    MX_USB_DEVICE_Init();
+    MX_USB_DEVICE_Init();
+
+    debug_printf("\r\n============== Init Done ==============\r\n");    
+    HAL_Delay(1000);
+    init_ROS();
+    debug_printf("\r\n============== init_ROS Done ==============\r\n");    
+    while (1)
+    {
+         chatter_handler();
+         spinOnce();     
+    }
+
 
 /*
     
@@ -144,7 +168,7 @@ int main(void)
     #endif
 
     // HAL_UART_Receive_IT(&MASTER_USART_Handler, &rcvd_data, 1);
-    debug_printf("\r\n============== Init Done ==============\r\n");    
+
     HAL_GPIO_WritePin(LED_GPIO_PORT, LED_PIN, 1);
     HAL_GPIO_WritePin(TF4_GPIO_PORT, TF4_PIN, 1);
     HAL_GPIO_WritePin(PAC5223RESET_GPIO_PORT, PAC5223RESET_PIN, 1);     // take Blade PAC out of reset if HIGH

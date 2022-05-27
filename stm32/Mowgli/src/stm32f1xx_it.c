@@ -56,6 +56,7 @@
 
 /* External variables --------------------------------------------------------*/
 extern UART_HandleTypeDef MASTER_USART_Handler;
+extern PCD_HandleTypeDef hpcd_USB_FS;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -199,10 +200,11 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 
-#ifdef MASTER_J6  
+ 
 /**
   * @brief This function handles USART1 global interrupt.
   */
+#ifdef MASTER_J6 
   void USART1_IRQHandler(void)
   {
     /* USER CODE BEGIN USART1_IRQn 0 */
@@ -216,19 +218,37 @@ void SysTick_Handler(void)
   }
 #endif
 
+
 /**
   * @brief This function handles UART4 global interrupt.
   */
-void UART4_IRQHandler(void)
+#ifdef MASTER_J18
+  void UART4_IRQHandler(void)
+  {
+    /* USER CODE BEGIN UART1_IRQn 0 */
+
+    /* USER CODE END UART1_IRQn 0 */
+    HAL_UART_IRQHandler(&MASTER_USART_Handler);
+
+    /* USER CODE BEGIN UART1_IRQn 1 */
+
+    /* USER CODE END UART1_IRQn 1 */
+  }
+#endif
+
+
+/**
+  * @brief This function handles USB low priority or CAN RX0 interrupts.
+  */
+void USB_LP_CAN1_RX0_IRQHandler(void)
 {
-  /* USER CODE BEGIN UART1_IRQn 0 */
+  /* USER CODE BEGIN USB_LP_CAN1_RX0_IRQn 0 */
 
-  /* USER CODE END UART1_IRQn 0 */
-  HAL_UART_IRQHandler(&MASTER_USART_Handler);
+  /* USER CODE END USB_LP_CAN1_RX0_IRQn 0 */
+  HAL_PCD_IRQHandler(&hpcd_USB_FS);
+  /* USER CODE BEGIN USB_LP_CAN1_RX0_IRQn 1 */
 
-  /* USER CODE BEGIN UART1_IRQn 1 */
-
-  /* USER CODE END UART1_IRQn 1 */
+  /* USER CODE END USB_LP_CAN1_RX0_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

@@ -252,19 +252,21 @@ int main(void)
     {
         chatter_handler();
         drivemotors_handler();
-        spinOnce();     
         
+        spinOnce();     
         ChargeController();
 
         if (drivemotors_rx_STATUS == RX_VALID)                    // valid frame received by DRIVEMOTORS USART
         {
-              msgPrint(drivemotors_rx_buf, drivemotors_rx_buf_idx);
-              drivemotors_rx_buf_idx = 0;
-              drivemotors_rx_STATUS = RX_WAIT;                    // ready for next message            
-              HAL_GPIO_TogglePin(LED_GPIO_PORT, LED_PIN);         // flash LED             
-//              HAL_UART_Receive_IT(&DRIVEMOTORS_USART_Handler, &rcvd_data, 1);   // rearm interrupt                    
-        }        
-
+            if (drivemotors_rx_buf[5]>>4)       // stuff is moving
+            {
+              msgPrint(drivemotors_rx_buf, drivemotors_rx_buf_idx);             
+            }                    
+            drivemotors_rx_buf_idx = 0;
+            drivemotors_rx_STATUS = RX_WAIT;                    // ready for next message            
+            HAL_GPIO_TogglePin(LED_GPIO_PORT, LED_PIN);         // flash LED             
+        }     
+        broadcast_handler();   
     }
 
     // not used below this in main()

@@ -8,6 +8,9 @@
 #include "stm32f1xx_hal.h"
 #include "ringbuffer.h"
 #include "ros.h"
+#include "ros/time.h"
+#include "tf/tf.h"
+#include "tf/transform_broadcaster.h"
 #include "std_msgs/String.h"
 #include "std_msgs/Float32.h"
 #include "std_msgs/Int16.h"
@@ -33,6 +36,17 @@ static uint8_t right_dir=0;
 
 ros::NodeHandle nh;
 
+// TF
+geometry_msgs::TransformStamped t;
+tf::TransformBroadcaster broadcaster;
+char base_link[] = "/base_link";
+char odom[] = "/odom";
+
+double x = 1.0;
+double y = 0.0;
+double theta = 1.57;
+
+
 // std_msgs::String str_msg;
 std_msgs::Float32 f32_battery_voltage_msg;
 std_msgs::Float32 f32_charge_voltage_msg;
@@ -52,9 +66,13 @@ ros::Publisher pubChargePWM("charge_pwm", &int16_charge_pwm_msg);
 extern "C" void CommandVelocityMessageCb(const geometry_msgs::Twist& msg);
 ros::Subscriber<geometry_msgs::Twist> subCommandVelocity("cmd_vel", CommandVelocityMessageCb);
 
+/*
+ * NON BLOCKING TIMERS
+ */
 static nbt_t ros_nbt;
 static nbt_t publish_nbt;
 static nbt_t drivemotors_nbt;
+static nbt_t broadcast_nbt;
 
 
 extern "C" void CommandVelocityMessageCb(const geometry_msgs::Twist& msg)
@@ -113,14 +131,20 @@ extern "C" void init_ROS()
 	// Initialize ROS
 	nh.initNode();
 
+	// Initialize TF Broadcaster
+	broadcaster.init(nh);
+
+	// Initialize Pubs/Subs
 //	nh.advertise(chatter);
 	nh.advertise(pubBatteryVoltage);
 	nh.advertise(pubChargeVoltage);
 	nh.advertise(pubChargePWM);
 	nh.subscribe(subCommandVelocity);
 
+	// Initialize Timers
 	NBT_init(&publish_nbt, 1000);
 	NBT_init(&drivemotors_nbt, 100);
+	NBT_init(&broadcast_nbt, 100);
 	NBT_init(&ros_nbt, 10);	
 }
 
@@ -151,13 +175,31 @@ extern "C" void chatter_handler()
 extern "C" void drivemotors_handler()
 {
 	  if (NBT_handler(&drivemotors_nbt))
-	  {
-		 //left_dir = 1;
-		 //right_dir = 1;
-		 //left_speed = 0xFF;
-		 //right_speed = 0xFF;
+	  {	
+		setDriveMotors(left_speed, right_speed, left_dir, right_dir);
+	  }
+}
 
-		 setDriveMotors(left_speed, right_speed, left_dir, right_dir);
+extern "C" void broadcast_handler()
+{
+	  if (NBT_handler(&broadcast_nbt))
+	  {
+		double dx = 0.2;
+		double dtheta = 0.18;
+
+		x += cos(theta)*dx*0.1;
+		y += sin(theta)*dx*0.1;
+		theta += dtheta*0.1;
+		if (theta > 3.14)
+		  	theta = -3.14;
+		t.header.frame_id = odom;
+		t.child_frame_id = base_link;
+		t.transform.translation.x = x;
+		t.transform.translation.y = y;
+		t.transform.rotation = tf::createQuaternionFromYaw(theta);
+		t.header.stamp = nh.now();
+		
+		broadcaster.sendTransform(t);		
 	  }
 }
 

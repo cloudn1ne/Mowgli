@@ -54,84 +54,63 @@ I2C_HandleTypeDef I2C_Handle;
 ADC_HandleTypeDef ADC_Handle;
 TIM_HandleTypeDef TIM1_Handle;
 
+void msgPrint(uint8_t *msg, uint8_t msg_len)
+{
+     int i;
+     debug_printf("tx: ");
+     for (i=0;i<msg_len;i++)
+     {
+        debug_printf(" %02x", msg[i]);
+     }            
+     debug_printf("\r\n");
+}
 
-/*
- * Master UART receive ISR
- */ 
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{    
-       if (huart->Instance == MASTER_USART_INSTANCE)
-       {
-           if (master_rx_buf_idx == 0 && rcvd_data == 0x55)           /* PREAMBLE */  
-           {                                  
-               master_rx_buf_crc = rcvd_data;        
-               master_rx_buf[master_rx_buf_idx++] = rcvd_data;                                   
-           }           
-           else if (master_rx_buf_idx == 1 && rcvd_data == 0xAA)        /* PREAMBLE */    
-           {                   
-               master_rx_buf_crc += rcvd_data;
-               master_rx_buf[master_rx_buf_idx++] = rcvd_data;               
-           }
-           else if (master_rx_buf_idx == 2) /* LEN */
-           {    
-               master_rx_LENGTH = rcvd_data;
-               master_rx_buf[master_rx_buf_idx++] = rcvd_data;               
-               master_rx_buf_crc += rcvd_data;                              
-           }
-           else if (master_rx_buf_idx >= 3 && master_rx_buf_idx <= 2+master_rx_LENGTH) /* DATA bytes */
-           {
-               master_rx_buf[master_rx_buf_idx] = rcvd_data;
-               master_rx_buf_idx++;
-               master_rx_buf_crc += rcvd_data;               
-           }
-           else if (master_rx_buf_idx >= 3+master_rx_LENGTH)    /* CRC byte */
-           {
-               master_rx_CRC = rcvd_data;
-               master_rx_buf[master_rx_buf_idx] = rcvd_data;
-               master_rx_buf_idx++;               
-               if (master_rx_buf_crc == rcvd_data)
-               {                   
-                   // message valid, reader must set back STATUS to RX_WAIT
-                   master_rx_STATUS = RX_VALID;
-                   //master_rx_buf_idx = 0;
-               }
-               else
-               {                   
-                   // crc failed, reader must set back STATUS to RX_WAIT
-                   master_rx_STATUS = RX_CRC_ERROR;                   
-                   master_rx_buf_idx = 0;
-               }
-           }
-           else
-           {
-               master_rx_STATUS = RX_WAIT;
-               master_rx_buf_idx = 0;               
-           }
-           
-           HAL_UART_Receive_IT(&MASTER_USART_Handler, &rcvd_data, 1);   // rearm interrupt
-       }
+uint8_t crcCalc(uint8_t *msg, uint8_t msg_len)
+{
+    uint8_t crc = 0x0;
+    uint8_t i;
+
+    for (i=0;i<msg_len;i++)
+    {
+        crc += msg[i];
+    }
+    return(crc);
 }
 
 /*
- * manages the charge voltage, needs to be called frequently
+ * <xxx>_speed = 0x - 0xFF
+ * <xxx>_dir = 1 = CW, 1 != CCW
  */
-void ChargeController(void)
-{        
-        float_t charge_voltage;
-
-        charge_voltage =  ADC_ChargeVoltage();            
-        // set PWM to approach 29.4V charge voltage         
-        if ((charge_voltage < 29.4) && (chargecontrol_pwm_val < 1350))
-        {
-            chargecontrol_pwm_val++;
-        }
-        if ((charge_voltage > 29.4) && (chargecontrol_pwm_val > 50))
-        {
-            chargecontrol_pwm_val--;
-        }
-        TIM1->CCR1 = chargecontrol_pwm_val;             
+void setDriveMotors(uint8_t left_speed, uint8_t right_speed, uint8_t left_dir, uint8_t right_dir)
+{
+    uint8_t direction = 0x0;            
+    uint8_t drivemotors_msg[DRIVEMOTORS_MSG_LEN] =  { 0x55, 0xaa, 0x8, 0x10, 0x80, direction, right_speed, left_speed, 0x0, 0x0, 0x0};
+    
+    // calc direction bits
+    if (left_dir == 0)
+    {
+        direction |= (0x20 + 0x10);
+    }
+    else
+    {
+        direction |= 0x20;
+    }
+    if (right_dir == 0)
+    {
+        direction |= (0x40 + 0x80);        
+    }
+    else
+    {
+        direction |= 0x80;
+    }
+    // update direction byte in message
+    drivemotors_msg[5] = direction;
+    // calc crc
+    drivemotors_msg[DRIVEMOTORS_MSG_LEN-1] = crcCalc(drivemotors_msg, DRIVEMOTORS_MSG_LEN-1);
+  // msgPrint(drivemotors_msg, DRIVEMOTORS_MSG_LEN);
+    // transmit
+    HAL_UART_Transmit(&DRIVEMOTORS_USART_Handler, drivemotors_msg, DRIVEMOTORS_MSG_LEN, HAL_MAX_DELAY);
 }
-
 
 int main(void)
 {    
@@ -160,8 +139,35 @@ int main(void)
     TIM1_Init();   
     MX_USB_DEVICE_Init();
 
+    // ADC Timer
     HAL_TIM_PWM_Start(&TIM1_Handle, TIM_CHANNEL_1);
     HAL_TIMEx_PWMN_Start(&TIM1_Handle, TIM_CHANNEL_1);
+    // Init Drive Motors and Blade Motor
+
+    #ifdef DRIVEMOTORS_USART_ENABLED
+        DRIVEMOTORS_USART_Init();
+    #endif
+    #ifdef BLADEMOTOR_USART_ENABLED
+        BLADEMOTOR_USART_Init();
+    #endif
+
+    // HAL_UART_Receive_IT(&MASTER_USART_Handler, &rcvd_data, 1);
+
+    HAL_GPIO_WritePin(LED_GPIO_PORT, LED_PIN, 1);
+    HAL_GPIO_WritePin(TF4_GPIO_PORT, TF4_PIN, 1);
+    HAL_GPIO_WritePin(PAC5223RESET_GPIO_PORT, PAC5223RESET_PIN, 1);     // take Blade PAC out of reset if HIGH
+    HAL_GPIO_WritePin(PAC5210RESET_GPIO_PORT, PAC5210RESET_PIN, 0);     // take Drive Motor PAC out of reset if LOW
+
+    // send some init messages - needs further investigation, drivemotors are happy without it
+    HAL_UART_Transmit(&DRIVEMOTORS_USART_Handler, drivemotors_init, 12, HAL_MAX_DELAY);
+    HAL_Delay(100);
+    HAL_UART_Transmit(&DRIVEMOTORS_USART_Handler, drivemotors_init, 12, HAL_MAX_DELAY);
+    HAL_Delay(100);
+
+    HAL_UART_Transmit(&BLADEMOTOR_USART_Handler, blademotor_init, 22, HAL_MAX_DELAY);
+    HAL_Delay(100);
+    HAL_UART_Transmit(&BLADEMOTOR_USART_Handler, blademotor_init, 22, HAL_MAX_DELAY);
+    HAL_Delay(100);
 
 
     debug_printf("\r\n============== Init Done ==============\r\n");    
@@ -171,10 +177,13 @@ int main(void)
     while (1)
     {
          chatter_handler();
+         drivemotors_handler();
          spinOnce();     
-
+        
          ChargeController();
     }
+
+    // not used below this in main()
 
 
     #ifdef DRIVEMOTORS_USART_ENABLED
@@ -942,6 +951,83 @@ void I2C_Test(void)
             debug_printf("Temperature [degC]:%6.2f\r\n", temperature_degC);
         }
     }
+}
+
+/*
+ * manages the charge voltage, needs to be called frequently
+ */
+void ChargeController(void)
+{        
+        float_t charge_voltage;
+
+        charge_voltage =  ADC_ChargeVoltage();            
+        // set PWM to approach 29.4V charge voltage         
+        if ((charge_voltage < 29.4) && (chargecontrol_pwm_val < 1350))
+        {
+            chargecontrol_pwm_val++;
+        }
+        if ((charge_voltage > 29.4) && (chargecontrol_pwm_val > 50))
+        {
+            chargecontrol_pwm_val--;
+        }
+        TIM1->CCR1 = chargecontrol_pwm_val;             
+}
+
+/*
+ * Master UART receive ISR
+ */ 
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{    
+       if (huart->Instance == MASTER_USART_INSTANCE)
+       {
+           if (master_rx_buf_idx == 0 && rcvd_data == 0x55)           /* PREAMBLE */  
+           {                                  
+               master_rx_buf_crc = rcvd_data;        
+               master_rx_buf[master_rx_buf_idx++] = rcvd_data;                                   
+           }           
+           else if (master_rx_buf_idx == 1 && rcvd_data == 0xAA)        /* PREAMBLE */    
+           {                   
+               master_rx_buf_crc += rcvd_data;
+               master_rx_buf[master_rx_buf_idx++] = rcvd_data;               
+           }
+           else if (master_rx_buf_idx == 2) /* LEN */
+           {    
+               master_rx_LENGTH = rcvd_data;
+               master_rx_buf[master_rx_buf_idx++] = rcvd_data;               
+               master_rx_buf_crc += rcvd_data;                              
+           }
+           else if (master_rx_buf_idx >= 3 && master_rx_buf_idx <= 2+master_rx_LENGTH) /* DATA bytes */
+           {
+               master_rx_buf[master_rx_buf_idx] = rcvd_data;
+               master_rx_buf_idx++;
+               master_rx_buf_crc += rcvd_data;               
+           }
+           else if (master_rx_buf_idx >= 3+master_rx_LENGTH)    /* CRC byte */
+           {
+               master_rx_CRC = rcvd_data;
+               master_rx_buf[master_rx_buf_idx] = rcvd_data;
+               master_rx_buf_idx++;               
+               if (master_rx_buf_crc == rcvd_data)
+               {                   
+                   // message valid, reader must set back STATUS to RX_WAIT
+                   master_rx_STATUS = RX_VALID;
+                   //master_rx_buf_idx = 0;
+               }
+               else
+               {                   
+                   // crc failed, reader must set back STATUS to RX_WAIT
+                   master_rx_STATUS = RX_CRC_ERROR;                   
+                   master_rx_buf_idx = 0;
+               }
+           }
+           else
+           {
+               master_rx_STATUS = RX_WAIT;
+               master_rx_buf_idx = 0;               
+           }
+           
+           HAL_UART_Receive_IT(&MASTER_USART_Handler, &rcvd_data, 1);   // rearm interrupt
+       }
 }
 
 /*

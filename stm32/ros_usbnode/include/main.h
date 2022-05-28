@@ -53,6 +53,8 @@ float ADC_BatteryVoltage();
 float ADC_ChargeVoltage();
 float ADC_ChargeCurrent();
 extern uint16_t chargecontrol_pwm_val;
+void ChargeController(void);
+void setDriveMotors(uint8_t left_speed, uint8_t right_speed, uint8_t left_dir, uint8_t right_dir);
 
 /* USER CODE END EM */
 

@@ -14,8 +14,20 @@
 #include "nbt.h"
 #include "geometry_msgs/Twist.h"
 
+#define MAX_MPS	  	0.6		 	// Allow maximum speed of 0.6 m/s 
+#define PWM_PER_MPS 	300		// PWM value of 300 means 1 m/s bot speed
+
+#define WHEEL_BASE  0.325		// The distance between the center of the wheels in meters
+#define WHEEL_DIAMETER 0.198 	// The diameter of the wheels in meters
+
 extern uint8_t RxBuffer[RxBufferSize];
 struct ringbuffer rb;
+
+// drive motor control
+static uint8_t left_speed=0;
+static uint8_t right_speed=0;
+static uint8_t left_dir=0;
+static uint8_t right_dir=0;
 
 ros::NodeHandle nh;
 
@@ -38,14 +50,53 @@ ros::Publisher pubChargePWM("charge_pwm", &int16_charge_pwm_msg);
 extern "C" void CommandVelocityMessageCb(const geometry_msgs::Twist& msg);
 ros::Subscriber<geometry_msgs::Twist> subCommandVelocity("cmd_vel", CommandVelocityMessageCb);
 
-static nbt_t publish_nbt;
 static nbt_t ros_nbt;
+static nbt_t publish_nbt;
+static nbt_t drivemotors_nbt;
 
 
 extern "C" void CommandVelocityMessageCb(const geometry_msgs::Twist& msg)
 {
 		//Fill subscriber
 		debug_printf("x: %f  z: %f\r\n", msg.linear.x, msg.angular.z);
+
+		// calculate twist speeds to add/substract 
+		float left_twist_mps = -1.0 * msg.angular.z * WHEEL_BASE / WHEEL_DIAMETER / 10;
+		float right_twist_mps = msg.angular.z * WHEEL_BASE / WHEEL_DIAMETER / 10;
+    
+
+		// add them to the linear speed 
+		float left_mps = msg.linear.x + left_twist_mps;
+        float right_mps = msg.linear.x + right_twist_mps;
+
+		// cap left motor speed to MAX_MPS
+		if (left_mps > MAX_MPS)
+		{
+			left_mps = MAX_MPS;
+		}
+		else if (left_mps < -1*MAX_MPS)
+		{
+			left_mps = -1*MAX_MPS;
+		}
+		// cap right motor speed to MAX_MPS
+		if (right_mps > MAX_MPS)
+		{
+			right_mps = MAX_MPS;
+		}
+		else if (right_mps < -1*MAX_MPS)
+		{
+			right_mps = -1*MAX_MPS;
+		}
+
+		// set directions		
+		left_dir = (left_mps >= 0)?1:0;
+		right_dir = (right_mps >= 0)?1:0;
+
+		// set drivemotors PWM values
+		left_speed = abs(left_mps * PWM_PER_MPS);
+		right_speed = abs(right_mps * PWM_PER_MPS);		
+
+		debug_printf("left_mps: %f (%c)  right_mps: %f (%c)\r\n", left_mps, left_dir?'F':'R', right_mps, right_dir?'F':'R');
 }
 
 extern "C" void cdc_receive_put(uint8_t value)
@@ -67,6 +118,7 @@ extern "C" void init_ROS()
 	nh.subscribe(subCommandVelocity);
 
 	NBT_init(&publish_nbt, 1000);
+	NBT_init(&drivemotors_nbt, 100);
 	NBT_init(&ros_nbt, 10);	
 }
 
@@ -88,6 +140,19 @@ extern "C" void chatter_handler()
 
 		  int16_charge_pwm_msg.data = chargecontrol_pwm_val;
 		  pubChargePWM.publish(&int16_charge_pwm_msg);
+	  }
+}
+
+extern "C" void drivemotors_handler()
+{
+	  if (NBT_handler(&drivemotors_nbt))
+	  {
+		 //left_dir = 1;
+		 //right_dir = 1;
+		 //left_speed = 0xFF;
+		 //right_speed = 0xFF;
+
+		 setDriveMotors(left_speed, right_speed, left_dir, right_dir);
 	  }
 }
 

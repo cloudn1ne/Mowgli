@@ -52,11 +52,17 @@ void ADC_Test();
 float ADC_BatteryVoltage();
 float ADC_ChargeVoltage();
 float ADC_ChargeCurrent();
-extern uint16_t chargecontrol_pwm_val;
 void ChargeController(void);
 void setDriveMotors(uint8_t left_speed, uint8_t right_speed, uint8_t left_dir, uint8_t right_dir);
 uint8_t crcCalc(uint8_t *msg, uint8_t msg_len);
 void msgPrint(uint8_t *msg, uint8_t msg_len);
+
+
+extern uint16_t chargecontrol_pwm_val;
+extern int16_t  right_wheel_speed_val;
+extern int16_t  left_wheel_speed_val;
+extern uint16_t right_encoder_val;
+extern uint16_t left_encoder_val;
 
 /* USER CODE END EM */
 

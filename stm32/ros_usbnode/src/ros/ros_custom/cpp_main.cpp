@@ -14,16 +14,19 @@
 #include "std_msgs/String.h"
 #include "std_msgs/Float32.h"
 #include "std_msgs/Int16.h"
+#include "nav_msgs/Odometry.h"
 #include "nbt.h"
 #include "geometry_msgs/Twist.h"
 
 #include "board.h"
 
 #define MAX_MPS	  	0.6		 	// Allow maximum speed of 0.6 m/s 
-#define PWM_PER_MPS 	300		// PWM value of 300 means 1 m/s bot speed
+#define PWM_PER_MPS 300.0		// PWM value of 300 means 1 m/s bot speed
 
 #define WHEEL_BASE  0.325		// The distance between the center of the wheels in meters
 #define WHEEL_DIAMETER 0.198 	// The diameter of the wheels in meters
+
+#define BROADCAST_NBT_TIME_MS 50 	// 50ms interval where we set drive motors and read back values
 
 extern uint8_t RxBuffer[RxBufferSize];
 struct ringbuffer rb;
@@ -37,20 +40,52 @@ static uint8_t right_dir=0;
 ros::NodeHandle nh;
 
 // TF
+geometry_msgs::Quaternion quat;
 geometry_msgs::TransformStamped t;
 tf::TransformBroadcaster broadcaster;
 char base_link[] = "/base_link";
 char odom[] = "/odom";
 
+//double radius = 0.04;                              //Wheel radius, in m
+//double wheelbase = 0.187;                          //Wheelbase, in m
+double two_pi = 6.28319;
+double speed_act_left = 0.0;
+double speed_act_right = 0.0;
+double speed_req1 = 0.0;
+double speed_req2 = 0.0;
+double speed_dt = 0.0;
+double x_pos = 0.0;
+double y_pos = 0.0;
+double theta = 0.0;
+ros::Time current_time;
+// ros::Time speed_time;
+// ---
+double rate = 10.0;
+double linear_scale_positive = 1.0;
+double linear_scale_negative = 1.0;
+double angular_scale_positive = 1.0;
+double angular_scale_negative = 1.0;
+bool publish_tf = true;
+double dt = 0.0;
+double dx = 0.0;
+double dy = 0.0;
+double dth = 0.0;
+double dxy = 0.0;
+double vx = 0.0;
+double vy = 0.0;
+// double vth = 0.0;
+// ros::Duration d(0,1000000);
+/*
 double x = 1.0;
 double y = 0.0;
 double theta = 1.57;
-
+*/
 
 // std_msgs::String str_msg;
 std_msgs::Float32 f32_battery_voltage_msg;
 std_msgs::Float32 f32_charge_voltage_msg;
 std_msgs::Int16 int16_charge_pwm_msg;
+nav_msgs::Odometry odom_msg;
 
 /*
  * PUBLISHERS
@@ -59,6 +94,7 @@ std_msgs::Int16 int16_charge_pwm_msg;
 ros::Publisher pubBatteryVoltage("battery_voltage", &f32_battery_voltage_msg);
 ros::Publisher pubChargeVoltage("charge_voltage", &f32_charge_voltage_msg);
 ros::Publisher pubChargePWM("charge_pwm", &int16_charge_pwm_msg);
+ros::Publisher pubOdom("odom", &odom_msg);
 
 /*
  * SUBSCRIBERS
@@ -139,12 +175,13 @@ extern "C" void init_ROS()
 	nh.advertise(pubBatteryVoltage);
 	nh.advertise(pubChargeVoltage);
 	nh.advertise(pubChargePWM);
+	nh.advertise(pubOdom);
 	nh.subscribe(subCommandVelocity);
 
 	// Initialize Timers
 	NBT_init(&publish_nbt, 1000);
-	NBT_init(&drivemotors_nbt, 100);
-	NBT_init(&broadcast_nbt, 100);
+	NBT_init(&drivemotors_nbt, BROADCAST_NBT_TIME_MS);
+	NBT_init(&broadcast_nbt, BROADCAST_NBT_TIME_MS);
 	NBT_init(&ros_nbt, 10);	
 }
 
@@ -183,7 +220,99 @@ extern "C" void drivemotors_handler()
 extern "C" void broadcast_handler()
 {
 	  if (NBT_handler(&broadcast_nbt))
-	  {
+	  {		
+		// z = BROADCAST_NBT_TIME_MS/1000;
+		// x = right_wheel_speed_val;
+		// y = left_wheel_speed_val;
+		current_time = nh.now();
+		//////////////////////////////////////////////////
+		// TF message
+		//////////////////////////////////////////////////
+		speed_act_left = left_wheel_speed_val/PWM_PER_MPS;			// wheel speed in m/s
+		speed_act_right = right_wheel_speed_val/PWM_PER_MPS;			// wheel speed in m/s
+		debug_printf("speed_act_left: %f speed_act_right: %f\r\n",  speed_act_left, speed_act_right);		
+		dt = (BROADCAST_NBT_TIME_MS/1000.0);
+		dxy = (speed_act_left+speed_act_right)*dt/2.0;
+		dth = ((speed_act_right-speed_act_left)*dt)/WHEEL_BASE;
+
+	//	debug_printf("dt: %f dxy: %f dth: %f\r\n",  dt, dxy, dth);		
+
+		if (dth > 0) dth *= angular_scale_positive;
+    	if (dth < 0) dth *= angular_scale_negative;
+    	if (dxy > 0) dxy *= linear_scale_positive;
+    	if (dxy < 0) dxy *= linear_scale_negative;
+
+    	dx = cos(dth) * dxy;
+    	dy = sin(dth) * dxy;
+
+    	x_pos += (cos(theta) * dx - sin(theta) * dy);
+    	y_pos += (sin(theta) * dx + cos(theta) * dy);
+    	theta += dth;
+
+    	if(theta >= two_pi) theta -= two_pi;
+    	if(theta <= -two_pi) theta += two_pi;
+
+		quat = tf::createQuaternionFromYaw(theta);
+		if(publish_tf) {
+			geometry_msgs::TransformStamped t;						
+			t.header.frame_id = odom;
+			t.child_frame_id = base_link;
+			t.transform.translation.x = x_pos;
+			t.transform.translation.y = y_pos;
+			t.transform.translation.z = 0.0;
+			t.transform.rotation = quat;
+			t.header.stamp = current_time;					
+			broadcaster.sendTransform(t);			
+		}
+		//////////////////////////////////////////////////
+		// odom message
+		//////////////////////////////////////////////////
+		odom_msg.header.stamp = current_time;
+		odom_msg.header.frame_id = odom;
+		odom_msg.pose.pose.position.x = x_pos;
+		odom_msg.pose.pose.position.y = y_pos;
+		odom_msg.pose.pose.position.z = 0.0;
+		odom_msg.pose.pose.orientation = quat;
+		if (speed_act_left == 0 && speed_act_right == 0){
+			odom_msg.pose.covariance[0] = 1e-9;
+			odom_msg.pose.covariance[7] = 1e-3;
+			odom_msg.pose.covariance[8] = 1e-9;
+			odom_msg.pose.covariance[14] = 1e6;
+			odom_msg.pose.covariance[21] = 1e6;
+			odom_msg.pose.covariance[28] = 1e6;
+			odom_msg.pose.covariance[35] = 1e-9;
+			odom_msg.twist.covariance[0] = 1e-9;
+			odom_msg.twist.covariance[7] = 1e-3;
+			odom_msg.twist.covariance[8] = 1e-9;
+			odom_msg.twist.covariance[14] = 1e6;
+			odom_msg.twist.covariance[21] = 1e6;
+			odom_msg.twist.covariance[28] = 1e6;
+			odom_msg.twist.covariance[35] = 1e-9;
+		}
+		else{
+			odom_msg.pose.covariance[0] = 1e-3;
+			odom_msg.pose.covariance[7] = 1e-3;
+			odom_msg.pose.covariance[8] = 0.0;
+			odom_msg.pose.covariance[14] = 1e6;
+			odom_msg.pose.covariance[21] = 1e6;
+			odom_msg.pose.covariance[28] = 1e6;
+			odom_msg.pose.covariance[35] = 1e3;
+			odom_msg.twist.covariance[0] = 1e-3;
+			odom_msg.twist.covariance[7] = 1e-3;
+			odom_msg.twist.covariance[8] = 0.0;
+			odom_msg.twist.covariance[14] = 1e6;
+			odom_msg.twist.covariance[21] = 1e6;
+			odom_msg.twist.covariance[28] = 1e6;
+			odom_msg.twist.covariance[35] = 1e3;
+		}
+		vx = (dt == 0)?  0 : (speed_act_left+speed_act_right)/2.0;
+	//	vth = (dt == 0)? 0 : (speed_act_right-speed_act_left)/WHEEL_BASE;
+		odom_msg.child_frame_id = base_link;
+		odom_msg.twist.twist.linear.x = vx;
+		odom_msg.twist.twist.linear.y = 0.0;
+		odom_msg.twist.twist.angular.z = dth;
+		pubOdom.publish(&odom_msg);
+/*
 		double dx = 0.2;
 		double dtheta = 0.18;
 
@@ -200,6 +329,7 @@ extern "C" void broadcast_handler()
 		t.header.stamp = nh.now();
 		
 		broadcaster.sendTransform(t);		
+*/		
 	  }
 }
 

@@ -52,11 +52,14 @@ uint8_t  master_rx_buf_crc = 0;
 uint8_t  master_rx_LENGTH = 0;
 uint8_t  master_rx_CRC = 0;
 uint8_t  master_rx_STATUS = RX_WAIT;
-
 int    blade_motor = 0;
 
 
 uint16_t chargecontrol_pwm_val=50;
+uint16_t right_encoder_val=0;
+uint16_t left_encoder_val=0;
+int16_t right_wheel_speed_val=0;
+int16_t left_wheel_speed_val=0;
 
 UART_HandleTypeDef MASTER_USART_Handler; // UART  Handle
 UART_HandleTypeDef DRIVEMOTORS_USART_Handler; // UART  Handle
@@ -258,9 +261,32 @@ int main(void)
 
         if (drivemotors_rx_STATUS == RX_VALID)                    // valid frame received by DRIVEMOTORS USART
         {
+            uint8_t direction = drivemotors_rx_buf[5];
+
+            // we need to adjust for direction (+/-) !
+            if ((direction & 0x30) == 0x30)
+            {            
+                left_wheel_speed_val = -1 * drivemotors_rx_buf[7];
+            }
+            else 
+            {
+                left_wheel_speed_val =  drivemotors_rx_buf[7];
+            }
+            if ( (direction & 0xc0) == 0xc0)
+            {            
+                right_wheel_speed_val = -1 * drivemotors_rx_buf[6];
+            }
+            else 
+            {
+                right_wheel_speed_val =  drivemotors_rx_buf[6];
+            }
+            
+            
+            left_encoder_val = drivemotors_rx_buf[16]<<8+drivemotors_rx_buf[15];
+            right_encoder_val = drivemotors_rx_buf[14]<<8+drivemotors_rx_buf[13];            
             if (drivemotors_rx_buf[5]>>4)       // stuff is moving
             {
-              msgPrint(drivemotors_rx_buf, drivemotors_rx_buf_idx);             
+           //    msgPrint(drivemotors_rx_buf, drivemotors_rx_buf_idx);             
             }                    
             drivemotors_rx_buf_idx = 0;
             drivemotors_rx_STATUS = RX_WAIT;                    // ready for next message            
@@ -269,7 +295,26 @@ int main(void)
         broadcast_handler();   
     }
 
+
+
+
+
+
+
+
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // not used below this in main()
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
 
 
     #ifdef DRIVEMOTORS_USART_ENABLED

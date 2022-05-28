@@ -1,4 +1,12 @@
 
+#ifndef __BOARD_H
+#define __BOARD_H
+
+/*
+ * at the moment this really only works for BOARD_YARDFORCE500
+ * the bluepill config is broken because it hasnt been used in a while - will be fixed later or removed ;-)
+ *
+ */
 
 /********************************************************************************
 * YARDFORCE 500 MAINBOARD
@@ -38,6 +46,7 @@
     #define CHARGE_GPIO_PORT GPIOE
     #define CHARGE_GPIO_CLK_ENABLE() __HAL_RCC_GPIOE_CLK_ENABLE();
     
+    /* either J6 or J18 can be the master USART port */
 #ifdef MASTER_J6    
     /* USART1 (J6 Pin 1 (TX) Pin 2 (RX)) */    
     #define MASTER_USART_INSTANCE USART1
@@ -163,3 +172,6 @@
         #define BLADEMOTOR_USART_USART_CLK_ENABLE() __HAL_RCC_USART3_CLK_ENABLE()
     #endif 
 #endif // BOARD_BLUEPILL
+
+
+#endif /* __BOARD_H */

@@ -14,6 +14,8 @@
 #include "nbt.h"
 #include "geometry_msgs/Twist.h"
 
+#include "board.h"
+
 #define MAX_MPS	  	0.6		 	// Allow maximum speed of 0.6 m/s 
 #define PWM_PER_MPS 	300		// PWM value of 300 means 1 m/s bot speed
 
@@ -140,6 +142,9 @@ extern "C" void chatter_handler()
 
 		  int16_charge_pwm_msg.data = chargecontrol_pwm_val;
 		  pubChargePWM.publish(&int16_charge_pwm_msg);
+
+		
+		  HAL_GPIO_TogglePin(LED_GPIO_PORT, LED_PIN);         // flash LED
 	  }
 }
 

@@ -20,6 +20,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f1xx_it.h"
+#include "board.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 /* USER CODE END Includes */
@@ -56,6 +57,7 @@
 
 /* External variables --------------------------------------------------------*/
 extern UART_HandleTypeDef MASTER_USART_Handler;
+extern UART_HandleTypeDef DRIVEMOTORS_USART_Handler;
 extern PCD_HandleTypeDef hpcd_USB_FS;
 /* USER CODE BEGIN EV */
 
@@ -204,7 +206,6 @@ void SysTick_Handler(void)
 /**
   * @brief This function handles USART1 global interrupt.
   */
-#ifdef MASTER_J6 
   void USART1_IRQHandler(void)
   {
     /* USER CODE BEGIN USART1_IRQn 0 */
@@ -216,13 +217,27 @@ void SysTick_Handler(void)
 
     /* USER CODE END USART1_IRQn 1 */
   }
-#endif
+
+/**
+  * @brief This function handles UART global interrupt.
+  */
+  void USART2_IRQHandler(void)
+  {
+    /* USER CODE BEGIN UART1_IRQn 0 */
+
+    /* USER CODE END UART1_IRQn 0 */
+     HAL_UART_IRQHandler(&DRIVEMOTORS_USART_Handler);
+   
+
+    /* USER CODE BEGIN UART1_IRQn 1 */
+
+    /* USER CODE END UART1_IRQn 1 */
+  }
 
 
 /**
   * @brief This function handles UART4 global interrupt.
   */
-#ifdef MASTER_J18
   void UART4_IRQHandler(void)
   {
     /* USER CODE BEGIN UART1_IRQn 0 */
@@ -234,7 +249,7 @@ void SysTick_Handler(void)
 
     /* USER CODE END UART1_IRQn 1 */
   }
-#endif
+
 
 
 /**

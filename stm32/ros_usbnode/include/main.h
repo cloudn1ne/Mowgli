@@ -55,6 +55,8 @@ float ADC_ChargeCurrent();
 extern uint16_t chargecontrol_pwm_val;
 void ChargeController(void);
 void setDriveMotors(uint8_t left_speed, uint8_t right_speed, uint8_t left_dir, uint8_t right_dir);
+uint8_t crcCalc(uint8_t *msg, uint8_t msg_len);
+void msgPrint(uint8_t *msg, uint8_t msg_len);
 
 /* USER CODE END EM */
 

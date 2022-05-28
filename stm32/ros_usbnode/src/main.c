@@ -6,7 +6,7 @@
  *  
  *  compile with -DBOARD_YARDFORCE500 to enable the YF500 GForce pinout
  * 
- * ROS part as shown here: https://github.com/Itamare4/ROS_stm32f1_rosserial_USB_VCP
+ *  ROS integration howto taken from here: https://github.com/Itamare4/ROS_stm32f1_rosserial_USB_VCP (Itamar Eliakim)
  *  
  */
 
@@ -43,6 +43,8 @@ uint8_t  master_rx_STATUS = RX_WAIT;
 
 int    blade_motor = 0;
 uint8_t rcvd_data;
+
+uint16_t chargecontrol_pwm_val=50;
 
 UART_HandleTypeDef MASTER_USART_Handler; // UART  Handle
 UART_HandleTypeDef DRIVEMOTORS_USART_Handler; // UART  Handle
@@ -110,6 +112,26 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
        }
 }
 
+/*
+ * manages the charge voltage, needs to be called frequently
+ */
+void ChargeController(void)
+{        
+        float_t charge_voltage;
+
+        charge_voltage =  ADC_ChargeVoltage();            
+        // set PWM to approach 29.4V charge voltage         
+        if ((charge_voltage < 29.4) && (chargecontrol_pwm_val < 1350))
+        {
+            chargecontrol_pwm_val++;
+        }
+        if ((charge_voltage > 29.4) && (chargecontrol_pwm_val > 50))
+        {
+            chargecontrol_pwm_val--;
+        }
+        TIM1->CCR1 = chargecontrol_pwm_val;             
+}
+
 
 int main(void)
 {    
@@ -121,8 +143,6 @@ int main(void)
 
     uint8_t drivemotors_on[] =  { 0x55, 0xaa, 0x8, 0x10, 0x80, 0xa0, 0xff, 0xff, 0x0, 0x0, 0x0, 0x35};
     uint8_t drivemotors_off[] = { 0x55, 0xaa, 0x8, 0x10, 0x80, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x97};
-    
-    char *data= "Hello from USB\r\n";
 
     HAL_Init();
     SystemClock_Config();
@@ -140,6 +160,10 @@ int main(void)
     TIM1_Init();   
     MX_USB_DEVICE_Init();
 
+    HAL_TIM_PWM_Start(&TIM1_Handle, TIM_CHANNEL_1);
+    HAL_TIMEx_PWMN_Start(&TIM1_Handle, TIM_CHANNEL_1);
+
+
     debug_printf("\r\n============== Init Done ==============\r\n");    
     HAL_Delay(1000);
     init_ROS();
@@ -148,17 +172,10 @@ int main(void)
     {
          chatter_handler();
          spinOnce();     
+
+         ChargeController();
     }
 
-
-/*
-    
-    while (1)
-    {
-        CDC_Transmit_FS(data, strlen(data));
-        HAL_Delay(100);
-    }
-  */  
 
     #ifdef DRIVEMOTORS_USART_ENABLED
         DRIVEMOTORS_USART_Init();
@@ -220,7 +237,7 @@ int main(void)
          //   HAL_UART_Transmit(&BLADEMOTOR_USART_Handler, blademotor_on, 7, HAL_MAX_DELAY);
          //   HAL_UART_Transmit(&DRIVEMOTORS_USART_Handler, drivemotors_on, 12, HAL_MAX_DELAY);
 
-            CDC_Transmit_FS(data, strlen(data));
+          //  CDC_Transmit_FS(data, strlen(data));
             d=0;            
         }
         d++;

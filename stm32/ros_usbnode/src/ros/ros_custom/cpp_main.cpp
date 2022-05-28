@@ -1,8 +1,6 @@
 /*
  * cpp_main.c
  *
- *  Created on: Jun 10, 2018
- *      Author: Itamar Eliakim
  */
 
 #include <cpp_main.h>
@@ -12,6 +10,7 @@
 #include "ros.h"
 #include "std_msgs/String.h"
 #include "std_msgs/Float32.h"
+#include "std_msgs/Int16.h"
 #include "nbt.h"
 #include "geometry_msgs/Twist.h"
 
@@ -23,6 +22,7 @@ ros::NodeHandle nh;
 // std_msgs::String str_msg;
 std_msgs::Float32 f32_battery_voltage_msg;
 std_msgs::Float32 f32_charge_voltage_msg;
+std_msgs::Int16 int16_charge_pwm_msg;
 
 /*
  * PUBLISHERS
@@ -30,6 +30,7 @@ std_msgs::Float32 f32_charge_voltage_msg;
 // ros::Publisher chatter("version", &str_msg);
 ros::Publisher pubBatteryVoltage("battery_voltage", &f32_battery_voltage_msg);
 ros::Publisher pubChargeVoltage("charge_voltage", &f32_charge_voltage_msg);
+ros::Publisher pubChargePWM("charge_pwm", &int16_charge_pwm_msg);
 
 /*
  * SUBSCRIBERS
@@ -62,9 +63,10 @@ extern "C" void init_ROS()
 //	nh.advertise(chatter);
 	nh.advertise(pubBatteryVoltage);
 	nh.advertise(pubChargeVoltage);
+	nh.advertise(pubChargePWM);
 	nh.subscribe(subCommandVelocity);
 
-	NBT_init(&publish_nbt, 500);
+	NBT_init(&publish_nbt, 1000);
 	NBT_init(&ros_nbt, 10);	
 }
 
@@ -81,8 +83,11 @@ extern "C" void chatter_handler()
 		  f32_battery_voltage_msg.data = ADC_BatteryVoltage();
 		  pubBatteryVoltage.publish(&f32_battery_voltage_msg);
 
-		  f32_charge_voltage_msg.data = ADC_BatteryVoltage();
+		  f32_charge_voltage_msg.data = ADC_ChargeVoltage();
 		  pubChargeVoltage.publish(&f32_charge_voltage_msg);
+
+		  int16_charge_pwm_msg.data = chargecontrol_pwm_val;
+		  pubChargePWM.publish(&int16_charge_pwm_msg);
 	  }
 }
 

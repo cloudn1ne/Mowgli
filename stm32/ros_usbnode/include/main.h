@@ -52,6 +52,7 @@ void ADC_Test();
 float ADC_BatteryVoltage();
 float ADC_ChargeVoltage();
 float ADC_ChargeCurrent();
+extern uint16_t chargecontrol_pwm_val;
 
 /* USER CODE END EM */
 

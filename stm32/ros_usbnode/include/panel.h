@@ -35,8 +35,9 @@ typedef enum
     #define PANEL_LED_S1 8
     #define PANEL_LED_S2 9
     #define PANEL_LED_LOCK 10
-
+    
     #define LED_STATE_SIZE 12       // model has 12-1 different leds to control ?   
+    #define LED_CMD 0x508b
 #endif
 
 #ifdef PANEL_TYPE_YARDFORCE_500_CLASSIC   // Yardforce 500 CLASSIC
@@ -61,6 +62,7 @@ typedef enum
     #define PANEL_LED_UNKNOWN 18
     
     #define LED_STATE_SIZE 19       // model has 19-2 different leds to control ?
+    #define LED_CMD 0x508e
 #endif
    
 

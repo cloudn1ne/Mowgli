@@ -20,6 +20,7 @@
 // stm32 custom
 #include "board.h"
 #include "lis3dh_reg.h"
+#include "panel.h"
 #include "usb_device.h"
 #include "usbd_cdc_if.h"
 // ros
@@ -54,6 +55,7 @@ uint8_t  master_rx_CRC = 0;
 uint8_t  master_rx_STATUS = RX_WAIT;
 int    blade_motor = 0;
 
+static uint8_t panel_rcvd_data;
 
 uint16_t chargecontrol_pwm_val=50;
 uint16_t right_encoder_val=0;
@@ -182,6 +184,11 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
            }
            HAL_UART_Receive_IT(&DRIVEMOTORS_USART_Handler, &drivemotors_rcvd_data, 1);   // rearm interrupt               
        }       
+       else if(huart->Instance == PANEL_USART_INSTANCE)
+       {
+           PANEL_Handle_Received_Data(panel_rcvd_data);
+           HAL_UART_Receive_IT(&PANEL_USART_Handler, &panel_rcvd_data, 1);   // rearm interrupt               
+       }
 }
 
 
@@ -211,6 +218,7 @@ int main(void)
     ADC1_Init();
     TIM1_Init();   
     MX_USB_DEVICE_Init();
+    PANEL_Init();
 
     // ADC Timer
     HAL_TIM_PWM_Start(&TIM1_Handle, TIM_CHANNEL_1);
@@ -229,6 +237,8 @@ int main(void)
     debug_printf("Master Interrupt enabled\r\n");
     HAL_UART_Receive_IT(&DRIVEMOTORS_USART_Handler, &drivemotors_rcvd_data, 1);
     debug_printf("Drive Motors Interrupt enabled\r\n");
+    HAL_UART_Receive_IT(&PANEL_USART_Handler, &panel_rcvd_data, 1);   // rearm interrupt               
+    debug_printf("Panel Interrupt enabled\r\n");
 
     HAL_GPIO_WritePin(LED_GPIO_PORT, LED_PIN, 0);
     HAL_GPIO_WritePin(TF4_GPIO_PORT, TF4_PIN, 1);
@@ -258,6 +268,7 @@ int main(void)
         
         spinOnce();     
         ChargeController();
+        PANEL_Tick();
 
         if (drivemotors_rx_STATUS == RX_VALID)                    // valid frame received by DRIVEMOTORS USART
         {

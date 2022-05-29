@@ -20,6 +20,7 @@
     // enable Drive and Blade Motor UARTS
     #define DRIVEMOTORS_USART_ENABLED 1
     #define BLADEMOTOR_USART_ENABLED 1
+    #define PANEL_USART_ENABLED 1
 
     #define LED_PIN GPIO_PIN_2
     #define LED_GPIO_PORT GPIOB
@@ -100,6 +101,20 @@
         #define BLADEMOTOR_USART_GPIO_CLK_ENABLE() __HAL_RCC_GPIOB_CLK_ENABLE()
         #define BLADEMOTOR_USART_USART_CLK_ENABLE() __HAL_RCC_USART3_CLK_ENABLE()
     #endif 
+
+    #ifdef PANEL_USART_ENABLED
+        #define PANEL_USART_INSTANCE USART1
+
+        #define PANEL_USART_RX_PIN GPIO_PIN_10
+        #define PANEL_USART_RX_PORT GPIOA
+
+        #define PANEL_USART_TX_PIN GPIO_PIN_9
+        #define PANEL_USART_TX_PORT GPIOA
+
+        #define PANEL_USART_GPIO_CLK_ENABLE() __HAL_RCC_GPIOA_CLK_ENABLE()
+        #define PANEL_USART_USART_CLK_ENABLE() __HAL_RCC_USART1_CLK_ENABLE()
+        #define PANEL_USART_IRQ USART1_IRQn
+    #endif
 #endif // BOARD_YARDFORCE500
 
 

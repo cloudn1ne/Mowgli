@@ -1,5 +1,5 @@
 /*
- * cpp_main.c
+ * C++ Main
  *
  */
 
@@ -114,7 +114,7 @@ static nbt_t broadcast_nbt;
 extern "C" void CommandVelocityMessageCb(const geometry_msgs::Twist& msg)
 {
 		//Fill subscriber
-		debug_printf("x: %f  z: %f\r\n", msg.linear.x, msg.angular.z);
+	//	debug_printf("x: %f  z: %f\r\n", msg.linear.x, msg.angular.z);
 
 		// calculate twist speeds to add/substract 
 		float left_twist_mps = -1.0 * msg.angular.z * WHEEL_BASE / WHEEL_DIAMETER / 10;
@@ -152,7 +152,7 @@ extern "C" void CommandVelocityMessageCb(const geometry_msgs::Twist& msg)
 		left_speed = abs(left_mps * PWM_PER_MPS);
 		right_speed = abs(right_mps * PWM_PER_MPS);		
 
-		debug_printf("left_mps: %f (%c)  right_mps: %f (%c)\r\n", left_mps, left_dir?'F':'R', right_mps, right_dir?'F':'R');
+	//	debug_printf("left_mps: %f (%c)  right_mps: %f (%c)\r\n", left_mps, left_dir?'F':'R', right_mps, right_dir?'F':'R');
 }
 
 extern "C" void cdc_receive_put(uint8_t value)

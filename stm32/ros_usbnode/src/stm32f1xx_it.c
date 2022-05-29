@@ -19,6 +19,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "panel.h"
 #include "stm32f1xx_it.h"
 #include "board.h"
 /* Private includes ----------------------------------------------------------*/
@@ -211,7 +212,7 @@ void SysTick_Handler(void)
     /* USER CODE BEGIN USART1_IRQn 0 */
 
     /* USER CODE END USART1_IRQn 0 */
-    HAL_UART_IRQHandler(&MASTER_USART_Handler);
+    HAL_UART_IRQHandler(&PANEL_USART_Handler);
 
     /* USER CODE BEGIN USART1_IRQn 1 */
 

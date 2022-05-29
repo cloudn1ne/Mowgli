@@ -15,7 +15,7 @@
 
 #ifdef PANEL_TYPE_YARDFORCE_500_CLASSIC
     const uint8_t KEY_INIT_MSG[] = {0x06, 0x50, 0xe0};    
-    const uint8_t KEY_ACTIVATE[] = {0x0, 0x0, 0x1};
+    const uint8_t KEY_ACTIVATE[] = {0x0, 0x0, 0x1};    
 #endif
 
 
@@ -156,7 +156,7 @@ void PANEL_Init(void)
         {
             memset(Led_States, 0x0, LED_STATE_SIZE);
             PANEL_Set_LED(i, PANEL_LED_ON);
-            PANEL_Send_Message(Led_States, sizeof(Led_States), 0x508e);     
+            PANEL_Send_Message(Led_States, sizeof(Led_States), LED_CMD);     
             PANEL_Send_Message((uint8_t*)KEY_ACTIVATE, sizeof(KEY_ACTIVATE), 0x5084);
             HAL_Delay(50);
         }
@@ -164,7 +164,7 @@ void PANEL_Init(void)
         {
             memset(Led_States, 0x0, LED_STATE_SIZE);
             PANEL_Set_LED(i, PANEL_LED_ON);
-            PANEL_Send_Message(Led_States, sizeof(Led_States), 0x508e);     
+            PANEL_Send_Message(Led_States, sizeof(Led_States), LED_CMD);     
             PANEL_Send_Message((uint8_t*)KEY_ACTIVATE, sizeof(KEY_ACTIVATE), 0x5084);
             HAL_Delay(50);
         }
@@ -172,7 +172,7 @@ void PANEL_Init(void)
     // all off
     HAL_Delay(50);
     memset(Led_States, 0x0, LED_STATE_SIZE);    
-    PANEL_Send_Message(Led_States, sizeof(Led_States), 0x508e);     
+    PANEL_Send_Message(Led_States, sizeof(Led_States), LED_CMD);     
     PANEL_Send_Message((uint8_t*)KEY_ACTIVATE, sizeof(KEY_ACTIVATE), 0x5084);
 
 #endif
@@ -209,17 +209,14 @@ void PANEL_Set_LED(uint8_t led, PANEL_LED_STATE state)
  */
 void PANEL_Tick(void)
 {    
-   // uint8_t Key_Activate2[] = {0x00, 0xFF, 0x01};
-   // uint8_t Key_Activate3[] = {0x00, 0xFF, 0x02};
-
+   
     // debug_printf("panel key: %d\r\n", PANEL_Get_Key_Pressed());
 
-    PANEL_Set_LED(PANEL_LED_UNKNOWN, PANEL_LED_FLASH_FAST);
-
-    // memset(Led_States, 0x00, sizeof(Led_States));
-#ifdef PANEL_USART_ENABLED
-     //PANEL_Send_Message(Led_States, sizeof(Led_States), 0x508b);
-     PANEL_Send_Message(Led_States, sizeof(Led_States), 0x508e);     
+    // uncomment to flash charging led as a test
+    // PANEL_Set_LED(PANEL_LED_CHARGING, PANEL_LED_FLASH_FAST);
+    
+#ifdef PANEL_USART_ENABLED     //PANEL_Send_Message(Led_States, sizeof(Led_States), 0x508b);
+     PANEL_Send_Message(Led_States, sizeof(Led_States), LED_CMD);     
      PANEL_Send_Message((uint8_t*)KEY_ACTIVATE, sizeof(KEY_ACTIVATE), 0x5084);     
 #endif
 }

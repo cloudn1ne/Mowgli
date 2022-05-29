@@ -1,10 +1,15 @@
 /*
  * C++ Main
  *
+ * contains the rosserial handlers
+ *
  */
+
+#include "board.h"
 
 #include <cpp_main.h>
 #include "main.h"
+#include "panel.h"
 #include "stm32f1xx_hal.h"
 #include "ringbuffer.h"
 #include "ros.h"
@@ -18,7 +23,6 @@
 #include "nbt.h"
 #include "geometry_msgs/Twist.h"
 
-#include "board.h"
 
 #define MAX_MPS	  	0.6		 	// Allow maximum speed of 0.6 m/s 
 #define PWM_PER_MPS 300.0		// PWM value of 300 means 1 m/s bot speed
@@ -108,13 +112,17 @@ ros::Subscriber<geometry_msgs::Twist> subCommandVelocity("cmd_vel", CommandVeloc
 static nbt_t ros_nbt;
 static nbt_t publish_nbt;
 static nbt_t drivemotors_nbt;
+static nbt_t panel_nbt;
 static nbt_t broadcast_nbt;
 
 
+/*
+ * receive and parse cmd_vel messages
+ * actual driving (updating drivemotors) is done in the drivemotors_nbt
+ */
 extern "C" void CommandVelocityMessageCb(const geometry_msgs::Twist& msg)
 {
-		//Fill subscriber
-	//	debug_printf("x: %f  z: %f\r\n", msg.linear.x, msg.angular.z);
+		//	debug_printf("x: %f  z: %f\r\n", msg.linear.x, msg.angular.z);
 
 		// calculate twist speeds to add/substract 
 		float left_twist_mps = -1.0 * msg.angular.z * WHEEL_BASE / WHEEL_DIAMETER / 10;
@@ -160,31 +168,10 @@ extern "C" void cdc_receive_put(uint8_t value)
 	ringbuffer_putchar(&rb, value);
 }
 
-extern "C" void init_ROS()
-{
-	ringbuffer_init(&rb, RxBuffer, RxBufferSize);
 
-	// Initialize ROS
-	nh.initNode();
-
-	// Initialize TF Broadcaster
-	broadcaster.init(nh);
-
-	// Initialize Pubs/Subs
-//	nh.advertise(chatter);
-	nh.advertise(pubBatteryVoltage);
-	nh.advertise(pubChargeVoltage);
-	nh.advertise(pubChargePWM);
-	nh.advertise(pubOdom);
-	nh.subscribe(subCommandVelocity);
-
-	// Initialize Timers
-	NBT_init(&publish_nbt, 1000);
-	NBT_init(&drivemotors_nbt, BROADCAST_NBT_TIME_MS);
-	NBT_init(&broadcast_nbt, BROADCAST_NBT_TIME_MS);
-	NBT_init(&ros_nbt, 10);	
-}
-
+/*
+ * Update various chatters topics
+ */
 extern "C" void chatter_handler()
 {
 	  if (NBT_handler(&publish_nbt))
@@ -209,11 +196,25 @@ extern "C" void chatter_handler()
 	  }
 }
 
+/*
+ *  Drive Motors handler
+ */
 extern "C" void drivemotors_handler()
 {
 	  if (NBT_handler(&drivemotors_nbt))
 	  {	
 		setDriveMotors(left_speed, right_speed, left_dir, right_dir);
+	  }
+}
+
+/*
+ *  Keyboard/LED Panel handler
+ */
+extern "C" void panel_handler()
+{
+	  if (NBT_handler(&panel_nbt))
+	  {			  
+		PANEL_Tick();		
 	  }
 }
 
@@ -230,7 +231,7 @@ extern "C" void broadcast_handler()
 		//////////////////////////////////////////////////
 		speed_act_left = left_wheel_speed_val/PWM_PER_MPS;			// wheel speed in m/s
 		speed_act_right = right_wheel_speed_val/PWM_PER_MPS;			// wheel speed in m/s
-		debug_printf("speed_act_left: %f speed_act_right: %f\r\n",  speed_act_left, speed_act_right);		
+	//	debug_printf("speed_act_left: %f speed_act_right: %f\r\n",  speed_act_left, speed_act_right);		
 		dt = (BROADCAST_NBT_TIME_MS/1000.0);
 		dxy = (speed_act_left+speed_act_right)*dt/2.0;
 		dth = ((speed_act_right-speed_act_left)*dt)/WHEEL_BASE;
@@ -333,6 +334,9 @@ extern "C" void broadcast_handler()
 	  }
 }
 
+/*
+ * ROS housekeeping
+ */
 extern "C" void spinOnce()
 {
 	  if (NBT_handler(&ros_nbt))
@@ -341,3 +345,30 @@ extern "C" void spinOnce()
 	  }
 }
 
+/* 
+ *  Initialize rosserial
+ */
+extern "C" void init_ROS()
+{
+	ringbuffer_init(&rb, RxBuffer, RxBufferSize);
+
+	// Initialize ROS
+	nh.initNode();
+
+	// Initialize TF Broadcaster
+	broadcaster.init(nh);
+
+	// Initialize Pubs/Subs
+	nh.advertise(pubBatteryVoltage);
+	nh.advertise(pubChargeVoltage);
+	nh.advertise(pubChargePWM);
+	nh.advertise(pubOdom);
+	nh.subscribe(subCommandVelocity);
+
+	// Initialize Timers
+	NBT_init(&publish_nbt, 1000);
+	NBT_init(&panel_nbt, 100);
+	NBT_init(&drivemotors_nbt, BROADCAST_NBT_TIME_MS);
+	NBT_init(&broadcast_nbt, BROADCAST_NBT_TIME_MS);
+	NBT_init(&ros_nbt, 10);	
+}

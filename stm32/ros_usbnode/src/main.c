@@ -19,10 +19,11 @@
 #include <string.h>
 // stm32 custom
 #include "board.h"
-#include "lis3dh_reg.h"
 #include "panel.h"
+#include "lis3dh_reg.h"
 #include "usb_device.h"
 #include "usbd_cdc_if.h"
+
 // ros
 #include <cpp_main.h>
 #include "ringbuffer.h"
@@ -75,6 +76,7 @@ TIM_HandleTypeDef TIM1_Handle;
 /*
  * Master UART receive ISR
  * DriveMotors UART receive ISR
+ * PANEL UART receive ISR
  */ 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {    
@@ -197,17 +199,16 @@ int main(void)
     uint8_t blademotor_init[] =  { 0x55, 0xaa, 0x12, 0x20, 0x80, 0x00, 0xac, 0x0d, 0x00, 0x02, 0x32, 0x50, 0x1e, 0x04, 0x00, 0x15, 0x21, 0x05, 0x0a, 0x19, 0x3c, 0xaa };    
     uint8_t drivemotors_init[] = { 0x55, 0xaa, 0x08, 0x10, 0x80, 0xa0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x37};
 
-    uint8_t blademotor_on[] =  { 0x55, 0xaa, 0x03, 0x20, 0x80, 0x80, 0x22};
-    uint8_t blademotor_off[] = { 0x55, 0xaa, 0x03, 0x20, 0x80, 0x0, 0xa2};
+  //  uint8_t blademotor_on[] =  { 0x55, 0xaa, 0x03, 0x20, 0x80, 0x80, 0x22};
+  //  uint8_t blademotor_off[] = { 0x55, 0xaa, 0x03, 0x20, 0x80, 0x0, 0xa2};
 
-    uint8_t drivemotors_on[] =  { 0x55, 0xaa, 0x8, 0x10, 0x80, 0xa0, 0xff, 0xff, 0x0, 0x0, 0x0, 0x35};
-    uint8_t drivemotors_off[] = { 0x55, 0xaa, 0x8, 0x10, 0x80, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x97};
+  //  uint8_t drivemotors_on[] =  { 0x55, 0xaa, 0x8, 0x10, 0x80, 0xa0, 0xff, 0xff, 0x0, 0x0, 0x0, 0x35};
+  //  uint8_t drivemotors_off[] = { 0x55, 0xaa, 0x8, 0x10, 0x80, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x97};
 
     HAL_Init();
     SystemClock_Config();
 
     __HAL_RCC_AFIO_CLK_ENABLE();
-    
     
     LED_Init();
     TF4_Init();
@@ -223,8 +224,8 @@ int main(void)
     // ADC Timer
     HAL_TIM_PWM_Start(&TIM1_Handle, TIM_CHANNEL_1);
     HAL_TIMEx_PWMN_Start(&TIM1_Handle, TIM_CHANNEL_1);
-    // Init Drive Motors and Blade Motor
 
+    // Init Drive Motors and Blade Motor
     #ifdef DRIVEMOTORS_USART_ENABLED
         DRIVEMOTORS_USART_Init();
     #endif
@@ -257,20 +258,18 @@ int main(void)
     HAL_Delay(100);
 
 
-    debug_printf("\r\n============== Init Done ==============\r\n");    
+    debug_printf("\r\n============== HW Init Done ==============\r\n");    
     HAL_Delay(1000);
     init_ROS();
     debug_printf("\r\n============== init_ROS Done ==============\r\n");    
     while (1)
     {
         chatter_handler();
-        drivemotors_handler();
-        
+        drivemotors_handler();    
+        panel_handler();
         spinOnce();     
-        ChargeController();
-        PANEL_Tick();
-
-        if (drivemotors_rx_STATUS == RX_VALID)                    // valid frame received by DRIVEMOTORS USART
+        ChargeController(); // we dont to call that so often ? ...                    
+        if (drivemotors_rx_STATUS == RX_VALID)                    // valid frame received from DRIVEMOTORS USART
         {
             uint8_t direction = drivemotors_rx_buf[5];
 
@@ -291,17 +290,16 @@ int main(void)
             {
                 right_wheel_speed_val =  drivemotors_rx_buf[6];
             }
-            
-            
-            left_encoder_val = drivemotors_rx_buf[16]<<8+drivemotors_rx_buf[15];
-            right_encoder_val = drivemotors_rx_buf[14]<<8+drivemotors_rx_buf[13];            
-            if (drivemotors_rx_buf[5]>>4)       // stuff is moving
-            {
-           //    msgPrint(drivemotors_rx_buf, drivemotors_rx_buf_idx);             
-            }                    
+                        
+            left_encoder_val = (drivemotors_rx_buf[16]<<8)+drivemotors_rx_buf[15];
+            right_encoder_val = (drivemotors_rx_buf[14]<<8)+drivemotors_rx_buf[13];            
+            //if (drivemotors_rx_buf[5]>>4)       // stuff is moving
+            //{
+            //  msgPrint(drivemotors_rx_buf, drivemotors_rx_buf_idx);             
+            //}                    
             drivemotors_rx_buf_idx = 0;
             drivemotors_rx_STATUS = RX_WAIT;                    // ready for next message            
-            HAL_GPIO_TogglePin(LED_GPIO_PORT, LED_PIN);         // flash LED             
+            //  HAL_GPIO_TogglePin(LED_GPIO_PORT, LED_PIN);         // flash LED             
         }     
         broadcast_handler();   
     }

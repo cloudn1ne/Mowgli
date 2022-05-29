@@ -2,6 +2,11 @@
 #ifndef __BOARD_H
 #define __BOARD_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 /*
  * at the moment this really only works for BOARD_YARDFORCE500
  * the bluepill config is broken because it hasnt been used in a while - will be fixed later or removed ;-)
@@ -14,6 +19,10 @@
 #ifdef BOARD_YARDFORCE500    
     #warning "Compiling for YardForce 500 (GForce) board"
     
+
+    #define PANEL_TYPE_YARDFORCE_500_CLASSIC    1
+    // #define PANEL_TYPE_YARDFORCE_500_ECO   1
+
     // we use J18 (Red 9 pin connector as Master Serial Port)
     #define MASTER_J18 1
 
@@ -102,7 +111,7 @@
         #define BLADEMOTOR_USART_USART_CLK_ENABLE() __HAL_RCC_USART3_CLK_ENABLE()
     #endif 
 
-    #ifdef PANEL_USART_ENABLED
+    #ifdef PANEL_USART_ENABLED    
         #define PANEL_USART_INSTANCE USART1
 
         #define PANEL_USART_RX_PIN GPIO_PIN_10
@@ -188,5 +197,8 @@
     #endif 
 #endif // BOARD_BLUEPILL
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __BOARD_H */

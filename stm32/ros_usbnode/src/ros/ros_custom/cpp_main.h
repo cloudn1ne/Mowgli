@@ -1,10 +1,24 @@
 /*
  * cpp_main.h
- *
- *  Created on: Sep 23, 2018
- *      Author: Itamar Eliakim
+ * 
  */
 #ifndef CPP_MAIN_H_
 #define CPP_MAIN_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+void init_ROS();
+void spinOnce();
+void chatter_handler();
+void drivemotors_handler();
+void panel_handler();
+void broadcast_handler();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* CPP_MAIN_H_ */

@@ -18,10 +18,10 @@
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
+#include "board.h"
 #include "main.h"
 #include "panel.h"
 #include "stm32f1xx_it.h"
-#include "board.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 /* USER CODE END Includes */

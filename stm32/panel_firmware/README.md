@@ -1,8 +1,12 @@
-# Firmware restore
+# Preqrequisites
 
-Contains the stock Yardforce 500 firmware, that can be reflashed when you need to orignal functionality for debugging/reversing.
+ST Link, and OpenOCD
 
-You need something like an ST Link and openocd installed.
+# Firmware restore (ST Link)
+
+Edit the restore.sh script, and update the filename to whatever your backup is called and run it.
+
+# Backing up your firmware
 
 ## Locating the connector
 

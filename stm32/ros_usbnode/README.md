@@ -14,8 +14,8 @@
 ## Hardware
 
 - REMOVE THE BLADES !!! (you have been warned)
-- Either use a A<->A USB cable or solder up an USB A cable + connector to J14 pin on the mainboard. You need to connect our YF500 mainboard with your Raspi via USB.
-- The panel (J6) must be plugged in as the switches are hardwired to the motor controllers, if they not shorted you will not be able to start the blade motor.
+- Either use a A<->A USB cable or solder up an USB A cable + connector to J14 pin on the mainboard. You need to connect your YF500 mainboard with your Raspi via USB.
+- The panel  (J6) must be plugged in as the switches are hardwired to the motor controllers, if they not shorted you will not be able to start the blade motor.
 - Brigde all 4 switch cables coming off the panel board (JP4 connector) by shorting the outer pins, emulating a "ok" condition.
 <img src="../../images/bridged_connectors.jpg" width="200"/>
 

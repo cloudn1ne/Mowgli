@@ -8,6 +8,8 @@ You need something like an ST Link and openocd installed.
 
 There is a 4-pin connector on the board (J9) - it has silkscreen that is labeled with GND, SWCL, SWDA, 3V3 pins.
 
+<img src="../../images/mainboard_swd.jpg" width="60%"/>
+
 ## Backing up the firmware yourself
 
 Reference: https://medium.com/techmaker/reverse-engineering-stm32-firmware-578d53e79b3

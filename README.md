@@ -31,7 +31,8 @@ The custom firmware has no protections - no tilt sensing, no stop buttons will w
 
 - [Basic overview of the mainboard](./Kicad), [Datasheets](./Datasheets) for ICs
 - Motor Drivers for both Drive Motors and Blade Motor can be controlled
-- Firmware dump and [restore](./stm32/original_firmware) via an ST Link or other (e.g. JLink Segger) tools
+- Mainboard (GForce) Firmware dump and [restore](./stm32/mainboard_firmware) via an ST Link or other (e.g. JLink Segger) tools
+- Panel (GForce) Firmware dump and [restore](./stm32/panel_firmware) via an ST Link or other (e.g. JLink Segger) tools
 - [Demo Python code](./playground/) to control the Mower via a Joystick (needs STM32 code for Blade Motor control)
 
 ## rosserial node

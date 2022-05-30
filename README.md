@@ -34,26 +34,24 @@ The custom firmware has no protections - no tilt sensing, no stop buttons will w
 - Firmware dump and [restore](./stm32/original_firmware) via an ST Link or other (e.g. JLink Segger) tools
 - [Demo Python code](./playground/) to control the Mower via a Joystick (needs STM32 code for Blade Motor control)
 
-## Progress
+## rosserial node
 
-Custom software for the STM32 main cpu, thats acts as a UART proxy to the components on the board
-
-[![IMAGE ALT TEXT](http://img.youtube.com/vi/Jlm87qAKzOk/0.jpg)](http://www.youtube.com/watch?v=Jlm87qAKzOk "Drive Motors and Blade Motor with custom firmware")
-   - Drive Motor proxing working
-   - Blade Motor proxing working
-   
-## Todo
-- Serial protocol for the Control Panel, and why it needs to be plugged in for the drive motors to work
+-
 - Accelerometer (I2C), Flash (SPI) support in the proxy software
 - Various ADCs and PWM signals available - Board voltage, charging states ..
 
-## How to help
+## Published Topics
 
-Check the Kicad drawings - note they contain hierachical subsheets (right click sheet, enter sheet).
-Any missing pins or functions - please let me know or better a pull request.
+- /battery_voltage - std_msgs::Float32 (current Battery Voltage)
+- /charge_voltage - std_msgs::Float32 (PWM controlled Charge Voltage if plugged in)
+- /charge_pwm - std_msgs::Int16 (PWM value for Charge Voltage)
+- /charging_state - std_msgs::Bool (True/False depending on if the bot is charging)
+- /odom - nav_msgs::Odometry (Odometry messages, from motor controller feedback)
+## Planned (TODO) Topics
+- /blade_state - std_msgs::Bool
 
-## STM Code 
-
-Highly experimental - and not stable, will change when new features are discovered on the mainboard.
-Some custom protocol (as simple as possible) that can then be used by 3rd party software such as ROS to control the mower is the end goal
+## Subscribers
+- /cmd_vel - geometry_msgs::Twist (compatible with teleop twist messages, so you can drive the bot)
+- /cmd_blade_on - std_msgs::Bool (set True to turn on the Blade Motor)
+- /cmd_blade_off - std_msgs::Bool (set True to turn off the Blade Motor)
 

@@ -13,7 +13,10 @@
 
 ## Hardware
 
-Either use a A<->A USB cable or solder up an USB A cable + connector to J14 pin on the mainboard. You need to connect our YF500 mainboard with your Raspi via USB.
+- REMOVE THE BLADES !!! (you have been warned)
+- Either use a A<->A USB cable or solder up an USB A cable + connector to J14 pin on the mainboard. You need to connect our YF500 mainboard with your Raspi via USB.
+- The panel (J6) must be plugged in as the switches are hardwired to the motor controlers if they not shorted you will not be able to start the blade motor.
+- Brigde all 4 cables coming off the panel board (JP4 connector) by shorting the outer pins, emulating a "ok" condition.
 
 ## ROS serial node
 
@@ -112,7 +115,7 @@ You should see a new battery voltage reading appear every second.
 
 ## Drive the bot
 
-To drive the bot you need to be able to send teleop twist messages, which is the package installed above.
+To drive the bot you need yet another console to be able to send the teleop twist messages, which is the package installed above.
 Run with
 
 ```

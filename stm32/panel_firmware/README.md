@@ -1,6 +1,6 @@
 # Preqrequisites
 
-ST Link, and OpenOCD
+ST Link, 4 spare pin headers, soldering iron and OpenOCD
 
 # Firmware restore (ST Link)
 
@@ -11,6 +11,8 @@ Edit the restore.sh script, and update the filename to whatever your backup is c
 ## Locating the connector
 
 There is a 4-pin connector on the board (JP3) - it has silkscreen that is labeled with GND, CLK, DIO, 3V3 pins.
+
+<img src="../../images/panel_swd.jpg" width="60%"/>
 
 ## Backing up the firmware yourself
 

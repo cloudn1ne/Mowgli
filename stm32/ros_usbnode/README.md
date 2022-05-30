@@ -15,8 +15,8 @@
 
 - REMOVE THE BLADES !!! (you have been warned)
 - Either use a A<->A USB cable or solder up an USB A cable + connector to J14 pin on the mainboard. You need to connect our YF500 mainboard with your Raspi via USB.
-- The panel (J6) must be plugged in as the switches are hardwired to the motor controlers if they not shorted you will not be able to start the blade motor.
-- Brigde all 4 cables coming off the panel board (JP4 connector) by shorting the outer pins, emulating a "ok" condition.
+- The panel (J6) must be plugged in as the switches are hardwired to the motor controllers, if they not shorted you will not be able to start the blade motor.
+- Brigde all 4 switch cables coming off the panel board (JP4 connector) by shorting the outer pins, emulating a "ok" condition.
 <img src="../../images/bridged_connectors.jpg" width="200"/>
 
 ## ROS serial node
@@ -113,6 +113,10 @@ data: 28.85787582397461
 ^C
 ````
 You should see a new battery voltage reading appear every second.
+
+## Note
+
+The raspi USB stack is not happy when you flash a new firmware version onto the mainboard and the CDC stack gets reinitialized - either you unplug and replug the USB cable to settle things, or if you rather stay seated like me use the [usbreset](../../usbreset) tool. i have simply added it to shell script so it gets execute before every time i run rosserial.
 
 ## Drive the bot
 

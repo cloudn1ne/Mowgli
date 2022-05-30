@@ -265,7 +265,7 @@ int main(void)
     while (1)
     {
         chatter_handler();
-        drivemotors_handler();    
+        motors_handler();    
         panel_handler();
         spinOnce();     
         ChargeController(); // we dont to call that so often ? ...                    
@@ -1114,6 +1114,8 @@ void ChargeController(void)
 }
 
 /*
+ * Send message to DriveMotors PAC
+ *
  * <xxx>_speed = 0x - 0xFF
  * <xxx>_dir = 1 = CW, 1 != CCW
  */
@@ -1148,6 +1150,26 @@ void setDriveMotors(uint8_t left_speed, uint8_t right_speed, uint8_t left_dir, u
     HAL_UART_Transmit(&DRIVEMOTORS_USART_Handler, drivemotors_msg, DRIVEMOTORS_MSG_LEN, HAL_MAX_DELAY);
 }
 
+/*
+ * Send message to Blade PAC
+ *
+ * <on_off> - no speed settings available
+ */
+void setBladeMotor(uint8_t on_off)
+{
+    uint8_t blademotor_on[] =  { 0x55, 0xaa, 0x03, 0x20, 0x80, 0x80, 0x22};
+    uint8_t blademotor_off[] = { 0x55, 0xaa, 0x03, 0x20, 0x80, 0x0, 0xa2};
+
+    if (on_off)
+    {
+        HAL_UART_Transmit(&BLADEMOTOR_USART_Handler, blademotor_on, sizeof(blademotor_on), HAL_MAX_DELAY);    
+    }
+    else
+    {
+        HAL_UART_Transmit(&BLADEMOTOR_USART_Handler, blademotor_off, sizeof(blademotor_off), HAL_MAX_DELAY);
+    }
+        
+}
 
 /*
  * print hex bytes

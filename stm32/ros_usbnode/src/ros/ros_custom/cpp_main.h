@@ -13,7 +13,7 @@ extern "C" {
 void init_ROS();
 void spinOnce();
 void chatter_handler();
-void drivemotors_handler();
+void motors_handler();
 void panel_handler();
 void broadcast_handler();
 

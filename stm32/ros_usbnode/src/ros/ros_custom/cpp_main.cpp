@@ -94,6 +94,7 @@ std_msgs::Float32 f32_battery_voltage_msg;
 std_msgs::Float32 f32_charge_voltage_msg;
 std_msgs::Int16 int16_charge_pwm_msg;
 std_msgs::Bool bool_blade_state_msg;
+std_msgs::Bool bool_charging_state_msg;
 nav_msgs::Odometry odom_msg;
 
 /*
@@ -103,6 +104,7 @@ nav_msgs::Odometry odom_msg;
 ros::Publisher pubBatteryVoltage("battery_voltage", &f32_battery_voltage_msg);
 ros::Publisher pubChargeVoltage("charge_voltage", &f32_charge_voltage_msg);
 ros::Publisher pubChargePWM("charge_pwm", &int16_charge_pwm_msg);
+ros::Publisher pubChargeingState("charging_state", &bool_charging_state_msg);
 ros::Publisher pubBladeState("blade_state", &bool_blade_state_msg);
 ros::Publisher pubOdom("odom", &odom_msg);
 
@@ -116,7 +118,10 @@ extern "C" void CommandBladeOffMessageCb(const std_msgs::Bool& msg);
 ros::Subscriber<geometry_msgs::Twist> subCommandVelocity("cmd_vel", CommandVelocityMessageCb);
 ros::Subscriber<std_msgs::Bool> subBladeOn("cmd_blade_on", CommandBladeOnMessageCb);
 ros::Subscriber<std_msgs::Bool> subBladeOff("cmd_blade_off", CommandBladeOffMessageCb);
-// ros::Subscriber<std_msgs::Bool> subBladeOff("cmd_led_set", CommandLEDSetMessageCb);
+// TODO ros::Subscriber<std_msgs::Bool> subLEDSet("cmd_panel_led_set", CommandLEDSetMessageCb);
+// TODO ros::Subscriber<std_msgs::Bool> subLEDFlashSlow("cmd_panel_led_flash_slow", CommandLEDFlashSlowMessageCb);
+// TODO ros::Subscriber<std_msgs::Bool> subLEDFlashFast("cmd_panel_led_flash_fast", CommandLEDFlashFastMessageCb);
+// TODO ros::Subscriber<std_msgs::Bool> subLEDClear("cmd_panel_led_clear", CommandLEDClearMessageCb);
 
 /*
  * NON BLOCKING TIMERS
@@ -229,6 +234,8 @@ extern "C" void chatter_handler()
 		  int16_charge_pwm_msg.data = chargecontrol_pwm_val;
 		  pubChargePWM.publish(&int16_charge_pwm_msg);
 
+		  bool_charging_state_msg.data =  chargecontrol_is_charging;
+		  pubChargeingState.publish(&bool_charging_state_msg);
  		  //bool_blade_state_msg.data = true; // TODO: read blade status
 //		  pubBladeState.publish(&bool_blade_state_msg);
 
@@ -406,6 +413,7 @@ extern "C" void init_ROS()
 	nh.advertise(pubChargePWM);
 	nh.advertise(pubOdom);
 	nh.advertise(pubBladeState);
+	nh.advertise(pubChargeingState);
 	// Initialize Subs
 	nh.subscribe(subCommandVelocity);
 	nh.subscribe(subBladeOn);

@@ -23,9 +23,10 @@
 #include "lis3dh_reg.h"
 #include "usb_device.h"
 #include "usbd_cdc_if.h"
+#include "nbt.h"
 
 // ros
-#include <cpp_main.h>
+#include "cpp_main.h"
 #include "ringbuffer.h"
 
 static int32_t platform_write(void *handle, uint8_t reg, const uint8_t *bufp,
@@ -33,6 +34,9 @@ static int32_t platform_write(void *handle, uint8_t reg, const uint8_t *bufp,
 static int32_t platform_read(void *handle, uint8_t reg, uint8_t *bufp,
                              uint16_t len);
 
+
+static nbt_t main_chargecontroller_nbt;
+static nbt_t main_statusled_nbt;
 
 enum rx_status_enum { RX_WAIT, RX_VALID, RX_CRC_ERROR};
 
@@ -58,7 +62,9 @@ int    blade_motor = 0;
 
 static uint8_t panel_rcvd_data;
 
+// exported via rostopics
 uint16_t chargecontrol_pwm_val=50;
+uint8_t  chargecontrol_is_charging=0;
 uint16_t right_encoder_val=0;
 uint16_t left_encoder_val=0;
 int16_t right_wheel_speed_val=0;
@@ -199,47 +205,56 @@ int main(void)
     uint8_t blademotor_init[] =  { 0x55, 0xaa, 0x12, 0x20, 0x80, 0x00, 0xac, 0x0d, 0x00, 0x02, 0x32, 0x50, 0x1e, 0x04, 0x00, 0x15, 0x21, 0x05, 0x0a, 0x19, 0x3c, 0xaa };    
     uint8_t drivemotors_init[] = { 0x55, 0xaa, 0x08, 0x10, 0x80, 0xa0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x37};
 
-  //  uint8_t blademotor_on[] =  { 0x55, 0xaa, 0x03, 0x20, 0x80, 0x80, 0x22};
-  //  uint8_t blademotor_off[] = { 0x55, 0xaa, 0x03, 0x20, 0x80, 0x0, 0xa2};
-
-  //  uint8_t drivemotors_on[] =  { 0x55, 0xaa, 0x8, 0x10, 0x80, 0xa0, 0xff, 0xff, 0x0, 0x0, 0x0, 0x35};
-  //  uint8_t drivemotors_off[] = { 0x55, 0xaa, 0x8, 0x10, 0x80, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x97};
-
     HAL_Init();
     SystemClock_Config();
 
     __HAL_RCC_AFIO_CLK_ENABLE();
-    
-    LED_Init();
-    TF4_Init();
-    PAC5223RESET_Init();
-    PAC5210RESET_Init();
+
     MASTER_USART_Init();
+    debug_printf(" * Master USART (debug) initialized\r\n");
+
+    LED_Init();
+    debug_printf(" * LED initialized\r\n");
+    TF4_Init();
+    debug_printf(" * 24V switched on\r\n");
+    PAC5223RESET_Init();
+    debug_printf(" * PAC 5223 out of reset\r\n");
+    PAC5210RESET_Init();
+    debug_printf(" * PAC 5210 out of reset\r\n");
+    
     I2C_Init();
+    debug_printf(" * I2C(Accelerometer) initialized\r\n");
     ADC1_Init();
+    debug_printf(" * ADC1 initialized\r\n");
     TIM1_Init();   
+    debug_printf(" * Timer1 (Charge PWM) initialized\r\n");
     MX_USB_DEVICE_Init();
+    debug_printf(" * USB CDC initialized\r\n");
     PANEL_Init();
+    debug_printf(" * Panel initialized\r\n");
 
     // ADC Timer
     HAL_TIM_PWM_Start(&TIM1_Handle, TIM_CHANNEL_1);
     HAL_TIMEx_PWMN_Start(&TIM1_Handle, TIM_CHANNEL_1);
+    debug_printf(" * ADC Timers initialized\r\n");
 
     // Init Drive Motors and Blade Motor
     #ifdef DRIVEMOTORS_USART_ENABLED
         DRIVEMOTORS_USART_Init();
+        debug_printf(" * Drive Motors USART initialized\r\n");
     #endif
     #ifdef BLADEMOTOR_USART_ENABLED
         BLADEMOTOR_USART_Init();
+        debug_printf(" * Blade Motor USART initialized\r\n");
     #endif
-
+    
 
     HAL_UART_Receive_IT(&MASTER_USART_Handler, &master_rcvd_data, 1);
-    debug_printf("Master Interrupt enabled\r\n");
+    debug_printf(" * Master Interrupt enabled\r\n");
     HAL_UART_Receive_IT(&DRIVEMOTORS_USART_Handler, &drivemotors_rcvd_data, 1);
-    debug_printf("Drive Motors Interrupt enabled\r\n");
+    debug_printf(" * Drive Motors Interrupt enabled\r\n");
     HAL_UART_Receive_IT(&PANEL_USART_Handler, &panel_rcvd_data, 1);   // rearm interrupt               
-    debug_printf("Panel Interrupt enabled\r\n");
+    debug_printf(" * Panel Interrupt enabled\r\n");
 
     HAL_GPIO_WritePin(LED_GPIO_PORT, LED_PIN, 0);
     HAL_GPIO_WritePin(TF4_GPIO_PORT, TF4_PIN, 1);
@@ -251,24 +266,30 @@ int main(void)
     HAL_Delay(100);
     HAL_UART_Transmit(&DRIVEMOTORS_USART_Handler, drivemotors_init, 12, HAL_MAX_DELAY);
     HAL_Delay(100);
+    debug_printf(" * Drive Motors initialized\r\n");
 
     HAL_UART_Transmit(&BLADEMOTOR_USART_Handler, blademotor_init, 22, HAL_MAX_DELAY);
     HAL_Delay(100);
     HAL_UART_Transmit(&BLADEMOTOR_USART_Handler, blademotor_init, 22, HAL_MAX_DELAY);
     HAL_Delay(100);
+    debug_printf(" * Blade Motor initialized\r\n");
+    debug_printf(" * HW Init completed\r\n");    
+    
+    // Initialize Main Timers
+	NBT_init(&main_chargecontroller_nbt, 10);
+    NBT_init(&main_statusled_nbt, 1000);
+    debug_printf(" * NBT Main timers initialized\r\n");     
 
-
-    debug_printf("\r\n============== HW Init Done ==============\r\n");    
-    HAL_Delay(1000);
+    // Initialize ROS
     init_ROS();
-    debug_printf("\r\n============== init_ROS Done ==============\r\n");    
+    debug_printf(" * ROS serial node initialized\r\n");     
+    debug_printf("\r\n >>> entering main loop ...\r\n\r\n");     
     while (1)
     {
         chatter_handler();
         motors_handler();    
         panel_handler();
-        spinOnce();     
-        ChargeController(); // we dont to call that so often ? ...                    
+        spinOnce();                       
         if (drivemotors_rx_STATUS == RX_VALID)                    // valid frame received from DRIVEMOTORS USART
         {
             uint8_t direction = drivemotors_rx_buf[5];
@@ -301,103 +322,8 @@ int main(void)
             drivemotors_rx_STATUS = RX_WAIT;                    // ready for next message            
             //  HAL_GPIO_TogglePin(LED_GPIO_PORT, LED_PIN);         // flash LED             
         }     
-        broadcast_handler();   
-    }
-
-
-
-
-
-
-
-
-
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // not used below this in main()
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-
-
-
-
-    #ifdef DRIVEMOTORS_USART_ENABLED
-        DRIVEMOTORS_USART_Init();
-    #endif
-    #ifdef BLADEMOTOR_USART_ENABLED
-        BLADEMOTOR_USART_Init();
-    #endif
-
-    // HAL_UART_Receive_IT(&MASTER_USART_Handler, &rcvd_data, 1);
-
-    HAL_GPIO_WritePin(LED_GPIO_PORT, LED_PIN, 1);
-    HAL_GPIO_WritePin(TF4_GPIO_PORT, TF4_PIN, 1);
-    HAL_GPIO_WritePin(PAC5223RESET_GPIO_PORT, PAC5223RESET_PIN, 1);     // take Blade PAC out of reset if HIGH
-    HAL_GPIO_WritePin(PAC5210RESET_GPIO_PORT, PAC5210RESET_PIN, 0);     // take Drive Motor PAC out of reset if LOW
-
-    // send some init messages - needs further investigation, drivemotors are happy without it
-    HAL_UART_Transmit(&DRIVEMOTORS_USART_Handler, drivemotors_init, 12, HAL_MAX_DELAY);
-    HAL_Delay(100);
-    HAL_UART_Transmit(&DRIVEMOTORS_USART_Handler, drivemotors_init, 12, HAL_MAX_DELAY);
-    HAL_Delay(100);
-
-    HAL_UART_Transmit(&BLADEMOTOR_USART_Handler, blademotor_init, 22, HAL_MAX_DELAY);
-    HAL_Delay(100);
-    HAL_UART_Transmit(&BLADEMOTOR_USART_Handler, blademotor_init, 22, HAL_MAX_DELAY);
-    HAL_Delay(100);
-
-
-    HAL_TIM_PWM_Start(&TIM1_Handle, TIM_CHANNEL_1);
-    HAL_TIMEx_PWMN_Start(&TIM1_Handle, TIM_CHANNEL_1);
-
-    // I2C_Test();
-    uint16_t pwm_val=50;
-    float_t charge_voltage, charge_current, battery_voltage;
-
-    
-    uint8_t d=0;
-    while (0)
-    {
-       
-        charge_voltage =  ADC_ChargeVoltage();            
-        // set PWM to approach 29.4V charge voltage         
-        if ((charge_voltage < 29.4) && (pwm_val < 1350))
-        {
-            pwm_val++;
-        }
-        if ((charge_voltage > 29.4) && (pwm_val > 50))
-        {
-            pwm_val--;
-        }
-        TIM1->CCR1=pwm_val;
-        HAL_Delay(1);
-
-        if (d == 100)
-        {
-            battery_voltage = ADC_BatteryVoltage();
-            charge_current =  ADC_ChargeCurrent();  
-
-            debug_printf("Charge PWM = %d | Chg Voltage: %2.2fV | Chg Current: %2.2fA | Bat Voltage %2.2fV\r\n",pwm_val, charge_voltage, charge_current, battery_voltage);
-         //   HAL_UART_Transmit(&BLADEMOTOR_USART_Handler, blademotor_on, 7, HAL_MAX_DELAY);
-         //   HAL_UART_Transmit(&DRIVEMOTORS_USART_Handler, drivemotors_on, 12, HAL_MAX_DELAY);
-
-          //  CDC_Transmit_FS(data, strlen(data));
-            d=0;            
-        }
-        d++;
-    }
-
-    // receive messages via master serial port and send to blade/drive motor PAC
-    while (1)
-    {                
-        HAL_Delay(10);
-            
-        if (master_rx_STATUS == RX_VALID)   // valid frame received by MASTER USART
+        /* not used atm - we control the bot via ROS
+        if (master_rx_STATUS == RX_VALID)                        // valid frame received by MASTER USART
         {
             
                 int i;
@@ -425,8 +351,20 @@ int main(void)
 
             HAL_GPIO_TogglePin(LED_GPIO_PORT, LED_PIN);         // flash LED             
         }
-       // HAL_UART_Receive_IT(&MASTER_USART_Handler, &rcvd_data, 1);   // rearm interrupt                 
+        */
+        broadcast_handler();   
+        if (NBT_handler(&main_chargecontroller_nbt))
+	    {            
+			ChargeController(); 
+	    }
+        if (NBT_handler(&main_statusled_nbt))
+	    {            
+			StatusLEDUpdate(); 
+	    }        
     }
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // we never get here ...
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }
 
 /**
@@ -1094,7 +1032,8 @@ void I2C_Test(void)
 }
 
 /*
- * manages the charge voltage, needs to be called frequently
+ * manaes the charge voltage, and charge, lowbat LED
+ * needs to be called frequently
  */
 void ChargeController(void)
 {        
@@ -1110,7 +1049,45 @@ void ChargeController(void)
         {
             chargecontrol_pwm_val--;
         }
-        TIM1->CCR1 = chargecontrol_pwm_val;             
+        TIM1->CCR1 = chargecontrol_pwm_val;  
+}
+
+/*
+ * Update the states for the Charge and Low Bat LEDs
+ */
+void StatusLEDUpdate(void)
+{
+        float_t charge_voltage, battery_voltage;
+
+        charge_voltage =  ADC_ChargeVoltage();    
+        battery_voltage = ADC_BatteryVoltage();        
+        if (charge_voltage >= battery_voltage)         // we are charging ...
+        {
+            // indicate charging by flashing fast if we are plugged in
+            PANEL_Set_LED(PANEL_LED_CHARGING, PANEL_LED_FLASH_FAST);
+            chargecontrol_is_charging = 1;
+        }
+        else
+        {
+            PANEL_Set_LED(PANEL_LED_CHARGING, PANEL_LED_OFF);
+            chargecontrol_is_charging = 0;
+        }
+            
+        // show a lowbat warning if battery voltage drops below LOW_BAT_THRESHOLD ? (random guess, needs more testing or a compare to the stock firmware)            
+        // if goes below LOW_BAT_THRESHOLD-1 we increase led flash frequency        
+        if (battery_voltage <= LOW_BAT_THRESHOLD)
+        {
+            PANEL_Set_LED(PANEL_LED_BATTERY_LOW, PANEL_LED_FLASH_SLOW); // low
+        }
+        else if (battery_voltage <= LOW_BAT_THRESHOLD-1.0)
+        {
+            PANEL_Set_LED(PANEL_LED_BATTERY_LOW, PANEL_LED_FLASH_FAST); // really low
+        }
+        else
+        {
+            PANEL_Set_LED(PANEL_LED_BATTERY_LOW, PANEL_LED_OFF); // bat ok
+        }                
+        debug_printf(" > Chg Voltage: %2.2fV | Bat Voltage %2.2fV\r\n", charge_voltage, battery_voltage);                           
 }
 
 /*

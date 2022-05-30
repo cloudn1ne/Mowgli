@@ -16,6 +16,7 @@
 #include "ros/time.h"
 #include "tf/tf.h"
 #include "tf/transform_broadcaster.h"
+#include "std_msgs/Bool.h"
 #include "std_msgs/String.h"
 #include "std_msgs/Float32.h"
 #include "std_msgs/Int16.h"
@@ -41,6 +42,9 @@ static uint8_t right_speed=0;
 static uint8_t left_dir=0;
 static uint8_t right_dir=0;
 
+// blade motor control
+static uint8_t blade_on_off=0;
+
 ros::NodeHandle nh;
 
 // TF
@@ -64,7 +68,7 @@ double theta = 0.0;
 ros::Time current_time;
 // ros::Time speed_time;
 // ---
-double rate = 10.0;
+// double rate = 10.0;
 double linear_scale_positive = 1.0;
 double linear_scale_negative = 1.0;
 double angular_scale_positive = 1.0;
@@ -89,6 +93,7 @@ double theta = 1.57;
 std_msgs::Float32 f32_battery_voltage_msg;
 std_msgs::Float32 f32_charge_voltage_msg;
 std_msgs::Int16 int16_charge_pwm_msg;
+std_msgs::Bool bool_blade_state_msg;
 nav_msgs::Odometry odom_msg;
 
 /*
@@ -98,22 +103,55 @@ nav_msgs::Odometry odom_msg;
 ros::Publisher pubBatteryVoltage("battery_voltage", &f32_battery_voltage_msg);
 ros::Publisher pubChargeVoltage("charge_voltage", &f32_charge_voltage_msg);
 ros::Publisher pubChargePWM("charge_pwm", &int16_charge_pwm_msg);
+ros::Publisher pubBladeState("blade_state", &bool_blade_state_msg);
 ros::Publisher pubOdom("odom", &odom_msg);
 
 /*
  * SUBSCRIBERS
  */
 extern "C" void CommandVelocityMessageCb(const geometry_msgs::Twist& msg);
+extern "C" void CommandBladeOnMessageCb(const std_msgs::Bool& msg);
+extern "C" void CommandBladeOffMessageCb(const std_msgs::Bool& msg);
+
 ros::Subscriber<geometry_msgs::Twist> subCommandVelocity("cmd_vel", CommandVelocityMessageCb);
+ros::Subscriber<std_msgs::Bool> subBladeOn("cmd_blade_on", CommandBladeOnMessageCb);
+ros::Subscriber<std_msgs::Bool> subBladeOff("cmd_blade_off", CommandBladeOffMessageCb);
+// ros::Subscriber<std_msgs::Bool> subBladeOff("cmd_led_set", CommandLEDSetMessageCb);
 
 /*
  * NON BLOCKING TIMERS
  */
 static nbt_t ros_nbt;
 static nbt_t publish_nbt;
-static nbt_t drivemotors_nbt;
+static nbt_t motors_nbt;
 static nbt_t panel_nbt;
 static nbt_t broadcast_nbt;
+
+/*
+ * receive and parse cmd_blade_on messages
+ * if True, turns ON the Blade Motor - (False is ignored, use the cmd_blade_off with a True message to turn it off)
+ */
+extern "C" void CommandBladeOnMessageCb(const std_msgs::Bool& msg)
+{	
+	debug_printf("/cmd_blade_on: %d\r\n", msg.data);
+	if (msg.data)
+	{
+		blade_on_off = true;
+	}
+}
+
+/*
+ * receive and parse cmd_blade_on messages
+ * if True, turns OFF the Blade Motor - (False is ignored, use the cmd_blade_on with a True message to turn it ON)
+ */
+extern "C" void CommandBladeOffMessageCb(const std_msgs::Bool& msg)
+{	
+	debug_printf("/cmd_blade_off: %d\r\n", msg.data);
+	if (msg.data)
+	{
+		blade_on_off = false;
+	}
+}
 
 
 /*
@@ -191,19 +229,23 @@ extern "C" void chatter_handler()
 		  int16_charge_pwm_msg.data = chargecontrol_pwm_val;
 		  pubChargePWM.publish(&int16_charge_pwm_msg);
 
-		
+ 		  //bool_blade_state_msg.data = true; // TODO: read blade status
+//		  pubBladeState.publish(&bool_blade_state_msg);
+
 		  HAL_GPIO_TogglePin(LED_GPIO_PORT, LED_PIN);         // flash LED
 	  }
 }
 
 /*
  *  Drive Motors handler
+ *  Blade Motor handler
  */
-extern "C" void drivemotors_handler()
+extern "C" void motors_handler()
 {
-	  if (NBT_handler(&drivemotors_nbt))
+	  if (NBT_handler(&motors_nbt))
 	  {	
-		setDriveMotors(left_speed, right_speed, left_dir, right_dir);
+		setDriveMotors(left_speed, right_speed, left_dir, right_dir);		
+		setBladeMotor(blade_on_off);		
 	  }
 }
 
@@ -358,17 +400,21 @@ extern "C" void init_ROS()
 	// Initialize TF Broadcaster
 	broadcaster.init(nh);
 
-	// Initialize Pubs/Subs
+	// Initialize Pubs
 	nh.advertise(pubBatteryVoltage);
 	nh.advertise(pubChargeVoltage);
 	nh.advertise(pubChargePWM);
 	nh.advertise(pubOdom);
+	nh.advertise(pubBladeState);
+	// Initialize Subs
 	nh.subscribe(subCommandVelocity);
+	nh.subscribe(subBladeOn);
+	nh.subscribe(subBladeOff);
 
 	// Initialize Timers
 	NBT_init(&publish_nbt, 1000);
 	NBT_init(&panel_nbt, 100);
-	NBT_init(&drivemotors_nbt, BROADCAST_NBT_TIME_MS);
+	NBT_init(&motors_nbt, BROADCAST_NBT_TIME_MS);
 	NBT_init(&broadcast_nbt, BROADCAST_NBT_TIME_MS);
 	NBT_init(&ros_nbt, 10);	
 }

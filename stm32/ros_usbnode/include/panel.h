@@ -23,7 +23,7 @@ typedef enum
  * different yardforce models have different keyboard/led panels 
  */
 
-#ifdef PANEL_TYPE_YARDFORCE_500_ECO         // YardForce SA500ECO
+#ifdef PANEL_TYPE_YARDFORCE_900_ECO         // YardForce SA900ECO
     #define PANEL_LED_LIFTED 0
     #define PANEL_LED_SIGNAL 1
     #define PANEL_LED_BATTERY_LOW 2

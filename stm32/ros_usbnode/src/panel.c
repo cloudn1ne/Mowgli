@@ -8,7 +8,7 @@
 #include "board.h"
 
 /* per panel type initializers */
-#ifdef PANEL_TYPE_YARDFORCE_UNKNOWN
+#ifdef PANEL_TYPE_YARDFORCE_900_ECO
     const uint8_t KEY_INIT_MSG[] = {0x03, 0x90, 0x28};     
     const uint8_t KEY_ACTIVATE[] = {0x0, 0x0, 0x1};
 #endif

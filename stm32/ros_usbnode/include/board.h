@@ -21,7 +21,7 @@ extern "C" {
     
 
     #define PANEL_TYPE_YARDFORCE_500_CLASSIC    1
-    // #define PANEL_TYPE_YARDFORCE_500_ECO   1
+    // #define PANEL_TYPE_YARDFORCE_900_ECO   1
 
     // we use J18 (Red 9 pin connector as Master Serial Port)
     #define MASTER_J18 1

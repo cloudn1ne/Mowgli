@@ -116,7 +116,7 @@ You should see a new battery voltage reading appear every second.
 
 ## Note
 
-The raspi USB stack is not happy when you flash a new firmware version onto the mainboard and the CDC stack gets reinitialized - either you unplug and replug the USB cable to settle things, or if you rather stay seated like me use the [usbreset](../../usbreset) tool. i have simply added it to shell script so it gets execute before every time i run rosserial.
+The raspi USB stack is not happy when you flash a new firmware version onto the mainboard and the CDC stack gets reinitialized - either you unplug and replug the USB cable to settle things, or if you rather stay seated like me use the [usbreset](../../usbreset) tool. i have simply added it to shell script so it gets executed every time before rosserial is started.
 
 ## Drive the bot
 

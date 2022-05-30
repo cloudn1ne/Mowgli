@@ -117,7 +117,9 @@ You should see a new battery voltage reading appear every second.
 ## Drive the bot
 
 To drive the bot you need yet another console to be able to send the teleop twist messages, which is the package installed above.
-Run with
+roscore, and rosserial needs to be running as well
+
+Run teleop with:
 
 ```
 rosrun teleop_twist_keyboard teleop_twist_keyboard.py

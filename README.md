@@ -37,9 +37,8 @@ The custom firmware has no protections - no tilt sensing, no stop buttons will w
 
 ## rosserial node
 
--
-- Accelerometer (I2C), Flash (SPI) support in the proxy software
-- Various ADCs and PWM signals available - Board voltage, charging states ..
+- [See here how to control the bot via ROS](stm32/ros_usbnode)
+
 
 ## Published Topics
 

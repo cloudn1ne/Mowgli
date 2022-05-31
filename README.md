@@ -62,5 +62,9 @@ The custom firmware has no protections - no tilt sensing, no stop buttons will w
 
 ## Serial Debugging
 
+[Serial Debug for ros_usbnode](stm32/ros_usbnode#serial_debug)
+
+
+
 
 

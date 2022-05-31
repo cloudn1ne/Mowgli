@@ -18,6 +18,30 @@ There is a 4-pin connector on the board (J9) - it has silkscreen that is labeled
 
 run the backup_firmware.sh script
 
+```
+Open On-Chip Debugger 0.11.0
+Licensed under GNU GPL v2
+For bug reports, read
+	http://openocd.org/doc/doxygen/bugs.html
+Info : auto-selecting first available session transport "hla_swd". To override use 'transport select <transport>'.
+Info : The selected transport took over low-level target control. The results might differ compared to plain JTAG/SWD
+Warn : Transport "hla_swd" was already selected
+hla_swd
+Info : clock speed 1000 kHz
+Info : STLINK V2J28S7 (API v2) VID:PID 0483:3748
+Info : Target voltage: 3.239683
+Info : stm32f1x.cpu: hardware has 6 breakpoints, 4 watchpoints
+Info : starting gdb server for stm32f1x.cpu on 3333
+Info : Listening on port 3333 for gdb connections
+target halted due to debug-request, current mode: Thread
+xPSR: 0x01000000 pc: 0x08008834 msp: 0x2000c000
+dumped 262144 bytes in 4.186105s (61.155 KiB/s)
+
+shutdown command invoked
+```
+
+You should then find a firmware_backup.bin in the current folder
+
 ## Backing up the firmware yourself (JLink Segger + openocd)
 
 Reference: https://medium.com/techmaker/reverse-engineering-stm32-firmware-578d53e79b3

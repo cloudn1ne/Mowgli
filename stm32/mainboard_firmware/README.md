@@ -6,6 +6,35 @@ ST Link, and OpenOCD
 
 Edit the restore.sh script, and update the filename to whatever your backup is called and run it.
 
+```
+Open On-Chip Debugger 0.11.0
+Licensed under GNU GPL v2
+For bug reports, read
+	http://openocd.org/doc/doxygen/bugs.html
+Info : auto-selecting first available session transport "hla_swd". To override use 'transport select <transport>'.
+Info : The selected transport took over low-level target control. The results might differ compared to plain JTAG/SWD
+Warn : Transport "hla_swd" was already selected
+hla_swd
+Info : clock speed 1000 kHz
+Info : STLINK V2J28S7 (API v2) VID:PID 0483:3748
+Info : Target voltage: 3.239683
+Info : stm32f1x.cpu: hardware has 6 breakpoints, 4 watchpoints
+Info : starting gdb server for stm32f1x.cpu on 3333
+Info : Listening on port 3333 for gdb connections
+target halted due to debug-request, current mode: Thread
+xPSR: 0x01000000 pc: 0x08008834 msp: 0x2000c000
+** Programming Started **
+Info : device id = 0x10036414
+Info : flash size = 256kbytes
+** Programming Finished **
+** Verify Started **
+** Verified OK **
+** Resetting Target **
+shutdown command invoked
+```
+
+You should see the normal panel behaviour, plenty of LEDS active, panel locked etc ..
+
 # Backing up your firmware
 
 ## Locating the connector
@@ -77,3 +106,9 @@ Exit the session
 
 Now you should have a firmware.bin file in the CWD you ran the openocd daemon
 
+## Firmware SHA256 Hashes
+
+| Model | PCB | Version Markings | Controller | FW Size | FW SHA256 Hash
+|-------|-----|------------------|------------|---------|----------------
+|YF500 Classic|Mainboard|20210427 RM-MB-V6.0.0|STM32F103 VCT6|256KB|875bedb32ccb62ee23453581c8af13e61a523bfe758120564d6bdb27cf641998
+|YF500 Classic|Panel|2020.05.08 RM-ECOW-V1.3.0|GD32F330 R8T6|64KB|b3b1142bf84e09fd506bf4b399632b60d2a6ae3a520c685d3fdbca08e2c1fb88

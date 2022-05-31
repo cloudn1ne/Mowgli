@@ -114,3 +114,7 @@ Now you should have a firmware.bin file in the CWD you ran the openocd daemon
 |-------|-----|------------------|------------|---------|----------------
 |YF500 Classic|Mainboard|20210427 RM-MB-V6.0.0|STM32F103 VCT6|256KB|875bedb32ccb62ee23453581c8af13e61a523bfe758120564d6bdb27cf641998
 |YF500 Classic|Panel|2020.05.08 RM-ECOW-V1.3.0|GD32F330 R8T6|64KB|b3b1142bf84e09fd506bf4b399632b60d2a6ae3a520c685d3fdbca08e2c1fb88
+|YF900 ?      |Mainboard|?|STM32F103 VC??|256K|256K|6ffa8130e60a0cd9cc4cc70488293e7436dfa909bf81ce09938abc9050f6ea96
+|YF900 ?      |Panel|?|STM32F030 R8T6|64K|316204837c3ebb85780dc929b4f2631bd4c77528af53aa7c6ea0945698412602
+
+	

@@ -2,7 +2,7 @@
 
 ST Link, and OpenOCD
 
-# Firmware restore (ST Link)
+# Firmware restore (ST Link + openocd)
 
 Edit the restore.sh script, and update the filename to whatever your backup is called and run it.
 
@@ -14,7 +14,11 @@ There is a 4-pin connector on the board (J9) - it has silkscreen that is labeled
 
 <img src="../../images/mainboard_swd.jpg" width="60%"/>
 
-## Backing up the firmware yourself
+## Backing up the firmware yourself (ST Link + openocd)
+
+run the backup_firmware.sh script
+
+## Backing up the firmware yourself (JLink Segger + openocd)
 
 Reference: https://medium.com/techmaker/reverse-engineering-stm32-firmware-578d53e79b3
 

@@ -157,21 +157,22 @@ e/c : increase/decrease only angular speed by 10%
 CTRL-C to quit
 
 currently:	speed 0.5	turn 1.0
-```
 
 Press 'i' to start moving the bot, 'k' to stop and so on.
+```
 
-<a id="serial_debug">
 ## Serial Debugging
 
-- Wire your serial adapter (or Raspi) to the serial port on the GForce board.
+<a id="serial_debug">
+
+Wire your serial adapter (or ESP32, or Raspi) to the serial port on the GForce board.
    
-   I used the J18 (Red connector on the mainboard) because the connector from J5 (Signal will fit) and i dont need the signal sense board anymore.   
-   As the pins are unfortunatly in the wrong place on the original J5 connector i used a sharp pick tool to relocate the pins as in the image below.
+I used the J18 (Red connector on the mainboard) because the connector from J5 (Signal will fit) and i dont need the signal sense board anymore.   
+As the pins are unfortunatly in the wrong place on the original J5 connector i used a sharp pick tool to relocate the pins as in the image below.
    
-   <img src="/images/J18_serial.jpg" width="60%"/>
+<img src="/images/J18_serial.jpg" width="60%"/>
    
-   When you then flash the ros_usbnode firmware or reboot the board you should see output simliar to
+When you then flash the ros_usbnode firmware or reboot the board you should see output simliar to
    
 ```
  * Master USART (debug) initialized

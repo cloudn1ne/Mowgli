@@ -34,11 +34,15 @@ The custom firmware has no protections - no tilt sensing, no stop buttons will w
 - Mainboard (GForce) Firmware [dump and restore](./stm32/mainboard_firmware) via an ST Link or other (e.g. JLink Segger) tools
 - Panel (GForce) Firmware [dump and restore](./stm32/panel_firmware) via an ST Link or other (e.g. JLink Segger) tools
 - [Demo Python code](./playground/) to control the Mower via a Joystick (needs "test_code" STM32 code flashed)
+- ROS Serial node via CDC USB Port with hardware support for
+   - Drive Motors, Encoder readings, Odom messages
+   - Blade Motor, on/off
+   - Panel LED control
+- Serial debugging on the unused (red) J18 header
 
 ## rosserial node
 
 - [See here how to control the bot via ROS](stm32/ros_usbnode)
-
 
 ## Published Topics
 
@@ -55,4 +59,8 @@ The custom firmware has no protections - no tilt sensing, no stop buttons will w
 - /cmd_vel - geometry_msgs::Twist (compatible with teleop twist messages, so you can drive the bot)
 - /cmd_blade_on - std_msgs::Bool (set True to turn on the Blade Motor)
 - /cmd_blade_off - std_msgs::Bool (set True to turn off the Blade Motor)
+
+## Serial Debugging
+
+
 

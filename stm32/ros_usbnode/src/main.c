@@ -316,7 +316,7 @@ int main(void)
             right_encoder_val = (drivemotors_rx_buf[14]<<8)+drivemotors_rx_buf[13];            
             //if (drivemotors_rx_buf[5]>>4)       // stuff is moving
             //{
-            //  msgPrint(drivemotors_rx_buf, drivemotors_rx_buf_idx);             
+            //   msgPrint(drivemotors_rx_buf, drivemotors_rx_buf_idx);             
             //}                    
             drivemotors_rx_buf_idx = 0;
             drivemotors_rx_STATUS = RX_WAIT;                    // ready for next message            

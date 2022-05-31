@@ -47,6 +47,7 @@ The custom firmware has no protections - no tilt sensing, no stop buttons will w
 - /charge_pwm - std_msgs::Int16 (PWM value for Charge Voltage)
 - /charging_state - std_msgs::Bool (True/False depending on if the bot is charging)
 - /odom - nav_msgs::Odometry (Odometry messages, from motor controller feedback)
+- /left_encoder_val & /right_encoder_val - std_msgs::UInt16 (Raw encoder values)
 ## Planned (TODO) Topics
 - /blade_state - std_msgs::Bool
 

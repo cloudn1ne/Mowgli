@@ -1,3 +1,5 @@
+## This code is now pretty much obsolete, better use the [ROS USB Node](../stm32/ros_usbnode) approach
+
 ## HowTo
 
 - Flash the [Mowgli STM32 code](./stm32/Mowgli/) using Platform IO and an ST Link (Platform IO Project is setup for an ST Link already)

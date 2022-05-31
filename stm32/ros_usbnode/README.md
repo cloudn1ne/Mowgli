@@ -161,4 +161,47 @@ currently:	speed 0.5	turn 1.0
 
 Press 'i' to start moving the bot, 'k' to stop and so on.
 
+<a id="serial_debug">
+## Serial Debugging
 
+- Wire your serial adapter (or Raspi) to the serial port on the GForce board.
+   
+   I used the J18 (Red connector on the mainboard) because the connector from J5 (Signal will fit) and i dont need the signal sense board anymore.   
+   As the pins are unfortunatly in the wrong place on the original J5 connector i used a sharp pick tool to relocate the pins as in the image below.
+   
+   <img src="/images/J18_serial.jpg" width="60%"/>
+   
+   When you then flash the ros_usbnode firmware or reboot the board you should see output simliar to
+   
+```
+ * Master USART (debug) initialized
+ * LED initialized
+ * 24V switched on
+ * PAC 5223 out of reset
+ * PAC 5210 out of reset
+ * I2C(Accelerometer) initialized
+ * ADC1 initialized
+ * Timer1 (Charge PWM) initialized
+ * USB CDC initialized
+ * Panel initialized
+ * ADC Timers initialized
+ * Drive Motors USART initialized
+ * Blade Motor USART initialized
+ * Master Interrupt enabled
+ * Drive Motors Interrupt enabled
+ * Panel Interrupt enabled
+ * Drive Motors initialized
+ * Blade Motor initialized
+ * HW Init completed
+ * NBT Main timers initialized
+ * ROS serial node initialized
+
+ >>> entering main loop ...
+
+ > Chg Voltage: 3.04V | Bat Voltage 28.79V
+ > Chg Voltage: 5.05V | Bat Voltage 28.79V
+ > Chg Voltage: 7.54V | Bat Voltage 28.80V
+ > Chg Voltage: 9.61V | Bat Voltage 28.82V
+ ```
+   
+   

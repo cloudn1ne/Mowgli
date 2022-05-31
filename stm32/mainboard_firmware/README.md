@@ -71,6 +71,8 @@ shutdown command invoked
 
 You should then find a firmware_backup.bin in the current folder
 
+Check the SHA256 hashes at the bottom of the page to confirm a successfull backup, if they are listed already - if not please let me know your model and the fw details in the #reverse-engineering channel so i can update this list.
+
 ## Backing up the firmware yourself (JLink Segger + openocd)
 
 Reference: https://medium.com/techmaker/reverse-engineering-stm32-firmware-578d53e79b3

@@ -6,15 +6,17 @@ ST Link, 4 spare pin headers, soldering iron and OpenOCD
 
 Edit the restore.sh script, and update the filename to whatever your backup is called and run it.
 
-# Backing up your firmware
-
 ## Locating the connector
 
 There is a 4-pin connector on the board (JP3) - it has silkscreen that is labeled with GND, CLK, DIO, 3V3 pins.
 
 <img src="../../images/panel_swd.jpg" width="60%"/>
 
-## Backing up the firmware yourself
+## Backing up the firmware yourself (ST Link + openocd)
+
+run the backup_firmware.sh script
+
+## Backing up the firmware yourself (JLink Segger + openocd)
 
 Reference: https://medium.com/techmaker/reverse-engineering-stm32-firmware-578d53e79b3
 

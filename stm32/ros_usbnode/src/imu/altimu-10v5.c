@@ -10,6 +10,10 @@
   * Some code taken from the various Arduino drivers referenced at 
   * https://www.pololu.com/product/2739
   * 
+  * This IMU consists of:
+  *     LSM6DS33 (gyro and accelerometer)
+  *     LIS3MDL (magnetometer)
+  *     LPS25H (barometer)
   ******************************************************************************
   */
 

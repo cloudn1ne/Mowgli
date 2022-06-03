@@ -22,8 +22,9 @@
 ## ROS serial node
 
 - Follow one of the [tutorials on howto install ROS noetic](https://x-tech.online/2022/01/installing-ros-noetic-on-a-headless-raspberry-pi-4-with-ubuntu-20-04/) - i used a Ubuntu 20.04 on a Raspi4 (also works with a Raspi3)
-- After having installed the ROS noetic stack you need to add the following package that allows you to drive the bot
+- After having installed the ROS noetic stack you need to add the following packages that allow you to talk to and drive the bot
 ```
+sudo apt-get install ros-noetic-rosserial
 sudo apt-get install ros-noetic-teleop-twist-keyboard
 ```
 - Start roscore in your terminal which should look simliar to:

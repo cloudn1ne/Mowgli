@@ -20,6 +20,8 @@
 // stm32 custom
 #include "board.h"
 #include "panel.h"
+#include "soft_i2c.h"
+#include "imu/imu.h"
 #include "lis3dh_reg.h"
 #include "usb_device.h"
 #include "usbd_cdc_if.h"
@@ -208,11 +210,17 @@ int main(void)
     HAL_Init();
     SystemClock_Config();
 
-    __HAL_RCC_AFIO_CLK_ENABLE();
-
+    __HAL_RCC_AFIO_CLK_ENABLE();    
     MASTER_USART_Init();
+    debug_printf("\r\n");
+    debug_printf("    __  ___                    ___\r\n");
+    debug_printf("   /  |/  /___ _      ______ _/ (_)\r\n");
+    debug_printf("  / /|_/ / __ \\ | /| / / __ `/ / / \r\n");
+    debug_printf(" / /  / / /_/ / |/ |/ / /_/ / / /  \r\n");
+    debug_printf("/_/  /_/\\____/|__/|__/\\__, /_/_/   \r\n");
+    debug_printf("                     /____/        \r\n");
+    debug_printf("\r\n\r\n");
     debug_printf(" * Master USART (debug) initialized\r\n");
-
     LED_Init();
     debug_printf(" * LED initialized\r\n");
     TF4_Init();
@@ -220,12 +228,33 @@ int main(void)
     PAC5223RESET_Init();
     debug_printf(" * PAC 5223 out of reset\r\n");
     PAC5210RESET_Init();
-    debug_printf(" * PAC 5210 out of reset\r\n");
-    
+    debug_printf(" * PAC 5210 out of reset\r\n");    
     I2C_Init();
-    debug_printf(" * I2C(Accelerometer) initialized\r\n");
-    ADC1_Init();
-    debug_printf(" * ADC1 initialized\r\n");
+    debug_printf(" * Hard I2C (onboard Accelerometer) initialized\r\n");
+    SW_I2C_Init();
+    debug_printf(" * Soft I2C (J18) initialized\r\n");
+    // test if we have something supported connected
+    IMU_TestDevice();
+    IMU_Init();
+
+    int16_t x,y,z;
+    float temp;
+    float alt;
+    while (1)
+    {
+        //IMU_ReadAccelerometer(&x, &y, &z);
+        //IMU_ReadMagnetometer(&x, &y, &z);
+        //debug_printf("x: %d y: %d z: %d\r\n", x, y, z);
+        temp = IMU_ReadBarometerTemperatureC();
+        alt = IMU_ReadBarometerAltitudeMeters();
+
+        debug_printf("temp: %f alt: %f \r\n", temp, alt);
+        HAL_Delay(1000);        
+    }
+    
+
+    ADC1_Init();    
+    debug_printf(" * ADC1 initialized\r\n");    
     TIM1_Init();   
     debug_printf(" * Timer1 (Charge PWM) initialized\r\n");
     MX_USB_DEVICE_Init();

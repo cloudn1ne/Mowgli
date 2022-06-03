@@ -159,7 +159,7 @@ Wire Wire Line
 Text Notes 7700 3800 0    50   ~ 0
 (I2C Accelerometer)
 Text Notes 7650 3550 0    50   ~ 0
-(SPI3 Flash)
+(SPI3 Flash / J18)
 Text HLabel 3700 3900 0    50   Output ~ 0
 CHARGE_LOW_SIDE_DRIVER
 Text HLabel 3700 4000 0    50   Output ~ 0

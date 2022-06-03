@@ -33,6 +33,9 @@ extern "C" {
     #define BLADEMOTOR_USART_ENABLED 1
     #define PANEL_USART_ENABLED 1
 
+    // our IMU hangs of a bigbanged I2C bus on J18
+    #define SOFT_I2C_ENABLED 1
+
     #define LED_PIN GPIO_PIN_2
     #define LED_GPIO_PORT GPIOB
     #define LED_GPIO_CLK_ENABLE() __HAL_RCC_GPIOB_CLK_ENABLE()
@@ -126,6 +129,17 @@ extern "C" {
         #define PANEL_USART_USART_CLK_ENABLE() __HAL_RCC_USART1_CLK_ENABLE()
         #define PANEL_USART_IRQ USART1_IRQn
     #endif
+
+    // J18 has the SPI3 pins, as we dont use SPI3, we recycle them for I2C Bitbanging (for our Pololu ALtIMU-10v5)
+    #ifdef SOFT_I2C_ENABLED
+        #define SOFT_I2C_SCL_PIN GPIO_PIN_3
+        #define SOFT_I2C_SCL_PORT GPIOB
+        #define SOFT_I2C_SDA_PIN GPIO_PIN_4
+        #define SOFT_I2C_SDA_PORT GPIOB
+
+        #define SOFT_I2C_GPIO_CLK_ENABLE() __HAL_RCC_GPIOB_CLK_ENABLE();
+    #endif
+
 #endif // BOARD_YARDFORCE500
 
 

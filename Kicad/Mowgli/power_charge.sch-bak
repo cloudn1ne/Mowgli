@@ -3,7 +3,7 @@ EELAYER 30 0
 EELAYER END
 $Descr A3 16535 11693
 encoding utf-8
-Sheet 10 10
+Sheet 10 11
 Title ""
 Date ""
 Rev ""
@@ -915,17 +915,6 @@ Wire Wire Line
 	10450 8500 15150 8500
 Text Notes 15150 5000 0    59   ~ 0
 to PA1 (1:?)
-$Comp
-L Device:Q_NPN_EBC TF1
-U 1 1 62A84BE5
-P 6200 4300
-F 0 "TF1" H 6391 4346 50  0000 L CNN
-F 1 "Q_NPN_EBC" H 6391 4255 50  0000 L CNN
-F 2 "" H 6400 4400 50  0001 C CNN
-F 3 "~" H 6200 4300 50  0001 C CNN
-	1    6200 4300
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	5450 5000 6850 5000
 Connection ~ 6850 5000
@@ -960,4 +949,15 @@ Wire Wire Line
 Connection ~ 6300 6300
 Wire Wire Line
 	6300 6300 6850 6300
+$Comp
+L Transistor_FET:AO3401A TF1
+U 1 1 62ADE11C
+P 6200 4300
+F 0 "TF1" H 6404 4346 50  0000 L CNN
+F 1 "YAS7/BSS83P" H 6404 4255 50  0000 L CNN
+F 2 "Package_TO_SOT_SMD:SOT-23" H 6400 4225 50  0001 L CIN
+F 3 "http://www.aosmd.com/pdfs/datasheet/AO3401A.pdf" H 6200 4300 50  0001 L CNN
+	1    6200 4300
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC

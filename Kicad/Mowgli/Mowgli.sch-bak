@@ -3,7 +3,7 @@ EELAYER 30 0
 EELAYER END
 $Descr A3 16535 11693
 encoding utf-8
-Sheet 1 10
+Sheet 1 11
 Title "Project Mowgli"
 Date "2022-05-22"
 Rev "1.0.1"
@@ -172,13 +172,16 @@ Enable_24V_Motors
 $Sheet
 S 5550 6950 850  1350
 U 62926FC8
-F0 "J18 (Red Connector)" 50
-F1 "J18 (Red Connector).sch" 50
-F2 "J18_Pin_1" I L 5550 7050 50 
-F3 "J18_Pin_7" O L 5550 7650 50 
-F4 "J18_Pin_8" I L 5550 7750 50 
-F5 "J18_Pin_2" U L 5550 7150 50 
-F6 "J18_Pin_6" U L 5550 7500 50 
+F0 "J18 (Red Connector)" 47
+F1 "J18 (Red Connector).sch" 47
+F2 "J18_Pin_1" I L 5550 7200 50 
+F3 "J18_Pin_7" O L 5550 7800 50 
+F4 "J18_Pin_8" I L 5550 7900 50 
+F5 "J18_Pin_2" U L 5550 7300 50 
+F6 "J18_Pin_6" U L 5550 7700 50 
+F7 "J18_Pin_5_SPI3_CLK" I L 5550 7600 50 
+F8 "J18_Pin_4_SPI3_DO" I L 5550 7500 50 
+F9 "J18_Pin_3_SPI3_DI" O L 5550 7400 50 
 $EndSheet
 Entry Wire Line
 	4100 6100 4200 6000
@@ -189,20 +192,18 @@ Entry Wire Line
 Wire Bus Line
 	4100 6950 4950 6950
 Entry Wire Line
-	4950 7150 5050 7050
-Wire Wire Line
-	5550 7050 5050 7050
+	5050 7200 4950 7100
 Entry Wire Line
-	4950 7650 5050 7750
+	4950 7800 5050 7900
 Entry Wire Line
-	4950 7550 5050 7650
+	4950 7700 5050 7800
 Wire Wire Line
-	5550 7750 5050 7750
+	5550 7900 5050 7900
 Wire Wire Line
-	5050 7650 5550 7650
+	5050 7800 5550 7800
 Text Notes 4650 6000 0    50   Italic 10
 UART 4
-Text Notes 5200 7750 0    50   Italic 10
+Text Notes 5200 7900 0    50   Italic 10
 UART 4
 $Sheet
 S 5550 8700 800  1350
@@ -213,10 +214,6 @@ F2 "J6_Pin_9" U L 5550 9400 50
 F3 "J6_Pin_1" I R 6350 8850 50 
 F4 "J6_Pin_3" O R 6350 8950 50 
 $EndSheet
-Wire Wire Line
-	5550 7500 4700 7500
-Wire Wire Line
-	4700 7500 4700 9400
 Wire Wire Line
 	4700 9400 5550 9400
 $Sheet
@@ -370,6 +367,51 @@ Wire Wire Line
 	12300 3700 9500 3700
 Text Notes 10800 7150 0    50   Italic 10
 I2C1
+Wire Wire Line
+	7500 8750 7250 8750
+Wire Wire Line
+	7250 8750 7250 10350
+Wire Wire Line
+	7250 10350 4700 10350
+Wire Wire Line
+	4700 10350 4700 9400
+Connection ~ 4700 9400
+Wire Wire Line
+	5550 7200 5050 7200
+Wire Wire Line
+	5550 7700 5200 7700
+Wire Wire Line
+	5200 7700 5200 8250
+Wire Wire Line
+	5200 8250 4700 8250
+Wire Wire Line
+	4700 8250 4700 9400
+Wire Bus Line
+	9600 7800 9600 8500
+Wire Bus Line
+	9600 8500 5100 8500
+Connection ~ 9600 7800
+Entry Wire Line
+	5100 7300 5200 7400
+Entry Wire Line
+	5100 7400 5200 7500
+Entry Wire Line
+	5100 7500 5200 7600
+Wire Wire Line
+	5550 7600 5200 7600
+Wire Wire Line
+	5200 7500 5550 7500
+Wire Wire Line
+	5550 7400 5200 7400
+Text Notes 5250 7500 0    50   Italic 10
+SPI3
+$Sheet
+S 2500 7100 900  800 
+U 629B383F
+F0 "J1 (Beep)" 118
+F1 "J1.sch" 118
+F2 "J18_Pin_2" B R 3400 7300 50 
+$EndSheet
 Wire Bus Line
 	6450 8750 6450 9050
 Wire Bus Line
@@ -385,7 +427,11 @@ Wire Bus Line
 Wire Bus Line
 	4100 5900 4100 6950
 Wire Bus Line
-	4950 6950 4950 7650
+	4950 6950 4950 7800
+Wire Wire Line
+	3400 7300 5550 7300
+Wire Bus Line
+	5100 7300 5100 8500
 Wire Bus Line
 	12200 7350 12200 7800
 Wire Bus Line

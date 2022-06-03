@@ -3,7 +3,7 @@ EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
-Sheet 5 10
+Sheet 5 11
 Title "Project Mowgli"
 Date "2022-05-22"
 Rev "1.0.1"
@@ -41,18 +41,14 @@ Wire Wire Line
 $Comp
 L power:GND #PWR0109
 U 1 1 629291C3
-P 5450 3850
-F 0 "#PWR0109" H 5450 3600 50  0001 C CNN
-F 1 "GND" H 5455 3677 50  0000 C CNN
-F 2 "" H 5450 3850 50  0001 C CNN
-F 3 "" H 5450 3850 50  0001 C CNN
-	1    5450 3850
+P 6250 3750
+F 0 "#PWR0109" H 6250 3500 50  0001 C CNN
+F 1 "GND" H 6255 3577 50  0000 C CNN
+F 2 "" H 6250 3750 50  0001 C CNN
+F 3 "" H 6250 3750 50  0001 C CNN
+	1    6250 3750
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	5450 3850 5450 3750
-Wire Wire Line
-	5450 3750 5200 3750
 Text HLabel 6250 3050 2    50   UnSpc ~ 0
 J18_Pin_2
 Wire Wire Line
@@ -61,4 +57,20 @@ Text HLabel 6250 3450 2    50   UnSpc ~ 0
 J18_Pin_6
 Wire Wire Line
 	5200 3450 6250 3450
+Text Notes 7100 3300 0    50   Italic 10
+SPI 3
+Wire Wire Line
+	6250 3150 5200 3150
+Wire Wire Line
+	5200 3250 6250 3250
+Wire Wire Line
+	6250 3350 5200 3350
+Text HLabel 6250 3350 2    50   Input ~ 0
+J18_Pin_5_SPI3_CLK
+Text HLabel 6250 3250 2    50   Input ~ 0
+J18_Pin_4_SPI3_DO
+Text HLabel 6250 3150 2    50   Output ~ 0
+J18_Pin_3_SPI3_DI
+Wire Wire Line
+	5200 3750 6250 3750
 $EndSCHEMATC

@@ -18,7 +18,7 @@
 
 
 
-#define  SW_I2C_WAIT_TIME  25	//(11.0us)
+//#define  SW_I2C_WAIT_TIME  25	//(11.0us)
 //#define  SW_I2C_WAIT_TIME  23	//(10.4us)
 //#define  SW_I2C_WAIT_TIME  22	//100Khz(10.0us)	100Khz	==	10us
 //#define  SW_I2C_WAIT_TIME  10	//195Khz
@@ -30,7 +30,7 @@
 //#define  SW_I2C_WAIT_TIME  4	//350Khz(3.84us)
 //#define  SW_I2C_WAIT_TIME  3	//400Khz(3.44us)
 //#define  SW_I2C_WAIT_TIME  2	//425Khz(3.04us)	333Khz	==	3us
-// #define  SW_I2C_WAIT_TIME  1	//425Khz(2.64us)	400Khz	==	2.5us
+#define  SW_I2C_WAIT_TIME  1	//425Khz(2.64us)	400Khz	==	2.5us
 
 #define TRUE 1
 #define FALSE 0

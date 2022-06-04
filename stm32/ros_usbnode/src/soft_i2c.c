@@ -30,7 +30,7 @@
 //#define  SW_I2C_WAIT_TIME  4	//350Khz(3.84us)
 //#define  SW_I2C_WAIT_TIME  3	//400Khz(3.44us)
 //#define  SW_I2C_WAIT_TIME  2	//425Khz(3.04us)	333Khz	==	3us
-//#define  SW_I2C_WAIT_TIME  1	//425Khz(2.64us)	400Khz	==	2.5us
+// #define  SW_I2C_WAIT_TIME  1	//425Khz(2.64us)	400Khz	==	2.5us
 
 #define TRUE 1
 #define FALSE 0
@@ -678,14 +678,13 @@ uint8_t SW_I2C_Multi_ReadnControl_8Bit(uint8_t IICID, uint8_t regaddr, uint8_t r
     for ( index = 0 ; index < (rcnt-1) ; index++){
     	TIMER__Wait_us(SW_I2C_WAIT_TIME);
     	pdata[index] = SW_I2C_Read_Data();
-	i2c_send_ack();
+	    i2c_send_ack();
 	//if (!i2c_check_ack()) { returnack = FALSE; }
     }
 
     pdata[rcnt-1] = SW_I2C_Read_Data();
 	
     i2c_check_not_ack();
-
     i2c_stop_condition();
 
     return returnack;

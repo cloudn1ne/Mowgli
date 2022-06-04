@@ -25,6 +25,12 @@
 #include "nbt.h"
 #include "geometry_msgs/Twist.h"
 
+// IMU
+#include "imu/imu.h"
+#include "sensor_msgs/Imu.h"
+#include "sensor_msgs/MagneticField.h"
+#include "sensor_msgs/Temperature.h"
+
 
 #define MAX_MPS	  	0.6		 	// Allow maximum speed of 0.6 m/s 
 #define PWM_PER_MPS 300.0		// PWM value of 300 means 1 m/s bot speed
@@ -100,6 +106,10 @@ nav_msgs::Odometry odom_msg;
 std_msgs::UInt16 left_encoder_val_msg;
 std_msgs::UInt16 right_encoder_val_msg;
 
+// IMU
+sensor_msgs::Imu imu_msg;
+sensor_msgs::MagneticField imu_mag_msg;
+
 /*
  * PUBLISHERS
  */
@@ -112,6 +122,10 @@ ros::Publisher pubBladeState("blade_state", &bool_blade_state_msg);
 ros::Publisher pubOdom("odom", &odom_msg);
 ros::Publisher pubLeftEncoderVal("left_encoder_val", &left_encoder_val_msg);
 ros::Publisher pubRightEncoderVal("right_encoder_val", &right_encoder_val_msg);
+
+// IMU
+ros::Publisher pubIMU("imu/data_raw", &imu_msg);
+ros::Publisher pubIMUMag("imu/mag", &imu_mag_msg);
 
 /*
  * SUBSCRIBERS
@@ -391,6 +405,38 @@ extern "C" void broadcast_handler()
 		
 		broadcaster.sendTransform(t);		
 */		
+
+
+		//IMU		
+		float imu_x,imu_y,imu_z;
+
+		imu_msg.header.frame_id = "imu";
+		imu_msg.header.stamp = current_time;
+		 // Linear acceleration		
+		IMU_ReadAccelerometer(&imu_x, &imu_y, &imu_z);
+		imu_msg.linear_acceleration.x = imu_x;
+		imu_msg.linear_acceleration.y = imu_y;
+		imu_msg.linear_acceleration.z = imu_z;
+
+		// Angular velocity
+		IMU_ReadGyro(&imu_x, &imu_y, &imu_z);
+		imu_msg.angular_velocity.x = imu_x;
+		imu_msg.angular_velocity.y = imu_y;
+		imu_msg.angular_velocity.z = imu_z;
+
+		pubIMU.publish(&imu_msg);
+
+		// Orientation
+		imu_mag_msg.header.frame_id = "imu";
+		imu_mag_msg.header.stamp = current_time;
+
+		IMU_ReadMagnetometer(&imu_x, &imu_y, &imu_z);
+		imu_mag_msg.magnetic_field.x = imu_x;
+		imu_mag_msg.magnetic_field.y = imu_y;
+		imu_mag_msg.magnetic_field.z = imu_z;
+		
+
+		pubIMUMag.publish(&imu_mag_msg);	
 	  }
 }
 
@@ -427,6 +473,8 @@ extern "C" void init_ROS()
 	nh.advertise(pubChargeingState);
 	nh.advertise(pubLeftEncoderVal);
 	nh.advertise(pubRightEncoderVal);
+	nh.advertise(pubIMU);
+	nh.advertise(pubIMUMag);
 	
 	// Initialize Subs
 	nh.subscribe(subCommandVelocity);

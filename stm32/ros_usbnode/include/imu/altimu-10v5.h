@@ -2,6 +2,15 @@
 #ifndef __ALTIMU_10V5_H
 #define __ALTIMU_10V5_H
 
+/* Calibration, Conversion factors */
+
+#define DS33_G_FACTOR           1.0/(65536/2/2)     // LSM6DS33 datasheet (page 15)  0.061 mg/LSB
+#define DS33_DPS_FACTOR         1.0/(65536/2/245)   // LSM6DS33 °/sec/LSB 
+#define LIS3MDL_GAUSS_FACTOR    1.0/(65536/2/4)     // LIS3MDL  Gauss/LSB
+#define RAD_PER_G               0.01745             // convert °/sec to rad/sec
+#define MS2_PER_G               9.80665             // convert G to m/s^2 
+#define T_PER_GAUSS             1/10000             // conver Gauss to T
+
 /* Gyro / Accelerometer */
 #define DS33_ADDRESS 0b1101011
 #define DS33_WHO_ID    0x69         // WHO_AM_I will report this value

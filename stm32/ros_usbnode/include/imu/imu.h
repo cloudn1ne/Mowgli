@@ -15,9 +15,9 @@ extern "C" {
 uint8_t IMU_TestDevice(void);           // test of existence of IMU and if possible functioning 
 void IMU_Init(void);                    // initialize IMU (make settings, ready to fetch readings
 
-void IMU_ReadAccelerometer(int16_t *x, int16_t *y, int16_t *z);
-void IMU_ReadGyro(int16_t *x, int16_t *y, int16_t *z);
-void IMU_ReadMagnetometer(int16_t *x, int16_t *y, int16_t *z);
+void IMU_ReadAccelerometer(float *x, float *y, float *z);
+void IMU_ReadGyro(float *x, float *y, float *z);
+void IMU_ReadMagnetometer(float *x, float *y, float *z);
 float IMU_ReadBarometerTemperatureC(void);
 float IMU_ReadBarometerAltitudeMeters(void);
 

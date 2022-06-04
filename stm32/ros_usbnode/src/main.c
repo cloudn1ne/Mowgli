@@ -237,6 +237,7 @@ int main(void)
     IMU_TestDevice();
     IMU_Init();
 
+/*
     int16_t x,y,z;
     float temp;
     float alt;
@@ -251,7 +252,7 @@ int main(void)
         debug_printf("temp: %f alt: %f \r\n", temp, alt);
         HAL_Delay(1000);        
     }
-    
+*/    
 
     ADC1_Init();    
     debug_printf(" * ADC1 initialized\r\n");    

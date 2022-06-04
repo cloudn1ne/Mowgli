@@ -21,6 +21,7 @@
 #include "imu/altimu-10v5.h"
 #include "soft_i2c.h"
 #include "main.h"
+#include <math.h>
 
 
 /**
@@ -90,7 +91,7 @@ void IMU_Init(void)
     SW_I2C_UTIL_WRITE(DS33_ADDRESS, DS33_CTRL1_XL, 0x80);
     // GYRO
     // 0x80 = 0b010000000
-    // ODR = 1000 (1.66 kHz (high performance)); FS_XL = 00 (245 dps)
+    // ODR = 1000 (1.66 kHz (high performance)); FS_XL = 00 (245 degree per s)
     SW_I2C_UTIL_WRITE(DS33_ADDRESS, DS33_CTRL2_G, 0x80);
     // ACCELEROMETER + GYRO
     // 0x04 = 0b00000100
@@ -119,44 +120,56 @@ void IMU_Init(void)
 
 /**
   * @brief  Reads the 3 accelerometer channels and stores them in *x,*y,*z
+  * units are m/s^2
   */
-void IMU_ReadAccelerometer(int16_t *x, int16_t *y, int16_t *z)
+void IMU_ReadAccelerometer(float *x, float *y, float *z)
 {
     uint8_t accel_xyz[6];   // 2 bytes each
 
     SW_I2C_UTIL_Read_Multi(DS33_ADDRESS, DS33_OUTX_L_XL, 6, (uint8_t*)&accel_xyz);
 
-    *x = (int16_t)(accel_xyz[1] << 8 | accel_xyz[0]);
-    *y = (int16_t)(accel_xyz[3] << 8 | accel_xyz[2]);
-    *z = (int16_t)(accel_xyz[5] << 8 | accel_xyz[4]);    
+/*
+    uint8_t i;
+    debug_printf("IMU_ReadAccelerometer Raw Bytes: ");
+    for (i=0;i<6;i++)
+    {
+      debug_printf("%02x ", accel_xyz[i]);
+    }
+    debug_printf("\r\n");
+*/
+    *x =  (int16_t)(accel_xyz[1] << 8 | accel_xyz[0]) * DS33_G_FACTOR * MS2_PER_G;
+    *y =  (int16_t)(accel_xyz[3] << 8 | accel_xyz[2]) * DS33_G_FACTOR * MS2_PER_G;
+    *z =  (int16_t)(accel_xyz[5] << 8 | accel_xyz[4]) * DS33_G_FACTOR * MS2_PER_G;    
 }
 
 /**
   * @brief  Reads the 3 gyro channels and stores them in *x,*y,*z
+  * units are rad/sec
   */
-void IMU_ReadGyro(int16_t *x, int16_t *y, int16_t *z)
+void IMU_ReadGyro(float *x, float *y, float *z)
 {
     uint8_t gyro_xyz[6];   // 2 bytes each
 
     SW_I2C_UTIL_Read_Multi(DS33_ADDRESS, DS33_OUTX_L_G, 6, (uint8_t*)&gyro_xyz);
-
-    *x = (int16_t)(gyro_xyz[1] << 8 | gyro_xyz[0]);
-    *y = (int16_t)(gyro_xyz[3] << 8 | gyro_xyz[2]);
-    *z = (int16_t)(gyro_xyz[5] << 8 | gyro_xyz[4]);    
+    
+    *x = (int16_t)(gyro_xyz[1] << 8 | gyro_xyz[0]) * DS33_DPS_FACTOR * RAD_PER_G;
+    *y = (int16_t)(gyro_xyz[3] << 8 | gyro_xyz[2]) * DS33_DPS_FACTOR * RAD_PER_G;
+    *z = (int16_t)(gyro_xyz[5] << 8 | gyro_xyz[4]) * DS33_DPS_FACTOR * RAD_PER_G;    
 }
 
 /**
   * @brief  Reads the 3 magnetometer channels and stores them in *x,*y,*z
+  * units are tesla 
   */
-void IMU_ReadMagnetometer(int16_t *x, int16_t *y, int16_t *z)
+void IMU_ReadMagnetometer(float *x, float *y, float *z)
 {
     uint8_t mag_xyz[6];   // 2 bytes each
 
     SW_I2C_UTIL_Read_Multi(LIS3MDL_ADDRESS, LIS3MDL_OUT_X_L, 6, (uint8_t*)&mag_xyz);
 
-    *x = (int16_t)(mag_xyz[1] << 8 | mag_xyz[0]);
-    *y = (int16_t)(mag_xyz[3] << 8 | mag_xyz[2]);
-    *z = (int16_t)(mag_xyz[5] << 8 | mag_xyz[4]);    
+    *x = (int16_t)(mag_xyz[1] << 8 | mag_xyz[0]) * LIS3MDL_GAUSS_FACTOR * T_PER_GAUSS;
+    *y = (int16_t)(mag_xyz[3] << 8 | mag_xyz[2]) * LIS3MDL_GAUSS_FACTOR * T_PER_GAUSS;
+    *z = (int16_t)(mag_xyz[5] << 8 | mag_xyz[4]) * LIS3MDL_GAUSS_FACTOR * T_PER_GAUSS;    
 }
 
 /**

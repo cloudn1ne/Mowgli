@@ -420,11 +420,17 @@ extern "C" void broadcast_handler()
 		imu_msg.linear_acceleration.x = imu_x;
 		imu_msg.linear_acceleration.y = imu_y;
 		imu_msg.linear_acceleration.z = imu_z;
+		imu_msg.linear_acceleration_covariance[0] = 1e-3;
+		imu_msg.linear_acceleration_covariance[4] = 1e-3;
+		imu_msg.linear_acceleration_covariance[8] = 1e-3;
 		// Angular velocity
 		IMU_ReadGyro(&imu_x, &imu_y, &imu_z);
 		imu_msg.angular_velocity.x = imu_x;
 		imu_msg.angular_velocity.y = imu_y;
 		imu_msg.angular_velocity.z = imu_z;
+		imu_msg.angular_velocity_covariance[0] = 1e-3;
+		imu_msg.angular_velocity_covariance[4] = 1e-3;
+		imu_msg.angular_velocity_covariance[8] = 1e-3;
 		pubIMU.publish(&imu_msg);
 
 		// Orientation (Magnetometer)

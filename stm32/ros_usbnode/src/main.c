@@ -42,24 +42,36 @@ static nbt_t main_statusled_nbt;
 
 enum rx_status_enum { RX_WAIT, RX_VALID, RX_CRC_ERROR};
 
+// DRIVEMOTORS rx buffering
 static uint8_t drivemotors_rcvd_data;
 uint8_t  drivemotors_rx_buf[32];
-uint32_t drivemotors_rx_buf_idx = 0;
+volatile uint32_t drivemotors_rx_buf_idx = 0;
 uint8_t  drivemotors_rx_buf_crc = 0;
 uint8_t  drivemotors_rx_LENGTH = 0;
 uint8_t  drivemotors_rx_CRC = 0;
-uint8_t  drivemotors_rx_STATUS = RX_WAIT;
+volatile uint8_t  drivemotors_rx_STATUS = RX_WAIT;
+// DRIVEMOTORS tx buffering
+volatile uint8_t  drivemotors_tx_busy = 0;
+static uint8_t drivemotors_tx_buffer_len;
+static char drivemotors_tx_buffer[32];
 
 
-// enum master_rx_status_enum { RX_WAIT, RX_VALID, RX_CRC_ERROR};
 
+// MASTER rx buffering
 static uint8_t master_rcvd_data;
-uint8_t  master_rx_buf[32];
-uint32_t master_rx_buf_idx = 0;
-uint8_t  master_rx_buf_crc = 0;
-uint8_t  master_rx_LENGTH = 0;
-uint8_t  master_rx_CRC = 0;
-uint8_t  master_rx_STATUS = RX_WAIT;
+volatile uint8_t  master_rx_buf[32];
+volatile uint32_t master_rx_buf_idx = 0;
+volatile uint8_t  master_rx_buf_crc = 0;
+volatile uint8_t  master_rx_LENGTH = 0;
+volatile uint8_t  master_rx_CRC = 0;
+volatile uint8_t  master_rx_STATUS = RX_WAIT;
+// MASTER tx buffering
+volatile uint8_t  master_tx_busy = 0;
+static uint8_t master_tx_buffer_len;
+static char master_tx_buffer[255];
+
+
+
 int    blade_motor = 0;
 
 static uint8_t panel_rcvd_data;
@@ -76,10 +88,46 @@ UART_HandleTypeDef MASTER_USART_Handler; // UART  Handle
 UART_HandleTypeDef DRIVEMOTORS_USART_Handler; // UART  Handle
 UART_HandleTypeDef BLADEMOTOR_USART_Handler; // UART  Handle
 
+// Drive Motors DMA
+DMA_HandleTypeDef hdma_usart2_rx;
+DMA_HandleTypeDef hdma_usart2_tx;
+DMA_HandleTypeDef hdma_uart4_tx;
+
 I2C_HandleTypeDef I2C_Handle;
 ADC_HandleTypeDef ADC_Handle;
 TIM_HandleTypeDef TIM1_Handle;
 
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
+{
+   // do nothing here
+}
+
+/*
+ * called when DMA transfer completes
+ * update <xxxx>_tx_busy to let XXXX_Transmit function now when the DMA buffer is free 
+ */
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
+{   
+    if (huart->Instance == MASTER_USART_INSTANCE)
+    {
+        if (__HAL_USART_GET_FLAG(&MASTER_USART_Handler, USART_FLAG_TC))        
+        {
+            master_tx_busy = 0;
+        }
+    }
+    if (huart->Instance == DRIVEMOTORS_USART_INSTANCE)
+    {
+        if (__HAL_USART_GET_FLAG(&DRIVEMOTORS_USART_Handler, USART_FLAG_TC))        
+        {
+            drivemotors_tx_busy = 0;
+        }
+    }
+}
+
+void HAL_UART_TxHalfCpltCallback(UART_HandleTypeDef *huart)
+{
+   // do nothing here
+}
 
 /*
  * Master UART receive ISR
@@ -87,12 +135,10 @@ TIM_HandleTypeDef TIM1_Handle;
  * PANEL UART receive ISR
  */ 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{    
-       
-
+{           
        if (huart->Instance == MASTER_USART_INSTANCE)
        {
-         /*
+           /*
             * MASTER Message handling
             */
            if (master_rx_buf_idx == 0 && master_rcvd_data == 0x55)           /* PREAMBLE */  
@@ -131,7 +177,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
                else
                {                   
                    // crc failed, reader must set back STATUS to RX_WAIT
-                   master_rx_STATUS = RX_CRC_ERROR;                   
+                   master_rx_STATUS = RX_WAIT;                   
                    master_rx_buf_idx = 0;
                }
            }
@@ -140,7 +186,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
                master_rx_STATUS = RX_WAIT;
                master_rx_buf_idx = 0;               
            }           
-           HAL_UART_Receive_IT(&MASTER_USART_Handler, &master_rcvd_data, 1);   // rearm interrupt
+       //    HAL_UART_Receive_IT(&MASTER_USART_Handler, &master_rcvd_data, 1);   // rearm interrupt           
        }
        else if (huart->Instance == DRIVEMOTORS_USART_INSTANCE)
        {
@@ -191,8 +237,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
            {
                drivemotors_rx_STATUS = RX_WAIT;
                drivemotors_rx_buf_idx = 0;               
-           }
-           HAL_UART_Receive_IT(&DRIVEMOTORS_USART_Handler, &drivemotors_rcvd_data, 1);   // rearm interrupt               
+           }       
        }       
        else if(huart->Instance == PANEL_USART_INSTANCE)
        {
@@ -211,7 +256,11 @@ int main(void)
     SystemClock_Config();
 
     __HAL_RCC_AFIO_CLK_ENABLE();    
+
+    MX_DMA_Init();
+    
     MASTER_USART_Init();
+
     debug_printf("\r\n");
     debug_printf("    __  ___                    ___\r\n");
     debug_printf("   /  |/  /___ _      ______ _/ (_)\r\n");
@@ -271,7 +320,7 @@ int main(void)
     // Init Drive Motors and Blade Motor
     #ifdef DRIVEMOTORS_USART_ENABLED
         DRIVEMOTORS_USART_Init();
-        debug_printf(" * Drive Motors USART initialized\r\n");
+        debug_printf(" * Drive Motors USART initialized\r\n");        
     #endif
     #ifdef BLADEMOTOR_USART_ENABLED
         BLADEMOTOR_USART_Init();
@@ -279,10 +328,13 @@ int main(void)
     #endif
     
 
-    HAL_UART_Receive_IT(&MASTER_USART_Handler, &master_rcvd_data, 1);
+   // HAL_UART_Receive_IT(&MASTER_USART_Handler, &master_rcvd_data, 1);
     debug_printf(" * Master Interrupt enabled\r\n");
-    HAL_UART_Receive_IT(&DRIVEMOTORS_USART_Handler, &drivemotors_rcvd_data, 1);
-    debug_printf(" * Drive Motors Interrupt enabled\r\n");
+    
+    //HAL_UART_Receive_IT(&DRIVEMOTORS_USART_Handler, &drivemotors_rcvd_data, 1);    
+    HAL_UART_Receive_DMA(&DRIVEMOTORS_USART_Handler, &drivemotors_rcvd_data, 1);
+    debug_printf(" * Drive Motors UART DMX (TX/TX) enabled\r\n");
+
     HAL_UART_Receive_IT(&PANEL_USART_Handler, &panel_rcvd_data, 1);   // rearm interrupt               
     debug_printf(" * Panel Interrupt enabled\r\n");
 
@@ -327,30 +379,30 @@ int main(void)
             // we need to adjust for direction (+/-) !
             if ((direction & 0x30) == 0x30)
             {            
-                left_wheel_speed_val = -1 * drivemotors_rx_buf[7];
+                left_wheel_speed_val =  drivemotors_rx_buf[7];
             }
             else 
             {
-                left_wheel_speed_val =  drivemotors_rx_buf[7];
+                left_wheel_speed_val =  -1 * drivemotors_rx_buf[7];
             }
             if ( (direction & 0xc0) == 0xc0)
             {            
-                right_wheel_speed_val = -1 * drivemotors_rx_buf[6];
+                right_wheel_speed_val =  drivemotors_rx_buf[6];
             }
             else 
             {
-                right_wheel_speed_val =  drivemotors_rx_buf[6];
+                right_wheel_speed_val = -1 * drivemotors_rx_buf[6];
             }
                         
             left_encoder_val = (drivemotors_rx_buf[16]<<8)+drivemotors_rx_buf[15];
             right_encoder_val = (drivemotors_rx_buf[14]<<8)+drivemotors_rx_buf[13];            
             //if (drivemotors_rx_buf[5]>>4)       // stuff is moving
-            //{
-            //   msgPrint(drivemotors_rx_buf, drivemotors_rx_buf_idx);             
-            //}                    
+           // {
+           //    msgPrint(drivemotors_rx_buf, drivemotors_rx_buf_idx);             
+           // }                    
             drivemotors_rx_buf_idx = 0;
-            drivemotors_rx_STATUS = RX_WAIT;                    // ready for next message            
-            //  HAL_GPIO_TogglePin(LED_GPIO_PORT, LED_PIN);         // flash LED             
+            drivemotors_rx_STATUS = RX_WAIT;                    // ready for next message                        
+            HAL_GPIO_TogglePin(LED_GPIO_PORT, LED_PIN);         // flash LED                         
         }     
         /* not used atm - we control the bot via ROS
         if (master_rx_STATUS == RX_VALID)                        // valid frame received by MASTER USART
@@ -389,7 +441,8 @@ int main(void)
 	    }
         if (NBT_handler(&main_statusled_nbt))
 	    {            
-			StatusLEDUpdate(); 
+			StatusLEDUpdate();          
+            // debug_printf("master_rx_STATUS: %d  drivemotors_rx_buf_idx: %d  cnt_usart2_overrun: %x\r\n", master_rx_STATUS, drivemotors_rx_buf_idx, cnt_usart2_overrun);           
 	    }        
     }
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -422,6 +475,7 @@ void MASTER_USART_Init()
     GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
     HAL_GPIO_Init(MASTER_USART_TX_PORT, &GPIO_InitStruct);
 
+
     MASTER_USART_Handler.Instance = MASTER_USART_INSTANCE;     // USART1 (DEV)
     MASTER_USART_Handler.Init.BaudRate = 115200;               // Baud rate
     MASTER_USART_Handler.Init.WordLength = UART_WORDLENGTH_8B; // The word is  8  Bit format
@@ -431,10 +485,29 @@ void MASTER_USART_Init()
     MASTER_USART_Handler.Init.Mode = USART_MODE_TX_RX;         // Transceiver mode
 
     HAL_UART_Init(&MASTER_USART_Handler); // HAL_UART_Init() Will enable  UART1
+    
+    /* UART4 DMA Init */
+    /* UART4_TX Init */
+    hdma_uart4_tx.Instance = DMA2_Channel5;
+    hdma_uart4_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
+    hdma_uart4_tx.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_uart4_tx.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_uart4_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_uart4_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_uart4_tx.Init.Mode = DMA_NORMAL;
+    hdma_uart4_tx.Init.Priority = DMA_PRIORITY_LOW;
+    if (HAL_DMA_Init(&hdma_uart4_tx) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    __HAL_LINKDMA(&MASTER_USART_Handler,hdmatx,hdma_uart4_tx);
 
     // enable IRQ
     HAL_NVIC_SetPriority(MASTER_USART_IRQ, 0, 0);
 	HAL_NVIC_EnableIRQ(MASTER_USART_IRQ);     
+
+    __HAL_UART_ENABLE_IT(&MASTER_USART_Handler, UART_IT_TC);
 }
 
 
@@ -477,9 +550,43 @@ void DRIVEMOTORS_USART_Init()
     
     HAL_UART_Init(&DRIVEMOTORS_USART_Handler); 
 
-      // enable IRQ
+    /* USART2 DMA Init */
+    /* USART2_RX Init */    
+    hdma_usart2_rx.Instance = DMA1_Channel6;
+    hdma_usart2_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    hdma_usart2_rx.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_usart2_rx.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_usart2_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_usart2_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_usart2_rx.Init.Mode = DMA_CIRCULAR;
+    hdma_usart2_rx.Init.Priority = DMA_PRIORITY_LOW;
+    if (HAL_DMA_Init(&hdma_usart2_rx) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    __HAL_LINKDMA(&DRIVEMOTORS_USART_Handler,hdmarx,hdma_usart2_rx);
+
+    // USART2_TX Init */
+    hdma_usart2_tx.Instance = DMA1_Channel7;
+    hdma_usart2_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
+    hdma_usart2_tx.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_usart2_tx.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_usart2_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_usart2_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_usart2_tx.Init.Mode = DMA_NORMAL;
+    hdma_usart2_tx.Init.Priority = DMA_PRIORITY_LOW;
+    if (HAL_DMA_Init(&hdma_usart2_tx) != HAL_OK)
+    {
+      Error_Handler();
+    }
+    __HAL_LINKDMA(&DRIVEMOTORS_USART_Handler,hdmatx,hdma_usart2_tx);
+
+    // enable IRQ      
     HAL_NVIC_SetPriority(DRIVEMOTORS_USART_IRQ, 0, 0);
- 	HAL_NVIC_EnableIRQ(DRIVEMOTORS_USART_IRQ);     
+    HAL_NVIC_EnableIRQ(DRIVEMOTORS_USART_IRQ);   
+
+    __HAL_UART_ENABLE_IT(&DRIVEMOTORS_USART_Handler, UART_IT_TC);
 }
 
 /**
@@ -606,6 +713,7 @@ void Error_Handler(void)
     __disable_irq();
     while (1)
     {
+        debug_printf("Error Handler reached, oops\r\n");
     }
     /* USER CODE END Error_Handler_Debug */
 }
@@ -841,6 +949,30 @@ void ADC1_Init(void)
      __HAL_AFIO_REMAP_TIM1_ENABLE();        // to use PE8/9 it is a full remap
   #endif  
 }
+
+/**
+  * Enable DMA controller clock
+  */
+void MX_DMA_Init(void)
+{
+
+   /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+  __HAL_RCC_DMA2_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Channel6_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel6_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel6_IRQn);
+  /* DMA1_Channel7_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel7_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel7_IRQn);
+  /* DMA2_Channel4_5_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Channel4_5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Channel4_5_IRQn);
+
+}
+
 
 /*
  * Charge Current
@@ -1129,20 +1261,24 @@ void StatusLEDUpdate(void)
 void setDriveMotors(uint8_t left_speed, uint8_t right_speed, uint8_t left_dir, uint8_t right_dir)
 {
     uint8_t direction = 0x0;            
-    uint8_t drivemotors_msg[DRIVEMOTORS_MSG_LEN] =  { 0x55, 0xaa, 0x8, 0x10, 0x80, direction, right_speed, left_speed, 0x0, 0x0, 0x0};
+    static uint8_t drivemotors_msg[DRIVEMOTORS_MSG_LEN] =  { 0x55, 0xaa, 0x8, 0x10, 0x80, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0};
     
+    drivemotors_msg[5] = direction;
+    drivemotors_msg[6] = right_speed;
+    drivemotors_msg[7] = left_speed;
+
     // calc direction bits
     if (left_dir == 0)
-    {
-        direction |= (0x20 + 0x10);
+    {        
+        direction |= (0x20 + 0x10);                
     }
     else
     {
         direction |= 0x20;
     }
     if (right_dir == 0)
-    {
-        direction |= (0x40 + 0x80);        
+    {   
+        direction |= (0x40 + 0x80);                             
     }
     else
     {
@@ -1151,10 +1287,12 @@ void setDriveMotors(uint8_t left_speed, uint8_t right_speed, uint8_t left_dir, u
     // update direction byte in message
     drivemotors_msg[5] = direction;
     // calc crc
-    drivemotors_msg[DRIVEMOTORS_MSG_LEN-1] = crcCalc(drivemotors_msg, DRIVEMOTORS_MSG_LEN-1);
+    drivemotors_msg[DRIVEMOTORS_MSG_LEN-1] = crcCalc(drivemotors_msg, DRIVEMOTORS_MSG_LEN-1);    
   // msgPrint(drivemotors_msg, DRIVEMOTORS_MSG_LEN);
-    // transmit
-    HAL_UART_Transmit(&DRIVEMOTORS_USART_Handler, drivemotors_msg, DRIVEMOTORS_MSG_LEN, HAL_MAX_DELAY);
+    // transmit via UART
+    DRIVEMOTORS_Transmit(drivemotors_msg, DRIVEMOTORS_MSG_LEN);
+    // HAL_UART_Transmit(&DRIVEMOTORS_USART_Handler, drivemotors_msg, DRIVEMOTORS_MSG_LEN, HAL_MAX_DELAY);
+     //HAL_UART_Transmit_DMA(&DRIVEMOTORS_USART_Handler, drivemotors_msg, DRIVEMOTORS_MSG_LEN);
 }
 
 /*
@@ -1212,10 +1350,18 @@ uint8_t crcCalc(uint8_t *msg, uint8_t msg_len)
  */
 void vprint(const char *fmt, va_list argp)
 {
-    char string[200];
+    char string[200];    
     if(0 < vsprintf(string,fmt,argp)) // build string
     {
-        HAL_UART_Transmit(&MASTER_USART_Handler, (uint8_t*)string, strlen(string), 0xffffff); // send message via UART
+        MASTER_Transmit(string, strlen(string));
+
+        // HAL_UART_Transmit(&MASTER_USART_Handler, (uint8_t*)string, strlen(string), HAL_MAX_DELAY); // send message via UART               
+        //while (master_tx_busy) {  }
+        //master_tx_busy = 1;        
+        //master_tx_buffer_len = strlen(string);
+        //memcpy(master_tx_buffer, string, master_tx_buffer_len);
+        //HAL_UART_Transmit_DMA(&MASTER_USART_Handler, (uint8_t*)master_tx_buffer, master_tx_buffer_len); // send message via UART                
+        // HAL_Delay(10);
     }
 }
 
@@ -1228,4 +1374,32 @@ void debug_printf(const char *fmt, ...)
     va_start(argp, fmt);
     vprint(fmt, argp);
     va_end(argp);
+}
+
+/*
+ * Send message via MASTER USART (DMA Normal Mode)
+ */
+void MASTER_Transmit(uint8_t *buffer, uint8_t len)
+{    
+    // wait until tx buffers are free (send complete)
+    while (master_tx_busy) {  }
+    master_tx_busy = 1;  
+    // copy into our master_tx_buffer 
+    master_tx_buffer_len = len;
+    memcpy(master_tx_buffer, buffer, master_tx_buffer_len);
+    HAL_UART_Transmit_DMA(&MASTER_USART_Handler, (uint8_t*)master_tx_buffer, master_tx_buffer_len); // send message via UART       
+}
+
+/*
+ * Send message via MASTER USART (DMA Normal Mode)
+ */
+void DRIVEMOTORS_Transmit(uint8_t *buffer, uint8_t len)
+{    
+    // wait until tx buffers are free (send complete)
+    while (drivemotors_tx_busy) {  }
+    drivemotors_tx_busy = 1;  
+    // copy into our master_tx_buffer 
+    drivemotors_tx_buffer_len = len;
+    memcpy(drivemotors_tx_buffer, buffer, drivemotors_tx_buffer_len);
+    HAL_UART_Transmit_DMA(&DRIVEMOTORS_USART_Handler, (uint8_t*)drivemotors_tx_buffer, drivemotors_tx_buffer_len); // send message via UART       
 }

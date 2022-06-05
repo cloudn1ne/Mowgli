@@ -67,6 +67,11 @@ extern int16_t  left_wheel_speed_val;
 extern uint16_t right_encoder_val;
 extern uint16_t left_encoder_val;
 
+// uart statistics
+extern uint16_t cnt_uart4_overrun;      // master
+extern uint16_t cnt_usart2_overrun;     // drive motors
+
+
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
@@ -85,6 +90,13 @@ void SystemClock_Config();
 void I2C_Init(void);
 void ADC1_Init(void);
 void TIM1_Init(void);
+void MX_DMA_Init(void);
+
+
+// UART Wrapper functions to hide HAL bullshit ...
+void MASTER_Transmit(uint8_t *buffer, uint8_t len);
+void DRIVEMOTORS_Transmit(uint8_t *buffer, uint8_t len);
+
 
 void debug_printf(const char *fmt, ...);
 

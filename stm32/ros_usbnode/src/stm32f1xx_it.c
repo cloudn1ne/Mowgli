@@ -44,6 +44,9 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
 
+uint16_t cnt_uart4_overrun = 0;
+uint16_t cnt_usart2_overrun = 0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -60,6 +63,10 @@
 extern UART_HandleTypeDef MASTER_USART_Handler;
 extern UART_HandleTypeDef DRIVEMOTORS_USART_Handler;
 extern PCD_HandleTypeDef hpcd_USB_FS;
+
+extern DMA_HandleTypeDef hdma_uart4_tx;
+extern DMA_HandleTypeDef hdma_usart2_rx;
+extern DMA_HandleTypeDef hdma_usart2_tx;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -223,34 +230,69 @@ void SysTick_Handler(void)
   * @brief This function handles UART global interrupt.
   */
   void USART2_IRQHandler(void)
-  {
-    /* USER CODE BEGIN UART1_IRQn 0 */
+  {    
+    
+    uint32_t status = USART2->SR;
+    if (status & USART_SR_ORE){ // overrun error      
+      cnt_usart2_overrun++;      
+    }    
 
-    /* USER CODE END UART1_IRQn 0 */
-     HAL_UART_IRQHandler(&DRIVEMOTORS_USART_Handler);
-   
-
-    /* USER CODE BEGIN UART1_IRQn 1 */
-
-    /* USER CODE END UART1_IRQn 1 */
+    HAL_UART_IRQHandler(&DRIVEMOTORS_USART_Handler);    
   }
 
 
 /**
   * @brief This function handles UART4 global interrupt.
   */
+
+
   void UART4_IRQHandler(void)
-  {
-    /* USER CODE BEGIN UART1_IRQn 0 */
-
-    /* USER CODE END UART1_IRQn 0 */
-    HAL_UART_IRQHandler(&MASTER_USART_Handler);
-
-    /* USER CODE BEGIN UART1_IRQn 1 */
-
-    /* USER CODE END UART1_IRQn 1 */
+  {           
+    HAL_UART_IRQHandler(&MASTER_USART_Handler);   
   }
 
+
+/**
+  * @brief This function handles DMA1 channel6 global interrupt.
+  */
+void DMA1_Channel6_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Channel6_IRQn 0 */
+
+  /* USER CODE END DMA1_Channel6_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_usart2_rx);
+  /* USER CODE BEGIN DMA1_Channel6_IRQn 1 */
+
+  /* USER CODE END DMA1_Channel6_IRQn 1 */
+}
+
+/**
+  * @brief This function handles DMA1 channel7 global interrupt.
+  */
+void DMA1_Channel7_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Channel7_IRQn 0 */
+
+  /* USER CODE END DMA1_Channel7_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_usart2_tx);
+  /* USER CODE BEGIN DMA1_Channel7_IRQn 1 */
+
+  /* USER CODE END DMA1_Channel7_IRQn 1 */
+}
+
+/**
+  * @brief This function handles DMA2 channel4 and channel5 global interrupts.
+  */
+void DMA2_Channel4_5_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA2_Channel4_5_IRQn 0 */
+
+  /* USER CODE END DMA2_Channel4_5_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_uart4_tx);
+  /* USER CODE BEGIN DMA2_Channel4_5_IRQn 1 */
+
+  /* USER CODE END DMA2_Channel4_5_IRQn 1 */
+}
 
 
 /**

@@ -30,6 +30,7 @@
 #include "sensor_msgs/Imu.h"
 #include "sensor_msgs/MagneticField.h"
 #include "sensor_msgs/Temperature.h"
+#include "mowgli/magnetometer.h"
 
 
 #define MAX_MPS	  	0.6		 	// Allow maximum speed of 0.6 m/s 
@@ -58,8 +59,8 @@ ros::NodeHandle nh;
 geometry_msgs::Quaternion quat;
 geometry_msgs::TransformStamped t;
 tf::TransformBroadcaster broadcaster;
-char base_link[] = "/base_link";
-char odom[] = "/odom";
+char base_link[] = "base_link";
+char odom[] = "odom";
 
 //double radius = 0.04;                              //Wheel radius, in m
 //double wheelbase = 0.187;                          //Wheelbase, in m
@@ -80,7 +81,7 @@ double linear_scale_positive = 1.0;
 double linear_scale_negative = 1.0;
 double angular_scale_positive = 1.0;
 double angular_scale_negative = 1.0;
-bool publish_tf = false;
+bool publish_tf = true; // publish odom -> base_link transform
 double dt = 0.0;
 double dx = 0.0;
 double dy = 0.0;
@@ -109,6 +110,7 @@ std_msgs::UInt16 right_encoder_val_msg;
 // IMU
 sensor_msgs::Imu imu_msg;
 sensor_msgs::MagneticField imu_mag_msg;
+mowgli::magnetometer imu_mag_calibration_msg;
 
 /*
  * PUBLISHERS
@@ -126,6 +128,7 @@ ros::Publisher pubRightEncoderVal("right_encoder_val", &right_encoder_val_msg);
 // IMU
 ros::Publisher pubIMU("imu/data_raw", &imu_msg);
 ros::Publisher pubIMUMag("imu/mag", &imu_mag_msg);
+ros::Publisher pubIMUMagCalibration("imu/mag_calibration", &imu_mag_calibration_msg);
 
 /*
  * SUBSCRIBERS
@@ -299,12 +302,12 @@ extern "C" void broadcast_handler()
 		//////////////////////////////////////////////////
 		speed_act_left = left_wheel_speed_val/PWM_PER_MPS;			// wheel speed in m/s
 		speed_act_right = right_wheel_speed_val/PWM_PER_MPS;			// wheel speed in m/s
-	//	debug_printf("speed_act_left: %f speed_act_right: %f\r\n",  speed_act_left, speed_act_right);		
+		// debug_printf("speed_act_left: %f speed_act_right: %f\r\n",  speed_act_left, speed_act_right);		
 		dt = (BROADCAST_NBT_TIME_MS/1000.0);
 		dxy = (speed_act_left+speed_act_right)*dt/2.0;
-		dth = ((speed_act_right-speed_act_left)*dt)/WHEEL_BASE;
+		dth = - 1.0 * ((speed_act_right-speed_act_left)*dt)/WHEEL_BASE;
 
-	//	debug_printf("dt: %f dxy: %f dth: %f\r\n",  dt, dxy, dth);		
+		//debug_printf("dt: %f dxy: %f dth: %f\r\n",  dt, dxy, dth);		
 
 		if (dth > 0) dth *= angular_scale_positive;
     	if (dth < 0) dth *= angular_scale_negative;
@@ -417,26 +420,29 @@ extern "C" void broadcast_handler()
 		imu_msg.linear_acceleration.x = imu_x;
 		imu_msg.linear_acceleration.y = imu_y;
 		imu_msg.linear_acceleration.z = imu_z;
-
 		// Angular velocity
 		IMU_ReadGyro(&imu_x, &imu_y, &imu_z);
 		imu_msg.angular_velocity.x = imu_x;
 		imu_msg.angular_velocity.y = imu_y;
 		imu_msg.angular_velocity.z = imu_z;
-
 		pubIMU.publish(&imu_msg);
 
-		// Orientation
+		// Orientation (Magnetometer)
 		imu_mag_msg.header.frame_id = "imu";
 		imu_mag_msg.header.stamp = current_time;
-
 		IMU_ReadMagnetometer(&imu_x, &imu_y, &imu_z);
 		imu_mag_msg.magnetic_field.x = imu_x;
 		imu_mag_msg.magnetic_field.y = imu_y;
 		imu_mag_msg.magnetic_field.z = imu_z;
-		
+		pubIMUMag.publish(&imu_mag_msg);
 
-		pubIMUMag.publish(&imu_mag_msg);	
+		// Calibration (Magnetometer)
+		imu_mag_msg.header.frame_id = "imu";
+		imu_mag_msg.header.stamp = current_time;
+		imu_mag_calibration_msg.x = imu_x;
+		imu_mag_calibration_msg.y = imu_y;
+		imu_mag_calibration_msg.z = imu_z;
+		pubIMUMagCalibration.publish(&imu_mag_calibration_msg); // this is what ros-calibration_imu expects 
 	  }
 }
 
@@ -475,6 +481,7 @@ extern "C" void init_ROS()
 	nh.advertise(pubRightEncoderVal);
 	nh.advertise(pubIMU);
 	nh.advertise(pubIMUMag);
+	nh.advertise(pubIMUMagCalibration);
 	
 	// Initialize Subs
 	nh.subscribe(subCommandVelocity);

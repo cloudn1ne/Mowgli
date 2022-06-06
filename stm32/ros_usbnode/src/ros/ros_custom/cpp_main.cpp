@@ -110,7 +110,8 @@ std_msgs::UInt16 right_encoder_val_msg;
 // IMU
 sensor_msgs::Imu imu_msg;
 sensor_msgs::MagneticField imu_mag_msg;
-mowgli::magnetometer imu_mag_calibration_msg;
+sensor_msgs::MagneticField imu_mag_calibration_msg;
+//mowgli::magnetometer imu_mag_calibration_msg;
 
 /*
  * PUBLISHERS
@@ -410,7 +411,9 @@ extern "C" void broadcast_handler()
 */		
 
 
-		//IMU		
+		////////////////////////////////////////
+		// IMU		
+		////////////////////////////////////////
 		float imu_x,imu_y,imu_z;
 
 		imu_msg.header.frame_id = "imu";
@@ -420,23 +423,27 @@ extern "C" void broadcast_handler()
 		imu_msg.linear_acceleration.x = imu_x;
 		imu_msg.linear_acceleration.y = imu_y;
 		imu_msg.linear_acceleration.z = imu_z;
+		/*
 		imu_msg.linear_acceleration_covariance[0] = 1e-3;
 		imu_msg.linear_acceleration_covariance[4] = 1e-3;
 		imu_msg.linear_acceleration_covariance[8] = 1e-3;
+		*/
 		// Angular velocity
 		IMU_ReadGyro(&imu_x, &imu_y, &imu_z);
 		imu_msg.angular_velocity.x = imu_x;
 		imu_msg.angular_velocity.y = imu_y;
 		imu_msg.angular_velocity.z = imu_z;
+		/*
 		imu_msg.angular_velocity_covariance[0] = 1e-3;
 		imu_msg.angular_velocity_covariance[4] = 1e-3;
 		imu_msg.angular_velocity_covariance[8] = 1e-3;
+		*/
 		pubIMU.publish(&imu_msg);
 
 		// Orientation (Magnetometer)
 		imu_mag_msg.header.frame_id = "imu";
-		imu_mag_msg.header.stamp = current_time;
-		IMU_ReadMagnetometer(&imu_x, &imu_y, &imu_z);
+		imu_mag_msg.header.stamp = current_time;		
+	 	IMU_ReadMagnetometer(&imu_x, &imu_y, &imu_z);
 		imu_mag_msg.magnetic_field.x = imu_x;
 		imu_mag_msg.magnetic_field.y = imu_y;
 		imu_mag_msg.magnetic_field.z = imu_z;
@@ -445,10 +452,17 @@ extern "C" void broadcast_handler()
 		// Calibration (Magnetometer)
 		imu_mag_msg.header.frame_id = "imu";
 		imu_mag_msg.header.stamp = current_time;
-		imu_mag_calibration_msg.x = imu_x;
-		imu_mag_calibration_msg.y = imu_y;
-		imu_mag_calibration_msg.z = imu_z;
+		IMU_ReadMagnetometerRaw(&imu_x, &imu_y, &imu_z);
+		imu_mag_calibration_msg.magnetic_field.x = imu_x;
+		imu_mag_calibration_msg.magnetic_field.y = imu_y;
+		imu_mag_calibration_msg.magnetic_field.z = imu_z;		
 		pubIMUMagCalibration.publish(&imu_mag_calibration_msg); // this is what ros-calibration_imu expects 
+
+
+		//imu_mag_calibration_msg.x = imu_x;
+		//imu_mag_calibration_msg.y = imu_y;
+		//imu_mag_calibration_msg.z = imu_z;
+		//pubIMUMagCalibration.publish(&imu_mag_calibration_msg); // this is what ros-calibration_imu expects 
 	  }
 }
 

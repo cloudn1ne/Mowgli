@@ -18,6 +18,7 @@ void IMU_Init(void);                    // initialize IMU (make settings, ready 
 void IMU_ReadAccelerometer(float *x, float *y, float *z);
 void IMU_ReadGyro(float *x, float *y, float *z);
 void IMU_ReadMagnetometer(float *x, float *y, float *z);
+void IMU_ReadMagnetometerRaw(float *x, float *y, float *z);
 float IMU_ReadBarometerTemperatureC(void);
 float IMU_ReadBarometerAltitudeMeters(void);
 

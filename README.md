@@ -42,6 +42,14 @@ The custom firmware has no protections - no tilt sensing, no stop buttons will w
 - Software I2C on the unusued (red) J18 header - used for IMU
 - [Raspi, IMU, GPS Mounting Options](./Mounting)
 
+## TODO
+
+- Move all UART functions use DMA as HAL_IT is a seriously broken API
+- Publish Blade Motor state
+- Make Buzzer work
+- Publish onboard accerlometer
+- (Probably) Shift all the published topics to some common base such as /mowgli/
+
 ## rosserial node
 
 - [See here how to control the bot via ROS](stm32/ros_usbnode)

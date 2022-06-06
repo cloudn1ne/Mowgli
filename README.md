@@ -39,6 +39,8 @@ The custom firmware has no protections - no tilt sensing, no stop buttons will w
    - Blade Motor, on/off
    - Panel LED control
 - Serial debugging on the unused (red) J18 header
+- Software I2C on the unusued (red) J18 header - used for IMU
+- [Raspi, IMU, GPS Mounting Options](./Mounting)
 
 ## rosserial node
 

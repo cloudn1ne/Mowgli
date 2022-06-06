@@ -23,6 +23,13 @@ extern "C" {
     #define PANEL_TYPE_YARDFORCE_500_CLASSIC    1
     // #define PANEL_TYPE_YARDFORCE_900_ECO   1
 
+    // if voltage is greater than this assume we are docked
+    #define MIN_CHARGE_VOLTAGE 5.0
+    // must provide at least MIN_CHARGE_VOLTAGE when docked
+    #define MIN_CHARGE_PWM 500
+    // if current is greater than this assume the battery is charging
+    #define MIN_CHARGE_CURRENT 0.2
+
     #define LOW_BAT_THRESHOLD   23.5
 
     // we use J18 (Red 9 pin connector as Master Serial Port)

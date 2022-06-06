@@ -100,6 +100,7 @@ double theta = 1.57;
 // std_msgs::String str_msg;
 std_msgs::Float32 f32_battery_voltage_msg;
 std_msgs::Float32 f32_charge_voltage_msg;
+std_msgs::Float32 f32_charge_current_msg;
 std_msgs::Int16 int16_charge_pwm_msg;
 std_msgs::Bool bool_blade_state_msg;
 std_msgs::Bool bool_charging_state_msg;
@@ -119,6 +120,7 @@ sensor_msgs::MagneticField imu_mag_calibration_msg;
 // ros::Publisher chatter("version", &str_msg);
 ros::Publisher pubBatteryVoltage("battery_voltage", &f32_battery_voltage_msg);
 ros::Publisher pubChargeVoltage("charge_voltage", &f32_charge_voltage_msg);
+ros::Publisher pubChargeCurrent("charge_current", &f32_charge_current_msg);
 ros::Publisher pubChargePWM("charge_pwm", &int16_charge_pwm_msg);
 ros::Publisher pubChargeingState("charging_state", &bool_charging_state_msg);
 ros::Publisher pubBladeState("blade_state", &bool_blade_state_msg);
@@ -248,11 +250,14 @@ extern "C" void chatter_handler()
 		  chatter.publish(&str_msg);
 		  */
 		  
-		  f32_battery_voltage_msg.data = ADC_BatteryVoltage();
+		  f32_battery_voltage_msg.data = battery_voltage;
 		  pubBatteryVoltage.publish(&f32_battery_voltage_msg);
 
-		  f32_charge_voltage_msg.data = ADC_ChargeVoltage();
+		  f32_charge_voltage_msg.data = charge_voltage;
 		  pubChargeVoltage.publish(&f32_charge_voltage_msg);
+
+		  f32_charge_current_msg.data = charge_current;
+		  pubChargeCurrent.publish(&f32_charge_current_msg);
 
 		  int16_charge_pwm_msg.data = chargecontrol_pwm_val;
 		  pubChargePWM.publish(&int16_charge_pwm_msg);
@@ -493,6 +498,7 @@ extern "C" void init_ROS()
 	// Initialize Pubs
 	nh.advertise(pubBatteryVoltage);
 	nh.advertise(pubChargeVoltage);
+	nh.advertise(pubChargeCurrent);
 	nh.advertise(pubChargePWM);
 	nh.advertise(pubOdom);
 	nh.advertise(pubBladeState);

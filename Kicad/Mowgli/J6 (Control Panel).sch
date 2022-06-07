@@ -3,7 +3,7 @@ EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
-Sheet 6 11
+Sheet 11 12
 Title "Project Mowgli"
 Date "2022-05-22"
 Rev "1.0.1"
@@ -13,33 +13,718 @@ Comment2 "https://github.com/cloudn1ne/Mowgli"
 Comment3 ""
 Comment4 ""
 $EndDescr
-Text HLabel 5350 3100 0    50   Input ~ 0
+Text HLabel 3350 4000 0    50   Input ~ 0
 J6_Pin_1
-Text HLabel 5350 3200 0    50   Output ~ 0
+Text HLabel 3350 4100 0    50   Output ~ 0
 J6_Pin_3
+Text Notes 2400 4050 0    50   ~ 0
+USART 1 (TX)
+Text Notes 2400 4150 0    50   ~ 0
+USART 1 (RX)
+Text Notes 2400 4150 0    50   ~ 0
+USART 1 (RX)
+Text HLabel 3350 4400 0    50   Input ~ 0
+J6_Pin_9
+Wire Wire Line
+	4100 4600 4000 4600
+Wire Wire Line
+	4000 4600 4000 4700
+Wire Wire Line
+	4000 4700 4100 4700
 $Comp
-L Connector_Generic_MountingPin:Conn_02x08_Odd_Even_MountingPin J6
-U 1 1 628D511C
-P 5850 3400
-F 0 "J6" H 5900 3917 50  0000 C CNN
-F 1 "Contrl Panel" H 5900 3826 50  0000 C CNN
-F 2 "" H 5850 3400 50  0001 C CNN
-F 3 "~" H 5850 3400 50  0001 C CNN
-	1    5850 3400
+L power:GND #PWR?
+U 1 1 629F7C3E
+P 4000 5650
+F 0 "#PWR?" H 4000 5400 50  0001 C CNN
+F 1 "GND" H 4005 5477 50  0000 C CNN
+F 2 "" H 4000 5650 50  0001 C CNN
+F 3 "" H 4000 5650 50  0001 C CNN
+	1    4000 5650
+	1    0    0    -1  
+$EndComp
+Connection ~ 4000 4700
+Wire Wire Line
+	4100 4300 4000 4300
+Wire Wire Line
+	4750 4300 4600 4300
+Wire Wire Line
+	4000 4600 4000 4300
+Connection ~ 4000 4600
+$Comp
+L Regulator_Linear:AMS1117-3.3 U3
+U 1 1 629FC754
+P 1900 5300
+F 0 "U3" H 1900 5542 50  0000 C CNN
+F 1 "AMS1117-3.3" H 1900 5451 50  0000 C CNN
+F 2 "Package_TO_SOT_SMD:SOT-223-3_TabPin2" H 1900 5500 50  0001 C CNN
+F 3 "http://www.advanced-monolithic.com/pdf/ds1117.pdf" H 2000 5050 50  0001 C CNN
+	1    1900 5300
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5V #PWR?
+U 1 1 62A02E28
+P 3750 950
+F 0 "#PWR?" H 3750 800 50  0001 C CNN
+F 1 "+5V" H 3765 1123 50  0000 C CNN
+F 2 "" H 3750 950 50  0001 C CNN
+F 3 "" H 3750 950 50  0001 C CNN
+	1    3750 950 
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	5650 3100 5350 3100
+	3350 4000 4100 4000
 Wire Wire Line
-	5650 3200 5350 3200
-Text Notes 4450 3150 0    50   ~ 0
-USART 1 (TX)
-Text Notes 4450 3250 0    50   ~ 0
-USART 1 (RX)
-Text Notes 4450 3250 0    50   ~ 0
-USART 1 (RX)
-Text HLabel 5350 3500 0    50   UnSpc ~ 0
-J6_Pin_9
+	3350 4100 4100 4100
+$Comp
+L power:+5V #PWR?
+U 1 1 62A05C9B
+P 1050 5200
+F 0 "#PWR?" H 1050 5050 50  0001 C CNN
+F 1 "+5V" H 1065 5373 50  0000 C CNN
+F 2 "" H 1050 5200 50  0001 C CNN
+F 3 "" H 1050 5200 50  0001 C CNN
+	1    1050 5200
+	1    0    0    -1  
+$EndComp
 Wire Wire Line
-	5650 3500 5350 3500
+	1050 5300 1050 5200
+$Comp
+L power:GND #PWR?
+U 1 1 62A069B2
+P 1900 5850
+F 0 "#PWR?" H 1900 5600 50  0001 C CNN
+F 1 "GND" H 1905 5677 50  0000 C CNN
+F 2 "" H 1900 5850 50  0001 C CNN
+F 3 "" H 1900 5850 50  0001 C CNN
+	1    1900 5850
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C C3
+U 1 1 62A07329
+P 1050 5500
+F 0 "C3" H 1165 5546 50  0000 L CNN
+F 1 "C" H 1165 5455 50  0000 L CNN
+F 2 "" H 1088 5350 50  0001 C CNN
+F 3 "~" H 1050 5500 50  0001 C CNN
+	1    1050 5500
+	1    0    0    -1  
+$EndComp
+Connection ~ 1050 5300
+$Comp
+L Device:C C4
+U 1 1 62A08692
+P 1400 5500
+F 0 "C4" H 1515 5546 50  0000 L CNN
+F 1 "C" H 1515 5455 50  0000 L CNN
+F 2 "" H 1438 5350 50  0001 C CNN
+F 3 "~" H 1400 5500 50  0001 C CNN
+	1    1400 5500
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1050 5750 1400 5750
+Wire Wire Line
+	1900 5600 1900 5750
+Connection ~ 1900 5750
+Wire Wire Line
+	1900 5750 1900 5850
+Connection ~ 1400 5750
+Wire Wire Line
+	1400 5750 1900 5750
+$Comp
+L Device:C C5
+U 1 1 62A09E35
+P 2400 5500
+F 0 "C5" H 2515 5546 50  0000 L CNN
+F 1 "C" H 2515 5455 50  0000 L CNN
+F 2 "" H 2438 5350 50  0001 C CNN
+F 3 "~" H 2400 5500 50  0001 C CNN
+	1    2400 5500
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C C6
+U 1 1 62A0A39E
+P 2700 5500
+F 0 "C6" H 2815 5546 50  0000 L CNN
+F 1 "C" H 2815 5455 50  0000 L CNN
+F 2 "" H 2738 5350 50  0001 C CNN
+F 3 "~" H 2700 5500 50  0001 C CNN
+	1    2700 5500
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2200 5300 2400 5300
+Wire Wire Line
+	2700 5300 2700 5350
+Wire Wire Line
+	2400 5350 2400 5300
+Connection ~ 2400 5300
+Wire Wire Line
+	2400 5300 2700 5300
+Wire Wire Line
+	1900 5750 2400 5750
+Wire Wire Line
+	2700 5750 2700 5650
+Wire Wire Line
+	2400 5650 2400 5750
+Connection ~ 2400 5750
+Wire Wire Line
+	2400 5750 2700 5750
+Wire Wire Line
+	1050 5300 1050 5350
+Wire Wire Line
+	1050 5300 1400 5300
+Wire Wire Line
+	1400 5350 1400 5300
+Connection ~ 1400 5300
+Wire Wire Line
+	1400 5300 1600 5300
+Wire Wire Line
+	1400 5600 1400 5650
+Wire Wire Line
+	1050 5600 1050 5650
+$Comp
+L power:+3.3V #PWR?
+U 1 1 62A0D30A
+P 2700 5200
+F 0 "#PWR?" H 2700 5050 50  0001 C CNN
+F 1 "+3.3V" H 2715 5373 50  0000 C CNN
+F 2 "" H 2700 5200 50  0001 C CNN
+F 3 "" H 2700 5200 50  0001 C CNN
+	1    2700 5200
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2700 5300 2700 5200
+Connection ~ 2700 5300
+Connection ~ 1050 5650
+Wire Wire Line
+	1050 5650 1050 5750
+Connection ~ 1400 5650
+Wire Wire Line
+	1400 5650 1400 5750
+$Comp
+L Connector:Conn_01x02_Male JP1
+U 1 1 62A1DF5B
+P 850 1850
+F 0 "JP1" H 958 2031 50  0000 C CNN
+F 1 "Rain Sensor" H 950 1950 50  0000 C CNN
+F 2 "" H 850 1850 50  0001 C CNN
+F 3 "~" H 850 1850 50  0001 C CNN
+	1    850  1850
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C C8
+U 1 1 62A1FB4D
+P 1250 2050
+F 0 "C8" H 1365 2096 50  0000 L CNN
+F 1 "C" H 1365 2005 50  0000 L CNN
+F 2 "" H 1288 1900 50  0001 C CNN
+F 3 "~" H 1250 2050 50  0001 C CNN
+	1    1250 2050
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1250 1900 1250 1850
+$Comp
+L power:GND #PWR?
+U 1 1 62A21ADB
+P 1250 2450
+F 0 "#PWR?" H 1250 2200 50  0001 C CNN
+F 1 "GND" H 1400 2400 50  0000 C CNN
+F 2 "" H 1250 2450 50  0001 C CNN
+F 3 "" H 1250 2450 50  0001 C CNN
+	1    1250 2450
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1250 2200 1250 2300
+$Comp
+L Device:Ferrite_Bead FB1
+U 1 1 62A23112
+P 1550 1850
+F 0 "FB1" V 1276 1850 50  0000 C CNN
+F 1 "Ferrite_Bead" V 1367 1850 50  0000 C CNN
+F 2 "" V 1480 1850 50  0001 C CNN
+F 3 "~" H 1550 1850 50  0001 C CNN
+	1    1550 1850
+	0    1    1    0   
+$EndComp
+Connection ~ 1250 1850
+$Comp
+L Device:R R27
+U 1 1 62A2464E
+P 1850 2050
+F 0 "R27" H 1920 2096 50  0000 L CNN
+F 1 "200" H 1920 2005 50  0000 L CNN
+F 2 "" V 1780 2050 50  0001 C CNN
+F 3 "~" H 1850 2050 50  0001 C CNN
+	1    1850 2050
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1250 1850 1400 1850
+Wire Wire Line
+	1850 1900 1850 1850
+Wire Wire Line
+	1850 1850 1700 1850
+Wire Wire Line
+	1850 2200 1850 2300
+Wire Wire Line
+	1850 2300 1250 2300
+Connection ~ 1250 2300
+Wire Wire Line
+	1050 1850 1250 1850
+Connection ~ 1400 1850
+Wire Wire Line
+	1400 1850 1500 1850
+Wire Wire Line
+	4600 4500 4750 4500
+Wire Wire Line
+	4750 4500 4750 4300
+$Comp
+L Device:R R83
+U 1 1 62A3FFEA
+P 4750 1250
+F 0 "R83" H 4820 1296 50  0000 L CNN
+F 1 "10k" H 4820 1205 50  0000 L CNN
+F 2 "" V 4680 1250 50  0001 C CNN
+F 3 "~" H 4750 1250 50  0001 C CNN
+	1    4750 1250
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+3.3V #PWR?
+U 1 1 62A42D4E
+P 4750 950
+F 0 "#PWR?" H 4750 800 50  0001 C CNN
+F 1 "+3.3V" H 4765 1123 50  0000 C CNN
+F 2 "" H 4750 950 50  0001 C CNN
+F 3 "" H 4750 950 50  0001 C CNN
+	1    4750 950 
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:Q_NMOS_SGD Q6
+U 1 1 62A46427
+P 4650 2700
+F 0 "Q6" H 4855 2746 50  0000 L CNN
+F 1 "NMOS_G15" H 4855 2655 50  0000 L CNN
+F 2 "" H 4850 2800 50  0001 C CNN
+F 3 "~" H 4650 2700 50  0001 C CNN
+	1    4650 2700
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R R86
+U 1 1 62A49FA9
+P 4250 2700
+F 0 "R86" V 4250 2700 50  0000 C CNN
+F 1 "100k" V 4366 2700 50  0000 C CNN
+F 2 "" V 4180 2700 50  0001 C CNN
+F 3 "~" H 4250 2700 50  0001 C CNN
+	1    4250 2700
+	0    -1   -1   0   
+$EndComp
+$Comp
+L Connector:Conn_01x12_Male JP4
+U 1 1 62A4C772
+P 3400 2300
+F 0 "JP4" H 3508 2981 50  0000 C CNN
+F 1 "Sensor Harness" H 3300 3100 50  0000 C CNN
+F 2 "" H 3400 2300 50  0001 C CNN
+F 3 "~" H 3400 2300 50  0001 C CNN
+	1    3400 2300
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4600 4400 5100 4400
+Wire Wire Line
+	3600 2900 3750 2900
+Wire Wire Line
+	3750 2900 3750 2600
+Wire Wire Line
+	3750 2600 3600 2600
+Wire Wire Line
+	3750 2600 3750 2300
+Wire Wire Line
+	3750 2300 3600 2300
+Connection ~ 3750 2600
+Wire Wire Line
+	3750 2300 3750 2000
+Wire Wire Line
+	3750 2000 3600 2000
+Connection ~ 3750 2300
+Connection ~ 3750 2900
+Wire Wire Line
+	3600 1900 3950 1900
+Wire Wire Line
+	3950 1900 3950 2200
+Wire Wire Line
+	3950 2200 3600 2200
+Wire Wire Line
+	3600 2500 3950 2500
+Wire Wire Line
+	3950 2500 3950 2200
+Connection ~ 3950 2200
+Wire Wire Line
+	3950 2500 3950 2800
+Wire Wire Line
+	3950 2800 3600 2800
+Connection ~ 3950 2500
+$Comp
+L power:GND #PWR?
+U 1 1 62A6AD75
+P 3950 3200
+F 0 "#PWR?" H 3950 2950 50  0001 C CNN
+F 1 "GND" H 3955 3027 50  0000 C CNN
+F 2 "" H 3950 3200 50  0001 C CNN
+F 3 "" H 3950 3200 50  0001 C CNN
+	1    3950 3200
+	1    0    0    -1  
+$EndComp
+Connection ~ 3950 2800
+Connection ~ 3750 2000
+Wire Wire Line
+	3350 4400 3750 4400
+Wire Wire Line
+	3750 2900 3750 4400
+Connection ~ 3750 4400
+Wire Wire Line
+	3750 4400 4100 4400
+Wire Wire Line
+	4750 4500 4750 5050
+Wire Wire Line
+	4750 5050 4000 5050
+Wire Wire Line
+	4000 4700 4000 5050
+Connection ~ 4750 4500
+Connection ~ 4000 5050
+$Comp
+L Connector_Generic:Conn_02x08_Odd_Even J6
+U 1 1 62A7DD76
+P 4300 4300
+F 0 "J6" H 4350 4817 50  0000 C CNN
+F 1 "Control Panel" H 4350 4726 50  0000 C CNN
+F 2 "" H 4300 4300 50  0001 C CNN
+F 3 "~" H 4300 4300 50  0001 C CNN
+	1    4300 4300
+	1    0    0    -1  
+$EndComp
+Text Notes 2500 2800 0    50   ~ 0
+Wheel Lift Hall (blue)
+Text Notes 2550 2200 0    50   ~ 0
+Wheel Lift Hall (red)
+Text Notes 2650 1900 0    50   ~ 0
+Stop Hall (white)
+Text Notes 2700 2500 0    50   ~ 0
+Stop Hall (yellow)
+Wire Wire Line
+	3600 2700 4100 2700
+$Comp
+L Device:R R50
+U 1 1 62A876CE
+P 7100 1250
+F 0 "R50" H 7170 1296 50  0000 L CNN
+F 1 "10k" H 7170 1205 50  0000 L CNN
+F 2 "" V 7030 1250 50  0001 C CNN
+F 3 "~" H 7100 1250 50  0001 C CNN
+	1    7100 1250
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:Q_NMOS_SGD Q2
+U 1 1 62A876DC
+P 7000 1800
+F 0 "Q2" H 7205 1846 50  0000 L CNN
+F 1 "NMOS_G15" H 7205 1755 50  0000 L CNN
+F 2 "" H 7200 1900 50  0001 C CNN
+F 3 "~" H 7000 1800 50  0001 C CNN
+	1    7000 1800
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R R55
+U 1 1 62A876EB
+P 4250 1800
+F 0 "R55" V 4250 1800 50  0000 C CNN
+F 1 "100k" V 4366 1800 50  0000 C CNN
+F 2 "" V 4180 1800 50  0001 C CNN
+F 3 "~" H 4250 1800 50  0001 C CNN
+	1    4250 1800
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	3600 1800 4100 1800
+$Comp
+L Device:R R33
+U 1 1 62A8DD67
+P 3950 4200
+F 0 "R33" V 3950 4200 50  0000 C CNN
+F 1 "0" V 3900 4350 50  0000 C CNN
+F 2 "" V 3880 4200 50  0001 C CNN
+F 3 "~" H 3950 4200 50  0001 C CNN
+	1    3950 4200
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	3800 4200 3350 4200
+Wire Wire Line
+	4400 2700 4450 2700
+Wire Wire Line
+	4400 1800 6800 1800
+Wire Wire Line
+	4750 2900 4750 3050
+Wire Wire Line
+	7450 4200 7450 1550
+Wire Wire Line
+	7450 1550 7100 1550
+Wire Wire Line
+	4600 4200 7450 4200
+Connection ~ 7100 1550
+Wire Wire Line
+	7100 1550 7100 1600
+Wire Wire Line
+	4750 1100 4750 1050
+Wire Wire Line
+	7100 1400 7100 1550
+$Comp
+L Device:Q_NMOS_SGD Q5
+U 1 1 62ACDC2C
+P 5400 2400
+F 0 "Q5" H 5605 2446 50  0000 L CNN
+F 1 "NMOS_G15" H 5605 2355 50  0000 L CNN
+F 2 "" H 5600 2500 50  0001 C CNN
+F 3 "~" H 5400 2400 50  0001 C CNN
+	1    5400 2400
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R R78
+U 1 1 62ACE207
+P 4250 2400
+F 0 "R78" V 4250 2400 50  0000 C CNN
+F 1 "100k" V 4366 2400 50  0000 C CNN
+F 2 "" V 4180 2400 50  0001 C CNN
+F 3 "~" H 4250 2400 50  0001 C CNN
+	1    4250 2400
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	4100 2400 3600 2400
+Wire Wire Line
+	4750 1400 4750 2500
+Wire Wire Line
+	4750 2500 5100 2500
+Connection ~ 4750 2500
+Wire Wire Line
+	5100 2500 5100 4400
+Wire Wire Line
+	5200 2400 4400 2400
+Wire Wire Line
+	5500 2600 5500 3050
+$Comp
+L Device:R R74
+U 1 1 62AD724C
+P 5500 1250
+F 0 "R74" H 5570 1296 50  0000 L CNN
+F 1 "10k" H 5570 1205 50  0000 L CNN
+F 2 "" V 5430 1250 50  0001 C CNN
+F 3 "~" H 5500 1250 50  0001 C CNN
+	1    5500 1250
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5500 1050 5500 1100
+Wire Wire Line
+	5500 2200 5500 1400
+Wire Wire Line
+	4600 4600 5850 4600
+Wire Wire Line
+	5850 4600 5850 2200
+Wire Wire Line
+	5850 2200 5500 2200
+Connection ~ 5500 2200
+$Comp
+L Device:Q_NMOS_SGD Q4
+U 1 1 62ADE4C9
+P 6200 2100
+F 0 "Q4" H 6405 2146 50  0000 L CNN
+F 1 "NMOS_G15" H 6405 2055 50  0000 L CNN
+F 2 "" H 6400 2200 50  0001 C CNN
+F 3 "~" H 6200 2100 50  0001 C CNN
+	1    6200 2100
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R R64
+U 1 1 62ADEF56
+P 4250 2100
+F 0 "R64" V 4250 2100 50  0000 C CNN
+F 1 "100k" V 4366 2100 50  0000 C CNN
+F 2 "" V 4180 2100 50  0001 C CNN
+F 3 "~" H 4250 2100 50  0001 C CNN
+	1    4250 2100
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	4100 2100 3600 2100
+$Comp
+L Device:R R61
+U 1 1 62AE1852
+P 6300 1250
+F 0 "R61" H 6370 1296 50  0000 L CNN
+F 1 "10k" H 6370 1205 50  0000 L CNN
+F 2 "" V 6230 1250 50  0001 C CNN
+F 3 "~" H 6300 1250 50  0001 C CNN
+	1    6300 1250
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4400 2100 6000 2100
+Wire Wire Line
+	6300 1050 6300 1100
+Wire Wire Line
+	6300 1900 6300 1400
+Wire Wire Line
+	6300 2300 6300 3050
+Wire Wire Line
+	4600 4700 6650 4700
+Wire Wire Line
+	6650 4700 6650 1900
+Wire Wire Line
+	6650 1900 6300 1900
+Connection ~ 6300 1900
+Wire Wire Line
+	7100 2000 7100 3050
+Wire Wire Line
+	3950 2800 3950 3050
+Wire Wire Line
+	6300 3050 7100 3050
+Wire Wire Line
+	6300 3050 5500 3050
+Connection ~ 6300 3050
+Wire Wire Line
+	5500 3050 4750 3050
+Connection ~ 5500 3050
+Wire Wire Line
+	3950 3050 4750 3050
+Connection ~ 3950 3050
+Wire Wire Line
+	3950 3050 3950 3200
+Connection ~ 4750 3050
+$Comp
+L Device:C C17
+U 1 1 62B10D15
+P 3950 1550
+F 0 "C17" H 4065 1596 50  0000 L CNN
+F 1 "C" H 4065 1505 50  0000 L CNN
+F 2 "" H 3988 1400 50  0001 C CNN
+F 3 "~" H 3950 1550 50  0001 C CNN
+	1    3950 1550
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3950 1400 3950 1150
+Wire Wire Line
+	3950 1150 3750 1150
+Wire Wire Line
+	3750 1150 3750 2000
+Wire Wire Line
+	3950 1700 3950 1900
+Connection ~ 3950 1900
+Text Notes 5100 4050 1    50   ~ 0
+Wheel Lift Hall (blue)
+Text Notes 5850 3950 1    50   ~ 0
+Stop Hall (yellow)
+Text Notes 6650 4000 1    50   ~ 0
+Wheel Lift Hall (red)
+Text Notes 7450 3950 1    50   ~ 0
+Stop Hall (white)
+Text Notes 2550 4400 0    50   ~ 0
+5V Supply
+Wire Wire Line
+	1050 4500 1550 4500
+Wire Wire Line
+	1050 1950 1050 4500
+Wire Wire Line
+	1250 2300 1250 2450
+Text Notes 3250 4600 2    50   ~ 0
+Rain Sensor
+Connection ~ 3750 1150
+Wire Wire Line
+	4750 1050 5500 1050
+Connection ~ 4750 1050
+Connection ~ 5500 1050
+Wire Wire Line
+	6300 1050 5500 1050
+Connection ~ 6300 1050
+Wire Wire Line
+	6300 1050 7100 1050
+Wire Wire Line
+	7100 1050 7100 1100
+Wire Wire Line
+	4750 950  4750 1050
+Wire Wire Line
+	3750 950  3750 1150
+$Comp
+L Switch:SW_Push SW3
+U 1 1 62B5F84F
+P 4450 5450
+F 0 "SW3" H 4450 5265 50  0000 C CNN
+F 1 "PLAY" H 4450 5356 50  0000 C CNN
+F 2 "" H 4450 5650 50  0001 C CNN
+F 3 "~" H 4450 5650 50  0001 C CNN
+	1    4450 5450
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	4600 4100 4850 4100
+Wire Wire Line
+	4850 4100 4850 5450
+Wire Wire Line
+	4850 5450 4650 5450
+Wire Wire Line
+	4000 5050 4000 5450
+Wire Wire Line
+	4250 5450 4000 5450
+Connection ~ 4000 5450
+Wire Wire Line
+	4000 5450 4000 5650
+Text HLabel 5100 4950 3    50   Output ~ 0
+J6_Pin_10_Wheel_blue
+Wire Wire Line
+	5100 4400 5100 4950
+Connection ~ 5100 4400
+Text HLabel 5850 4950 3    50   Output ~ 0
+J6_Pin_14_Stop_yellow
+Wire Wire Line
+	5850 4600 5850 4950
+Connection ~ 5850 4600
+Text HLabel 7450 4950 3    50   Output ~ 0
+J6_Pin_6_Stop_white
+Wire Wire Line
+	7450 4200 7450 4950
+Connection ~ 7450 4200
+Text HLabel 6650 4950 3    50   Output ~ 0
+J6_Pin_16_Wheel_red
+Wire Wire Line
+	6650 4700 6650 4950
+Connection ~ 6650 4700
+Text HLabel 4850 5750 3    50   Output ~ 0
+J6_Pin_4_PLAY
+Wire Wire Line
+	4850 5450 4850 5750
+Connection ~ 4850 5450
+Text HLabel 1550 4350 1    50   Output ~ 0
+J6_Pin_11_RainSensor
+Wire Wire Line
+	1550 4350 1550 4500
+Connection ~ 1550 4500
+Wire Wire Line
+	1550 4500 4100 4500
 $EndSCHEMATC

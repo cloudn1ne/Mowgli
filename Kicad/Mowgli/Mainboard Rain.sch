@@ -1,0 +1,260 @@
+EESchema Schematic File Version 4
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 12 12
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+Text HLabel 2250 2350 0    50   Input ~ 0
+J6_Pin_11_RainSensor
+$Comp
+L Device:C C149
+U 1 1 62B97F06
+P 2500 2650
+F 0 "C149" H 2615 2696 50  0000 L CNN
+F 1 "C" H 2615 2605 50  0000 L CNN
+F 2 "" H 2538 2500 50  0001 C CNN
+F 3 "~" H 2500 2650 50  0001 C CNN
+	1    2500 2650
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2250 2350 2500 2350
+Wire Wire Line
+	2500 2350 2500 2500
+$Comp
+L power:GND #PWR?
+U 1 1 62B98AD4
+P 2500 3000
+F 0 "#PWR?" H 2500 2750 50  0001 C CNN
+F 1 "GND" H 2505 2827 50  0000 C CNN
+F 2 "" H 2500 3000 50  0001 C CNN
+F 3 "" H 2500 3000 50  0001 C CNN
+	1    2500 3000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2500 2800 2500 3000
+$Comp
+L Device:Ferrite_Bead FB1
+U 1 1 62B99231
+P 3000 2350
+F 0 "FB1" V 2726 2350 50  0000 C CNN
+F 1 "Ferrite_Bead" V 2817 2350 50  0000 C CNN
+F 2 "" V 2930 2350 50  0001 C CNN
+F 3 "~" H 3000 2350 50  0001 C CNN
+	1    3000 2350
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	2850 2350 2500 2350
+Connection ~ 2500 2350
+$Comp
+L Device:R R177
+U 1 1 62B9A40E
+P 5000 2700
+F 0 "R177" H 5070 2746 50  0000 L CNN
+F 1 "47k" H 5070 2655 50  0000 L CNN
+F 2 "" V 4930 2700 50  0001 C CNN
+F 3 "~" H 5000 2700 50  0001 C CNN
+	1    5000 2700
+	1    0    0    -1  
+$EndComp
+$Comp
+L Amplifier_Operational:LM321 U21
+U 1 1 62B9AE3C
+P 6150 2850
+F 0 "U21" H 6200 2750 50  0000 L CNN
+F 1 "LM321 (A63A)" H 6200 2650 50  0000 L CNN
+F 2 "Package_TO_SOT_SMD:SOT-23-5" H 6150 2850 50  0001 C CNN
+F 3 "http://www.ti.com/lit/ds/symlink/lm321.pdf" H 6150 2850 50  0001 C CNN
+	1    6150 2850
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5850 2950 5000 2950
+Wire Wire Line
+	5000 2850 5000 2950
+Connection ~ 5000 2950
+$Comp
+L power:GND #PWR?
+U 1 1 62B9BC4C
+P 6050 3350
+F 0 "#PWR?" H 6050 3100 50  0001 C CNN
+F 1 "GND" H 6055 3177 50  0000 C CNN
+F 2 "" H 6050 3350 50  0001 C CNN
+F 3 "" H 6050 3350 50  0001 C CNN
+	1    6050 3350
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R R180
+U 1 1 62B9C5E3
+P 6950 2850
+F 0 "R180" V 6743 2850 50  0000 C CNN
+F 1 "4.7k" V 6834 2850 50  0000 C CNN
+F 2 "" V 6880 2850 50  0001 C CNN
+F 3 "~" H 6950 2850 50  0001 C CNN
+	1    6950 2850
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	6800 2850 6450 2850
+$Comp
+L Device:R R118
+U 1 1 62B9CD9F
+P 7200 3100
+F 0 "R118" H 7130 3054 50  0000 R CNN
+F 1 "4.7k" H 7130 3145 50  0000 R CNN
+F 2 "" V 7130 3100 50  0001 C CNN
+F 3 "~" H 7200 3100 50  0001 C CNN
+	1    7200 3100
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	7100 2850 7200 2850
+Wire Wire Line
+	7200 2850 7200 2950
+Wire Wire Line
+	7200 3250 7200 3300
+Wire Wire Line
+	7200 3300 6050 3300
+Connection ~ 6050 3300
+Wire Wire Line
+	6050 3300 6050 3350
+Wire Wire Line
+	6050 3150 6050 3300
+Wire Wire Line
+	6050 3300 5000 3300
+Wire Wire Line
+	5000 2950 5000 3300
+$Comp
+L Device:Q_NMOS_SGD Q16
+U 1 1 62BA049C
+P 7850 2850
+F 0 "Q16" H 8054 2896 50  0000 L CNN
+F 1 "(G15 Marking)" H 8054 2805 50  0000 L CNN
+F 2 "" H 8050 2950 50  0001 C CNN
+F 3 "~" H 7850 2850 50  0001 C CNN
+	1    7850 2850
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7200 3300 7950 3300
+Wire Wire Line
+	7950 3300 7950 3050
+Connection ~ 7200 3300
+Wire Wire Line
+	7650 2850 7200 2850
+Connection ~ 7200 2850
+$Comp
+L power:+3.3V #PWR?
+U 1 1 62BA2065
+P 7950 2100
+F 0 "#PWR?" H 7950 1950 50  0001 C CNN
+F 1 "+3.3V" H 7965 2273 50  0000 C CNN
+F 2 "" H 7950 2100 50  0001 C CNN
+F 3 "" H 7950 2100 50  0001 C CNN
+	1    7950 2100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7950 2100 7950 2250
+Wire Wire Line
+	7950 2550 7950 2600
+$Comp
+L Device:R R175
+U 1 1 62BA1632
+P 7950 2400
+F 0 "R175" H 7880 2354 50  0000 R CNN
+F 1 "4.7k" H 7880 2445 50  0000 R CNN
+F 2 "" V 7880 2400 50  0001 C CNN
+F 3 "~" H 7950 2400 50  0001 C CNN
+	1    7950 2400
+	-1   0    0    1   
+$EndComp
+Text HLabel 8800 2600 2    50   Output ~ 0
+RAIN_Sensor_PE2
+Wire Wire Line
+	8800 2600 7950 2600
+Connection ~ 7950 2600
+Wire Wire Line
+	7950 2600 7950 2650
+Wire Wire Line
+	5000 2550 4100 2550
+$Comp
+L Device:C C71
+U 1 1 62BA9D14
+P 5000 2250
+F 0 "C71" H 5115 2296 50  0000 L CNN
+F 1 "C" H 5115 2205 50  0000 L CNN
+F 2 "" H 5038 2100 50  0001 C CNN
+F 3 "~" H 5000 2250 50  0001 C CNN
+	1    5000 2250
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5000 2400 5000 2550
+Connection ~ 5000 2550
+Wire Wire Line
+	4100 2150 4100 1950
+Wire Wire Line
+	4100 1950 4500 1950
+Wire Wire Line
+	5000 1950 5000 2100
+$Comp
+L Device:D D?
+U 1 1 62BAE458
+P 3150 2650
+F 0 "D?" V 3104 2730 50  0000 L CNN
+F 1 "D" V 3195 2730 50  0000 L CNN
+F 2 "" H 3150 2650 50  0001 C CNN
+F 3 "~" H 3150 2650 50  0001 C CNN
+	1    3150 2650
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	3150 2350 3150 2500
+$Comp
+L power:GND #PWR?
+U 1 1 62BAF10E
+P 3150 3000
+F 0 "#PWR?" H 3150 2750 50  0001 C CNN
+F 1 "GND" H 3155 2827 50  0000 C CNN
+F 2 "" H 3150 3000 50  0001 C CNN
+F 3 "" H 3150 3000 50  0001 C CNN
+	1    3150 3000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3150 2800 3150 3000
+Wire Wire Line
+	3800 2350 3150 2350
+Connection ~ 3150 2350
+$Comp
+L power:GND #PWR?
+U 1 1 62BB3940
+P 4500 2100
+F 0 "#PWR?" H 4500 1850 50  0001 C CNN
+F 1 "GND" H 4505 1927 50  0000 C CNN
+F 2 "" H 4500 2100 50  0001 C CNN
+F 3 "" H 4500 2100 50  0001 C CNN
+	1    4500 2100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4500 2100 4500 1950
+Connection ~ 4500 1950
+Wire Wire Line
+	4500 1950 5000 1950
+Text Notes 4000 2400 0    50   ~ 0
+Q29 ?
+$EndSCHEMATC

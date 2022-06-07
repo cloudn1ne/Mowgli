@@ -3,7 +3,7 @@ EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
-Sheet 12 12
+Sheet 12 13
 Title ""
 Date ""
 Rev ""
@@ -46,26 +46,24 @@ Wire Wire Line
 $Comp
 L Device:Ferrite_Bead FB1
 U 1 1 62B99231
-P 3000 2350
-F 0 "FB1" V 2726 2350 50  0000 C CNN
-F 1 "Ferrite_Bead" V 2817 2350 50  0000 C CNN
-F 2 "" V 2930 2350 50  0001 C CNN
-F 3 "~" H 3000 2350 50  0001 C CNN
-	1    3000 2350
+P 2850 2350
+F 0 "FB1" V 2576 2350 50  0000 C CNN
+F 1 "Ferrite_Bead" V 2667 2350 50  0000 C CNN
+F 2 "" V 2780 2350 50  0001 C CNN
+F 3 "~" H 2850 2350 50  0001 C CNN
+	1    2850 2350
 	0    1    1    0   
 $EndComp
-Wire Wire Line
-	2850 2350 2500 2350
 Connection ~ 2500 2350
 $Comp
 L Device:R R177
 U 1 1 62B9A40E
-P 5000 2700
-F 0 "R177" H 5070 2746 50  0000 L CNN
-F 1 "47k" H 5070 2655 50  0000 L CNN
-F 2 "" V 4930 2700 50  0001 C CNN
-F 3 "~" H 5000 2700 50  0001 C CNN
-	1    5000 2700
+P 5000 3300
+F 0 "R177" H 5070 3346 50  0000 L CNN
+F 1 "47k" H 5070 3255 50  0000 L CNN
+F 2 "" V 4930 3300 50  0001 C CNN
+F 3 "~" H 5000 3300 50  0001 C CNN
+	1    5000 3300
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -81,18 +79,15 @@ F 3 "http://www.ti.com/lit/ds/symlink/lm321.pdf" H 6150 2850 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	5850 2950 5000 2950
-Wire Wire Line
-	5000 2850 5000 2950
-Connection ~ 5000 2950
 $Comp
 L power:GND #PWR?
 U 1 1 62B9BC4C
-P 6050 3350
-F 0 "#PWR?" H 6050 3100 50  0001 C CNN
-F 1 "GND" H 6055 3177 50  0000 C CNN
-F 2 "" H 6050 3350 50  0001 C CNN
-F 3 "" H 6050 3350 50  0001 C CNN
-	1    6050 3350
+P 6050 3850
+F 0 "#PWR?" H 6050 3600 50  0001 C CNN
+F 1 "GND" H 6055 3677 50  0000 C CNN
+F 2 "" H 6050 3850 50  0001 C CNN
+F 3 "" H 6050 3850 50  0001 C CNN
+	1    6050 3850
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -123,19 +118,6 @@ Wire Wire Line
 	7100 2850 7200 2850
 Wire Wire Line
 	7200 2850 7200 2950
-Wire Wire Line
-	7200 3250 7200 3300
-Wire Wire Line
-	7200 3300 6050 3300
-Connection ~ 6050 3300
-Wire Wire Line
-	6050 3300 6050 3350
-Wire Wire Line
-	6050 3150 6050 3300
-Wire Wire Line
-	6050 3300 5000 3300
-Wire Wire Line
-	5000 2950 5000 3300
 $Comp
 L Device:Q_NMOS_SGD Q16
 U 1 1 62BA049C
@@ -148,26 +130,8 @@ F 3 "~" H 7850 2850 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	7200 3300 7950 3300
-Wire Wire Line
-	7950 3300 7950 3050
-Connection ~ 7200 3300
-Wire Wire Line
 	7650 2850 7200 2850
 Connection ~ 7200 2850
-$Comp
-L power:+3.3V #PWR?
-U 1 1 62BA2065
-P 7950 2100
-F 0 "#PWR?" H 7950 1950 50  0001 C CNN
-F 1 "+3.3V" H 7965 2273 50  0000 C CNN
-F 2 "" H 7950 2100 50  0001 C CNN
-F 3 "" H 7950 2100 50  0001 C CNN
-	1    7950 2100
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	7950 2100 7950 2250
 Wire Wire Line
 	7950 2550 7950 2600
 $Comp
@@ -256,5 +220,91 @@ Connection ~ 4500 1950
 Wire Wire Line
 	4500 1950 5000 1950
 Text Notes 4000 2400 0    50   ~ 0
-Q29 ?
+Q29 ?\n(2L2 SMD)
+Wire Wire Line
+	5000 2550 5000 2950
+Connection ~ 5000 2950
+Wire Wire Line
+	5000 3600 5450 3600
+Wire Wire Line
+	6050 3150 6050 3600
+Connection ~ 6050 3600
+Wire Wire Line
+	6050 3600 6050 3850
+Wire Wire Line
+	7950 3600 7200 3600
+Wire Wire Line
+	7950 3050 7950 3600
+Wire Wire Line
+	7200 3250 7200 3600
+Connection ~ 7200 3600
+Wire Wire Line
+	7200 3600 6050 3600
+Wire Wire Line
+	5000 3450 5000 3600
+Wire Wire Line
+	5000 3150 5000 2950
+$Comp
+L Device:R R178
+U 1 1 62BB95B1
+P 5450 3300
+F 0 "R178" H 5520 3346 50  0000 L CNN
+F 1 "68k" H 5520 3255 50  0000 L CNN
+F 2 "" V 5380 3300 50  0001 C CNN
+F 3 "~" H 5450 3300 50  0001 C CNN
+	1    5450 3300
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5450 3450 5450 3600
+Connection ~ 5450 3600
+Wire Wire Line
+	5450 3600 6050 3600
+Wire Wire Line
+	5450 3150 5450 2750
+Wire Wire Line
+	5450 2750 5850 2750
+$Comp
+L Device:R R117
+U 1 1 62BBA5A3
+P 5450 2450
+F 0 "R117" H 5520 2496 50  0000 L CNN
+F 1 "100k" H 5520 2405 50  0000 L CNN
+F 2 "" V 5380 2450 50  0001 C CNN
+F 3 "~" H 5450 2450 50  0001 C CNN
+	1    5450 2450
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5450 2600 5450 2750
+Connection ~ 5450 2750
+Wire Wire Line
+	5450 2150 5450 2300
+Connection ~ 7950 2150
+Wire Wire Line
+	7950 2150 7950 2250
+Wire Wire Line
+	7950 1900 7950 2150
+Wire Wire Line
+	6050 2550 6050 2150
+Wire Wire Line
+	5450 2150 6050 2150
+Connection ~ 6050 2150
+Wire Wire Line
+	6050 2150 7950 2150
+$Comp
+L power:+5V #PWR?
+U 1 1 62BC05A7
+P 7950 1900
+F 0 "#PWR?" H 7950 1750 50  0001 C CNN
+F 1 "+5V" H 7965 2073 50  0000 C CNN
+F 2 "" H 7950 1900 50  0001 C CNN
+F 3 "" H 7950 1900 50  0001 C CNN
+	1    7950 1900
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2700 2350 2500 2350
+Wire Wire Line
+	3000 2350 3150 2350
 $EndSCHEMATC

@@ -3,7 +3,7 @@ EELAYER 30 0
 EELAYER END
 $Descr A3 16535 11693
 encoding utf-8
-Sheet 1 12
+Sheet 1 13
 Title "Project Mowgli"
 Date "2022-05-22"
 Rev "1.0.1"
@@ -70,8 +70,7 @@ F31 "CHARGE_LOW_SIDE_DRIVER" O R 9450 1700 50
 F32 "CHARGE_HIGHSIDE_DRIVER" O R 9450 1800 50 
 F33 "Charge_Voltage" I R 9450 2150 59 
 F34 "BatteryVoltage" I R 9450 2300 59 
-F35 "(ghidra:ANALOG,input;PERIMETERSENSE)" I R 9450 4050 50 
-F36 "RAIN_Sensor_PE2" I R 9450 5250 50 
+F35 "RAIN_Sensor_PE2" I R 9450 5250 50 
 $EndSheet
 Wire Wire Line
 	3450 3550 3550 3550
@@ -263,7 +262,7 @@ Entry Wire Line
 Entry Wire Line
 	9450 6200 9550 6300
 $Sheet
-S 12250 5050 1700 1850
+S 12250 5050 1600 1250
 U 6293F03E
 F0 "SPI and I2C" 50
 F1 "SPI_I2C.sch" 50
@@ -338,8 +337,8 @@ $EndSheet
 $Sheet
 S 12250 1450 1600 1750
 U 628DB6FB
-F0 "power_charge" 118
-F1 "power_charge.sch" 118
+F0 "power_charge" 50
+F1 "power_charge.sch" 50
 F2 "TF4_24V" I L 12250 1550 50 
 F3 "CHARGE_LOW_SIDE_DRIVER" I L 12250 1700 50 
 F4 "CHARGE_HIGH_SIDE_DRIVER" I L 12250 1800 50 
@@ -399,8 +398,8 @@ SPI3
 $Sheet
 S 2450 5700 900  800 
 U 629B383F
-F0 "J1 (Beep)" 118
-F1 "J1.sch" 118
+F0 "J1 (Beep)" 50
+F1 "J1.sch" 50
 F2 "J18_Pin_2" B R 3350 5900 50 
 $EndSheet
 $Comp
@@ -483,4 +482,12 @@ Wire Bus Line
 	12150 5950 12150 6400
 Wire Bus Line
 	9550 6000 9550 6400
+$Sheet
+S 12250 3500 1600 1200
+U 62BC248C
+F0 "Mainboard Safety" 50
+F1 "Mainboard Safety.sch" 50
+F2 "J6_Pin_16_Wheel_red" I L 12250 3950 50 
+F3 "J6_Pin_10_Wheel_blue" I L 12250 3850 50 
+$EndSheet
 $EndSCHEMATC

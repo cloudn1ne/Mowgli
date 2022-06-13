@@ -3,7 +3,7 @@ EELAYER 30 0
 EELAYER END
 $Descr A3 16535 11693
 encoding utf-8
-Sheet 1 13
+Sheet 1 14
 Title "Project Mowgli"
 Date "2022-05-22"
 Rev "1.0.1"
@@ -71,6 +71,7 @@ F32 "CHARGE_HIGHSIDE_DRIVER" O R 9450 1800 50
 F33 "Charge_Voltage" I R 9450 2150 59 
 F34 "BatteryVoltage" I R 9450 2300 59 
 F35 "RAIN_Sensor_PE2" I R 9450 5250 50 
+F36 "BEEPER" O R 9450 3950 50 
 $EndSheet
 Wire Wire Line
 	3450 3550 3550 3550
@@ -458,6 +459,23 @@ Wire Wire Line
 	4450 9350 4450 8200
 Wire Wire Line
 	4450 8200 5100 8200
+$Sheet
+S 12250 3500 1600 1200
+U 62BC248C
+F0 "Mainboard Safety" 50
+F1 "Mainboard Safety.sch" 50
+F2 "J6_Pin_16_Wheel_red" I L 12250 3950 50 
+F3 "J6_Pin_10_Wheel_blue" I L 12250 3850 50 
+$EndSheet
+$Sheet
+S 10450 3800 950  300 
+U 62C3C0F1
+F0 "Mainboard Beeper" 50
+F1 "Mainboard Beeper.sch" 50
+F2 "BEEPER" I L 10450 3950 50 
+$EndSheet
+Wire Wire Line
+	9450 3950 10450 3950
 Wire Bus Line
 	6400 7350 6400 7650
 Wire Bus Line
@@ -482,12 +500,4 @@ Wire Bus Line
 	12150 5950 12150 6400
 Wire Bus Line
 	9550 6000 9550 6400
-$Sheet
-S 12250 3500 1600 1200
-U 62BC248C
-F0 "Mainboard Safety" 50
-F1 "Mainboard Safety.sch" 50
-F2 "J6_Pin_16_Wheel_red" I L 12250 3950 50 
-F3 "J6_Pin_10_Wheel_blue" I L 12250 3850 50 
-$EndSheet
 $EndSCHEMATC

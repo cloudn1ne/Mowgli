@@ -3,7 +3,7 @@ EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
-Sheet 3 13
+Sheet 3 14
 Title "Project Mowgli"
 Date "2022-05-22"
 Rev "1.0.1"
@@ -201,7 +201,7 @@ Text HLabel 7200 5500 2    50   Input ~ 0
 Wire Wire Line
 	7200 5500 6450 5500
 Text HLabel 7200 3200 2    50   Output ~ 0
-(ghidra:output,pushpull)
+BEEPER
 Wire Wire Line
 	7200 3200 6450 3200
 Text HLabel 7200 4900 2    50   Input ~ 0

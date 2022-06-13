@@ -4,6 +4,7 @@
         "stm32f1xx_hal_uart.h": "c",
         "ios": "c",
         "stm32f1xx_hal.h": "c",
-        "board.h": "c"
+        "board.h": "c",
+        "usbd_cdc_if.h": "c"
     }
 }

@@ -256,7 +256,7 @@ Wire Bus Line
 	9550 5800 12150 5800
 Text Notes 10750 6350 0    50   Italic 10
 SPI3
-Text Notes 12500 800  0    118  ~ 24
+Text Notes 12200 1000 0    118  ~ 24
 Project Mowgli - System Architecture
 $Sheet
 S 4150 1500 2200 3250
@@ -391,7 +391,7 @@ F6 "J6_Pin_14_Stop_yellow" O L 5100 8600 50
 F7 "J6_Pin_6_Stop_white" O L 5100 8400 50 
 F8 "J6_Pin_16_Wheel_red" O L 5100 8700 50 
 F9 "J6_Pin_4_PLAY" O R 6300 8300 50 
-F10 "J6_Pin_11_RainSensor" O L 5100 8200 50 
+F10 "J6_Pin_11_RainSensor" O L 5100 8150 50 
 F11 "J6_Pin_15,13,12,8,7_GND" O R 6300 7850 50 
 $EndSheet
 $Sheet
@@ -414,10 +414,6 @@ Wire Wire Line
 	8550 7950 8550 9350
 Wire Wire Line
 	8550 9350 4450 9350
-Wire Wire Line
-	4450 9350 4450 8200
-Wire Wire Line
-	4450 8200 5100 8200
 $Sheet
 S 12250 3500 1600 1200
 U 62BC248C
@@ -563,6 +559,10 @@ Wire Wire Line
 	7100 6450 7100 8300
 Wire Wire Line
 	7100 8300 6300 8300
+Wire Wire Line
+	5100 8150 4450 8150
+Wire Wire Line
+	4450 8150 4450 9350
 Wire Bus Line
 	6400 7350 6400 7650
 Wire Bus Line

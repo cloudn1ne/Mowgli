@@ -193,7 +193,7 @@ Wire Wire Line
 Wire Wire Line
 	7200 5000 6450 5000
 Text HLabel 7200 4400 2    50   Input ~ 0
-(ghidra:input,pullup)
+J6_Pin_5
 Wire Wire Line
 	7200 4400 6450 4400
 Text HLabel 7200 5500 2    50   Input ~ 0
@@ -375,4 +375,14 @@ Wire Wire Line
 	3350 6100 4450 6100
 Wire Wire Line
 	3350 5900 4450 5900
+Text HLabel 7300 2500 2    50   Output ~ 0
+J14_USB_Pin_DP
+Text HLabel 7300 2600 2    50   Output ~ 0
+J14_USB_Pin_DM
+Wire Wire Line
+	7300 2600 6450 2600
+Wire Wire Line
+	6450 2500 7300 2500
+Text Notes 8000 2600 0    50   ~ 0
+(USB)
 $EndSCHEMATC

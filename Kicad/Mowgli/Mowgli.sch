@@ -256,7 +256,7 @@ Wire Bus Line
 	9550 5800 12150 5800
 Text Notes 10750 6350 0    50   Italic 10
 SPI3
-Text Notes 12500 800  0    118  ~ 24
+Text Notes 12200 1000 0    118  ~ 24
 Project Mowgli - System Architecture
 $Sheet
 S 4150 1500 2200 3250

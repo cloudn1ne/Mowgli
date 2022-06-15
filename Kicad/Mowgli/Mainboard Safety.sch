@@ -189,21 +189,11 @@ $EndComp
 Wire Wire Line
 	7500 3050 7600 3050
 Wire Wire Line
-	7500 2950 7600 2950
-Wire Wire Line
-	7600 3050 7600 2950
-Connection ~ 7600 2950
-Wire Wire Line
-	7600 2950 7900 2950
-Wire Wire Line
 	7600 3050 7600 3350
 Wire Wire Line
 	7600 3350 7500 3350
-Connection ~ 7600 3050
 Text HLabel 7900 3450 2    50   Output ~ 0
 PC0_Stop_yellow
-Wire Wire Line
-	7900 3450 7600 3450
 $Comp
 L Device:R R253
 U 1 1 62AB3046
@@ -215,7 +205,6 @@ F 3 "~" H 6000 2500 50  0001 C CNN
 	1    6000 2500
 	1    0    0    -1  
 $EndComp
-Connection ~ 7600 3450
 $Comp
 L Device:R R238
 U 1 1 62ABF8CD
@@ -825,8 +814,6 @@ F 3 "~" H 7300 3350 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	7600 3450 7600 3850
-Wire Wire Line
 	4450 3850 6000 3850
 Wire Wire Line
 	6000 2650 6000 3850
@@ -857,13 +844,8 @@ Wire Wire Line
 	5600 1550 5600 2300
 Wire Wire Line
 	5200 2150 10100 2150
-Text Notes 8050 2650 0    87   Italic 0
-Stop Buttons
-Wire Wire Line
-	7600 3350 7600 3450
-Connection ~ 7600 3350
-Wire Wire Line
-	7500 3450 7600 3450
+Text Notes 7550 2650 0    87   Italic 0
+Stop Buttons (HIGH when pressed)
 Wire Wire Line
 	3500 4500 4150 4500
 $Comp
@@ -887,4 +869,79 @@ Wire Wire Line
 	900  3000 1050 3000
 Wire Wire Line
 	900  3500 1200 3500
+Text Notes 900  2950 0    39   Italic 0
+0V when OK, 5V when safety triggered
+Wire Wire Line
+	7500 2950 7900 2950
+Wire Wire Line
+	7500 3450 7900 3450
+Wire Wire Line
+	7600 3650 7600 3850
+Text Notes 7600 3600 0    79   ~ 16
+?
+Text Notes 6600 800  0    87   Italic 0
+Wheel Lift (HIGH when wheel lifted)
+$Comp
+L Connector_Generic:Conn_02x08_Odd_Even J6
+U 1 1 62E3115A
+P 1400 1350
+F 0 "J6" H 1450 1867 50  0000 C CNN
+F 1 "Safety bypass Shunt" H 1450 1776 50  0000 C CNN
+F 2 "" H 1400 1350 50  0001 C CNN
+F 3 "~" H 1400 1350 50  0001 C CNN
+	1    1400 1350
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1700 1450 1850 1450
+Wire Wire Line
+	1850 1450 1850 1550
+Wire Wire Line
+	1850 1750 1700 1750
+Wire Wire Line
+	1700 1650 1850 1650
+Connection ~ 1850 1650
+Wire Wire Line
+	1850 1650 1850 1750
+Wire Wire Line
+	1700 1550 1850 1550
+Connection ~ 1850 1550
+Wire Wire Line
+	1850 1550 1850 1650
+Wire Wire Line
+	1700 1250 1850 1250
+Wire Wire Line
+	1850 1250 1850 1450
+Connection ~ 1850 1450
+Wire Wire Line
+	1200 1550 1050 1550
+Wire Wire Line
+	1050 1550 1050 1650
+Wire Wire Line
+	1050 1750 1200 1750
+Wire Wire Line
+	1200 1650 1050 1650
+Connection ~ 1050 1650
+Wire Wire Line
+	1050 1650 1050 1750
+Wire Wire Line
+	1050 1750 1050 1900
+Wire Wire Line
+	1050 1900 1850 1900
+Wire Wire Line
+	1850 1900 1850 1750
+Connection ~ 1050 1750
+Connection ~ 1850 1750
+Text Notes 1100 750  0    39   ~ 8
+Panel Board Eliminator
+Wire Notes Line
+	750  600  750  2050
+Wire Notes Line
+	750  2050 2150 2050
+Wire Notes Line
+	2150 2050 2150 600 
+Wire Notes Line
+	2150 600  750  600 
+Text Notes 800  2000 0    33   ~ 7
+Warning: this eliminates STOP and LIFT sensors
 $EndSCHEMATC

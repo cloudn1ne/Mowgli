@@ -1111,7 +1111,7 @@ static int32_t platform_write(void *handle, uint8_t reg, const uint8_t *bufp,
 {
   reg |= 0x80;
   HAL_I2C_Mem_Write(handle, LIS3DH_I2C_ADD_L, reg,
-                    I2C_MEMADD_SIZE_8BIT, (uint8_t*) bufp, len, 1000);
+  I2C_MEMADD_SIZE_8BIT, (uint8_t*) bufp, len, 1000);
   return 0;
 }
 

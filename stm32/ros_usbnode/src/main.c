@@ -1356,7 +1356,7 @@ void setDriveMotors(uint8_t left_speed, uint8_t right_speed, uint8_t left_dir, u
     drivemotors_msg[7] = left_speed;
 
     // calc direction bits
-    if (left_dir == 1)
+    if (left_dir == 0)
     {        
         direction |= (0x20 + 0x10);
     }
@@ -1364,7 +1364,7 @@ void setDriveMotors(uint8_t left_speed, uint8_t right_speed, uint8_t left_dir, u
     {
         direction |= 0x20;
     }
-    if (right_dir == 1)
+    if (right_dir == 0)
     {   
         direction |= (0x40 + 0x80);                             
     }

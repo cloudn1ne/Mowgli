@@ -3,7 +3,7 @@ EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
-Sheet 9 14
+Sheet 8 14
 Title "Project Mowgli"
 Date "2022-05-22"
 Rev "1.0.1"
@@ -272,16 +272,12 @@ Text HLabel 6300 2300 2    50   Input ~ 0
 HC245_STM32_PB12
 Wire Wire Line
 	6300 2300 5600 2300
-Text HLabel 4150 2200 0    50   Output ~ 0
+Text HLabel 3700 1750 0    50   Output ~ 0
 unknown
 Text HLabel 4150 2300 0    50   Output ~ 0
 J5_Pin_5
 Text HLabel 4150 2400 0    50   Output ~ 0
 J5_Pin_4
-Text HLabel 4150 2500 0    50   Output ~ 0
-unknown
-Text HLabel 6300 2600 2    50   Input ~ 0
-unknown
 Wire Wire Line
 	6300 2600 5600 2600
 Text HLabel 4150 2600 0    50   Output ~ 0
@@ -330,4 +326,25 @@ Wire Wire Line
 	4600 4250 4100 4250
 Text Notes 4950 1350 0    118  ~ 0
 Jumper
+$Comp
+L Device:R R173
+U 1 1 62A909CA
+P 3750 2000
+F 0 "R173" H 3820 2046 50  0000 L CNN
+F 1 "not populated" H 3820 1955 50  0000 L CNN
+F 2 "" V 3680 2000 50  0001 C CNN
+F 3 "~" H 3750 2000 50  0001 C CNN
+	1    3750 2000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3750 2150 3750 2200
+Wire Wire Line
+	3750 2200 4600 2200
+NoConn ~ 6300 2600
+NoConn ~ 4150 2500
+Wire Wire Line
+	3700 1750 3750 1750
+Wire Wire Line
+	3750 1750 3750 1850
 $EndSCHEMATC

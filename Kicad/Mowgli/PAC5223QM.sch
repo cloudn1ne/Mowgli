@@ -154,4 +154,8 @@ Text HLabel 7600 3800 2    50   Output ~ 0
 PAC5223_PD7
 Wire Wire Line
 	7600 3800 7150 3800
+Text HLabel 7600 3600 2    49   Input Italic 0
+PAC5223_PD3_Safety
+Wire Wire Line
+	7600 3600 7150 3600
 $EndSCHEMATC

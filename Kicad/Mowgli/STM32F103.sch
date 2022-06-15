@@ -3,7 +3,7 @@ EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
-Sheet 3 14
+Sheet 14 14
 Title "Project Mowgli"
 Date "2022-05-22"
 Rev "1.0.1"
@@ -147,17 +147,17 @@ CHARGE_HIGHSIDE_DRIVER
 Wire Wire Line
 	7300 1700 6450 1700
 Text HLabel 7300 2200 2    50   Input ~ 0
-(ghidra:input,pulldown)
+PA8_MechTilt
 Wire Wire Line
 	7300 2200 6450 2200
 Text HLabel 3350 5000 0    50   Input ~ 0
-(ghidra:input,pulldown)
+STM32_PD2
 Text HLabel 3350 5100 0    50   Input ~ 0
-(ghidra:input,pulldown)
+STM32_PD3
 Text HLabel 3350 4900 0    50   Input ~ 0
-(ghidra:input,pulldown)
+PD1_Wheel_red
 Text HLabel 3350 4800 0    50   Input ~ 0
-(ghidra:input,pulldown)
+PD0_Wheel_blue
 Text HLabel 7300 1400 2    50   Output ~ 0
 (ghidra:output,pushpull,alternatefunc?)
 Text HLabel 7300 1500 2    50   Output ~ 0
@@ -197,7 +197,7 @@ Text HLabel 7200 4400 2    50   Input ~ 0
 Wire Wire Line
 	7200 4400 6450 4400
 Text HLabel 7200 5500 2    50   Input ~ 0
-(ghidra:input,pullup)
+PC7_Panel_PLAY
 Wire Wire Line
 	7200 5500 6450 5500
 Text HLabel 7200 3200 2    50   Output ~ 0
@@ -209,11 +209,11 @@ Text HLabel 7200 4900 2    50   Input ~ 0
 Wire Wire Line
 	7200 4900 6450 4900
 Text HLabel 7200 4800 2    50   Input ~ 0
-(ghidra:input,pulldown)
+PC0_Stop_yellow
 Wire Wire Line
 	7200 4800 6450 4800
 Text HLabel 7200 5600 2    50   Input ~ 0
-(ghidra:input,pulldown)
+PC8_Stop_white
 Wire Wire Line
 	7200 5600 6450 5600
 Text HLabel 3350 3300 0    50   Input ~ 0

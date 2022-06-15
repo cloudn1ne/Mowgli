@@ -3,7 +3,7 @@ EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
-Sheet 11 14
+Sheet 10 14
 Title "Project Mowgli"
 Date "2022-05-22"
 Rev "1.0.1"
@@ -401,7 +401,7 @@ Wire Wire Line
 Wire Wire Line
 	4750 5050 4000 5050
 Wire Wire Line
-	4000 4700 4000 5050
+	4000 4700 4000 4900
 Connection ~ 4750 4500
 Connection ~ 4000 5050
 $Comp
@@ -727,4 +727,11 @@ Wire Wire Line
 Connection ~ 1550 4500
 Wire Wire Line
 	1550 4500 4100 4500
+Text HLabel 3800 4900 0    50   Output ~ 0
+J6_Pin_15,13,12,8,7_GND
+Wire Wire Line
+	3800 4900 4000 4900
+Connection ~ 4000 4900
+Wire Wire Line
+	4000 4900 4000 5050
 $EndSCHEMATC

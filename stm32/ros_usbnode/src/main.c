@@ -77,7 +77,10 @@ int    blade_motor = 0;
 static uint8_t panel_rcvd_data;
 
 // exported via rostopics
-uint16_t chargecontrol_pwm_val=50;
+float_t battery_voltage;
+float_t charge_voltage;
+float_t charge_current;
+uint16_t chargecontrol_pwm_val=MIN_CHARGE_PWM;
 uint8_t  chargecontrol_is_charging=0;
 uint16_t right_encoder_val=0;
 uint16_t left_encoder_val=0;
@@ -979,7 +982,7 @@ void MX_DMA_Init(void)
  */
 float ADC_ChargeCurrent()
 {
-    float_t adc_volt;
+    float_t adc_current;
     uint16_t adc_val;
     ADC_ChannelConfTypeDef sConfig = {0};
 
@@ -996,8 +999,9 @@ float ADC_ChargeCurrent()
     HAL_ADC_PollForConversion(&ADC_Handle, 200);
     adc_val = (uint16_t) HAL_ADC_GetValue(&ADC_Handle);
     HAL_ADC_Stop(&ADC_Handle);
-    adc_volt= (float)(adc_val/4095.0f)*3.3f;     //PA2 has a 1:16 divider
-    return(adc_volt);
+    // guessed from experiments, close enough to at least determine when the battery is charging
+    adc_current= ((float)(adc_val/4095.0f)*3.3f - 2.5f) * 8;
+    return(adc_current);
 }
 
 
@@ -1199,17 +1203,22 @@ void I2C_Test(void)
  */
 void ChargeController(void)
 {        
-        float_t charge_voltage;
-
         charge_voltage =  ADC_ChargeVoltage();            
-        // set PWM to approach 29.4V charge voltage         
-        if ((charge_voltage < 29.4) && (chargecontrol_pwm_val < 1350))
-        {
-            chargecontrol_pwm_val++;
+        charge_current = ADC_ChargeCurrent();
+        battery_voltage = ADC_BatteryVoltage();
+        if (charge_voltage >= MIN_CHARGE_VOLTAGE ) {
+            // set PWM to approach 29.4V charge voltage
+            if ((charge_voltage < 29.4) && (chargecontrol_pwm_val < 1350))
+            {
+                chargecontrol_pwm_val++;
+            }
+            if ((charge_voltage > 29.4) && (chargecontrol_pwm_val > 50))
+            {
+                chargecontrol_pwm_val--;
+            }
         }
-        if ((charge_voltage > 29.4) && (chargecontrol_pwm_val > 50))
-        {
-            chargecontrol_pwm_val--;
+        else {
+            chargecontrol_pwm_val = MIN_CHARGE_PWM;
         }
         TIM1->CCR1 = chargecontrol_pwm_val;  
 }
@@ -1219,11 +1228,7 @@ void ChargeController(void)
  */
 void StatusLEDUpdate(void)
 {
-        float_t charge_voltage, battery_voltage;
-
-        charge_voltage =  ADC_ChargeVoltage();    
-        battery_voltage = ADC_BatteryVoltage();        
-        if (charge_voltage >= battery_voltage)         // we are charging ...
+        if ((charge_voltage >= MIN_CHARGE_VOLTAGE) && (charge_current >= MIN_CHARGE_CURRENT))         // we are charging ...
         {
             // indicate charging by flashing fast if we are plugged in
             PANEL_Set_LED(PANEL_LED_CHARGING, PANEL_LED_FLASH_FAST);

@@ -98,7 +98,8 @@ DMA_HandleTypeDef hdma_uart4_tx;
 
 I2C_HandleTypeDef I2C_Handle;
 ADC_HandleTypeDef ADC_Handle;
-TIM_HandleTypeDef TIM1_Handle;
+TIM_HandleTypeDef TIM1_Handle;  // PWM Charge Controller
+TIM_HandleTypeDef TIM3_Handle;  // PWM Beeper
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
@@ -275,6 +276,9 @@ int main(void)
     debug_printf(" * Master USART (debug) initialized\r\n");
     LED_Init();
     debug_printf(" * LED initialized\r\n");
+    TIM3_Init();
+    HAL_TIM_PWM_Start(&TIM3_Handle, TIM_CHANNEL_4);    
+    debug_printf(" * Timer3 (Beeper) initialized\r\n");
     TF4_Init();
     debug_printf(" * 24V switched on\r\n");
     PAC5223RESET_Init();
@@ -309,16 +313,16 @@ int main(void)
     ADC1_Init();    
     debug_printf(" * ADC1 initialized\r\n");    
     TIM1_Init();   
-    debug_printf(" * Timer1 (Charge PWM) initialized\r\n");
+    debug_printf(" * Timer1 (Charge PWM) initialized\r\n");    
     MX_USB_DEVICE_Init();
     debug_printf(" * USB CDC initialized\r\n");
     PANEL_Init();
     debug_printf(" * Panel initialized\r\n");
 
-    // ADC Timer
+    // Charge CH1/CH1N PWM Timer
     HAL_TIM_PWM_Start(&TIM1_Handle, TIM_CHANNEL_1);
     HAL_TIMEx_PWMN_Start(&TIM1_Handle, TIM_CHANNEL_1);
-    debug_printf(" * ADC Timers initialized\r\n");
+    debug_printf(" * Charge Controler PWM Timers initialized\r\n");
 
     // Init Drive Motors and Blade Motor
     #ifdef DRIVEMOTORS_USART_ENABLED
@@ -368,9 +372,13 @@ int main(void)
     // Initialize ROS
     init_ROS();
     debug_printf(" * ROS serial node initialized\r\n");     
-    debug_printf("\r\n >>> entering main loop ...\r\n\r\n");     
+    debug_printf("\r\n >>> entering main loop ...\r\n\r\n"); 
+    // <chirp><chirp> means we are in the main loop 
+    chirp();
+    HAL_Delay(50);
+    chirp();
     while (1)
-    {
+    {        
         chatter_handler();
         motors_handler();    
         panel_handler();
@@ -717,6 +725,8 @@ void Error_Handler(void)
     while (1)
     {
         debug_printf("Error Handler reached, oops\r\n");
+        chirp();
+        HAL_Delay(50);    
     }
     /* USER CODE END Error_Handler_Debug */
 }
@@ -951,6 +961,79 @@ void ADC1_Init(void)
   #ifdef BOARD_YARDFORCE500 
      __HAL_AFIO_REMAP_TIM1_ENABLE();        // to use PE8/9 it is a full remap
   #endif  
+}
+
+
+/**
+  * @brief TIM3 Initialization Function
+  *
+  * Beeper is on PB1 (PWM)
+  * 
+  * @param None
+  * @retval None
+  */
+void TIM3_Init(void)
+{
+
+  /* USER CODE BEGIN TIM3_Init 0 */
+  __HAL_RCC_TIM3_CLK_ENABLE();
+
+  /* USER CODE END TIM3_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM3_Init 1 */
+
+  /* USER CODE END TIM3_Init 1 */
+  TIM3_Handle.Instance = TIM3;
+  TIM3_Handle.Init.Prescaler = 36000; // 72Mhz -> 2khz
+  TIM3_Handle.Init.CounterMode = TIM_COUNTERMODE_UP;
+  TIM3_Handle.Init.Period = 50;
+  TIM3_Handle.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  TIM3_Handle.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&TIM3_Handle) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&TIM3_Handle, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&TIM3_Handle) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&TIM3_Handle, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&TIM3_Handle, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM3_Init 2 */
+
+  /* USER CODE END TIM3_Init 2 */
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+  /**TIM3 GPIO Configuration
+  PB1     ------> TIM3_CH4
+  */
+  GPIO_InitTypeDef GPIO_InitStruct = {0};  
+  GPIO_InitStruct.Pin = GPIO_PIN_1;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+
 }
 
 /**
@@ -1351,6 +1434,16 @@ uint8_t crcCalc(uint8_t *msg, uint8_t msg_len)
 }
 
 /*
+ * 2khz chirp for beep_time_ms
+ */
+void chirp()
+{    
+    TIM3_Handle.Instance->CCR4 = 10;   
+    HAL_Delay(100);
+    TIM3_Handle.Instance->CCR4 = 0;  
+}
+
+/*
  * Debug print via MASTER USART
  */
 void vprint(const char *fmt, va_list argp)
@@ -1358,7 +1451,7 @@ void vprint(const char *fmt, va_list argp)
     char string[200];    
     if(0 < vsprintf(string,fmt,argp)) // build string
     {
-        MASTER_Transmit(string, strlen(string));
+        MASTER_Transmit((unsigned char*)string, strlen(string));
 
         // HAL_UART_Transmit(&MASTER_USART_Handler, (uint8_t*)string, strlen(string), HAL_MAX_DELAY); // send message via UART               
         //while (master_tx_busy) {  }

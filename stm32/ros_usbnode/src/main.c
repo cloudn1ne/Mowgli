@@ -82,10 +82,21 @@ float_t charge_voltage;
 float_t charge_current;
 uint16_t chargecontrol_pwm_val=MIN_CHARGE_PWM;
 uint8_t  chargecontrol_is_charging=0;
+uint32_t right_encoder_ticks=0;
+uint32_t left_encoder_ticks=0;
+int8_t left_direction=0;
+int8_t right_direction=0;
 uint16_t right_encoder_val=0;
 uint16_t left_encoder_val=0;
 int16_t right_wheel_speed_val=0;
 int16_t left_wheel_speed_val=0;
+int8_t prev_left_direction=0;
+int8_t prev_right_direction=0;
+uint16_t prev_right_encoder_val=0;
+uint16_t prev_left_encoder_val=0;
+int16_t prev_right_wheel_speed_val=0;
+int16_t prev_left_wheel_speed_val=0;
+
 
 UART_HandleTypeDef MASTER_USART_Handler; // UART  Handle
 UART_HandleTypeDef DRIVEMOTORS_USART_Handler; // UART  Handle
@@ -380,25 +391,59 @@ int main(void)
             uint8_t direction = drivemotors_rx_buf[5];
 
             // we need to adjust for direction (+/-) !
-            if ((direction & 0x30) == 0x30)
+            if ((direction & 0xc0) == 0xc0)
             {            
-                left_wheel_speed_val =  drivemotors_rx_buf[7];
+                left_direction = 1;
             }
-            else 
+            else if ((direction & 0x80) == 0x80)
             {
-                left_wheel_speed_val =  -1 * drivemotors_rx_buf[7];
+                left_direction = -1;
             }
-            if ( (direction & 0xc0) == 0xc0)
+            else
+            {
+                left_direction = 0;
+            }
+            if ( (direction & 0x30) == 0x30)
             {            
-                right_wheel_speed_val =  drivemotors_rx_buf[6];
+                right_direction = 1;
             }
-            else 
+            else if ( (direction & 0x20) == 0x20)
             {
-                right_wheel_speed_val = -1 * drivemotors_rx_buf[6];
+                right_direction = -1;
+            }
+            else
+            {
+                right_direction = 0;
             }
                         
-            left_encoder_val = (drivemotors_rx_buf[16]<<8)+drivemotors_rx_buf[15];
-            right_encoder_val = (drivemotors_rx_buf[14]<<8)+drivemotors_rx_buf[13];            
+            left_encoder_val = (drivemotors_rx_buf[14]<<8)+drivemotors_rx_buf[13];
+            right_encoder_val = (drivemotors_rx_buf[16]<<8)+drivemotors_rx_buf[15];
+
+            /*
+              Encoder value can reset to zero twice when changing direction
+              2nd reset occurs when the speed changes from zero to non-zero
+            */
+            left_wheel_speed_val =  left_direction * drivemotors_rx_buf[6];
+            if( left_direction == 0 || (left_direction != prev_left_direction) || (prev_left_wheel_speed_val == 0 && left_wheel_speed_val != 0) )
+            {
+                prev_left_encoder_val = 0;
+            }
+            left_encoder_ticks += left_direction * (left_encoder_val - prev_left_encoder_val);
+            prev_left_encoder_val = left_encoder_val;
+            prev_left_wheel_speed_val = left_wheel_speed_val;
+            prev_left_direction = left_direction;
+
+            right_wheel_speed_val =  right_direction * drivemotors_rx_buf[7];
+            if( right_direction == 0 || (right_direction != prev_right_direction) || (prev_right_wheel_speed_val == 0 && right_wheel_speed_val != 0) )
+            {
+                prev_right_encoder_val = 0;
+            }
+            right_encoder_ticks += right_direction * (right_encoder_val - prev_right_encoder_val);
+            prev_right_encoder_val = right_encoder_val;
+            prev_right_wheel_speed_val = right_wheel_speed_val;
+            prev_right_direction = right_direction;
+
+
             //if (drivemotors_rx_buf[5]>>4)       // stuff is moving
            // {
            //    msgPrint(drivemotors_rx_buf, drivemotors_rx_buf_idx);             

@@ -32,6 +32,12 @@ extern "C" {
 
     #define LOW_BAT_THRESHOLD   23.5
 
+    #define WHEEL_LIFT_EMERGENCY_MILLIS 500
+    #define TILT_EMERGENCY_MILLIS 500
+    #define STOP_BUTTON_EMERGENCY_MILLIS 20
+    #define PLAY_BUTTON_CLEAR_EMERGENCY_MILLIS 2000
+
+
     // we use J18 (Red 9 pin connector as Master Serial Port)
     #define MASTER_J18 1
 
@@ -67,7 +73,31 @@ extern "C" {
     #define CHARGE_HIGHSIDE_PIN GPIO_PIN_9
     #define CHARGE_GPIO_PORT GPIOE
     #define CHARGE_GPIO_CLK_ENABLE() __HAL_RCC_GPIOE_CLK_ENABLE();
-    
+
+    /* Stop button - (HIGH when pressed) */
+    #define STOP_BUTTON_YELLOW_PIN GPIO_PIN_0
+    #define STOP_BUTTON_YELLOW_PORT GPIOC
+    #define STOP_BUTTON_GPIO_CLK_ENABLE() __HAL_RCC_GPIOC_CLK_ENABLE()
+    #define STOP_BUTTON_WHITE_PIN GPIO_PIN_8
+    #define STOP_BUTTON_WHITE_PORT GPIOC
+
+    /* Mechanical tilt - (HIGH when set) */
+    #define TILT_PIN GPIO_PIN_8
+    #define TILT_PORT GPIOA
+    #define TILT_GPIO_CLK_ENABLE() __HAL_RCC_GPIOA_CLK_ENABLE()
+
+    /* Wheel lift - (HIGH when set) */
+    #define WHEEL_LIFT_BLUE_PIN GPIO_PIN_0
+    #define WHEEL_LIFT_BLUE_PORT GPIOD
+    #define WHEEL_LIFT_GPIO_CLK_ENABLE() __HAL_RCC_GPIOD_CLK_ENABLE()
+    #define WHEEL_LIFT_RED_PIN GPIO_PIN_1
+    #define WHEEL_LIFT_RED_PORT GPIOD
+
+    /* Play button - (LOW when pressed) */
+    #define PLAY_BUTTON_PIN GPIO_PIN_7
+    #define PLAY_BUTTON_PORT GPIOC
+    #define PLAY_BUTTON_GPIO_CLK_ENABLE() __HAL_RCC_GPIOC_CLK_ENABLE()
+
     /* either J6 or J18 can be the master USART port */
 #ifdef MASTER_J6    
     /* USART1 (J6 Pin 1 (TX) Pin 2 (RX)) */    

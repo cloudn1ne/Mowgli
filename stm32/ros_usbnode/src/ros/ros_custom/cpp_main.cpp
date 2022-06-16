@@ -20,6 +20,7 @@
 #include "std_msgs/String.h"
 #include "std_msgs/Float32.h"
 #include "std_msgs/Int16.h"
+#include "std_msgs/UInt8.h"
 #include "std_msgs/UInt16.h"
 #include "std_msgs/UInt32.h"
 #include "nav_msgs/Odometry.h"
@@ -44,6 +45,9 @@
 
 extern uint8_t RxBuffer[RxBufferSize];
 struct ringbuffer rb;
+
+ros::Time last_cmd_vel(0, 0);
+uint32_t last_cmd_vel_age;
 
 // drive motor control
 static uint8_t left_speed=0;
@@ -191,6 +195,8 @@ extern "C" void CommandBladeOffMessageCb(const std_msgs::Bool& msg)
  */
 extern "C" void CommandVelocityMessageCb(const geometry_msgs::Twist& msg)
 {
+		last_cmd_vel = nh.now();
+
 		//	debug_printf("x: %f  z: %f\r\n", msg.linear.x, msg.angular.z);
 
 		// calculate twist speeds to add/substract 
@@ -265,6 +271,7 @@ extern "C" void chatter_handler()
 
 		  bool_charging_state_msg.data =  chargecontrol_is_charging;
 		  pubChargeingState.publish(&bool_charging_state_msg);
+
  		  //bool_blade_state_msg.data = true; // TODO: read blade status
 //		  pubBladeState.publish(&bool_blade_state_msg);
 
@@ -279,9 +286,27 @@ extern "C" void chatter_handler()
 extern "C" void motors_handler()
 {
 	  if (NBT_handler(&motors_nbt))
-	  {	
-		setDriveMotors(left_speed, right_speed, left_dir, right_dir);		
-		setBladeMotor(blade_on_off);		
+	  {
+		if (emergency_state)
+		{
+			setDriveMotors(0,0,0,0);
+			setBladeMotor(0);
+		}
+		else {
+			last_cmd_vel_age = nh.now().sec - last_cmd_vel.sec;
+			if (last_cmd_vel_age > 1) {
+				setDriveMotors(0, 0, left_dir, right_dir);
+			}
+			else {
+				setDriveMotors(left_speed, right_speed, left_dir, right_dir);
+			}
+			if (last_cmd_vel_age > 25) {
+				setBladeMotor(0);
+			}
+			else {
+				setBladeMotor(blade_on_off);
+			}
+		}
 	  }
 }
 

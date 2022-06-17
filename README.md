@@ -39,34 +39,43 @@ The custom firmware has no protections - no tilt sensing, no stop buttons will w
 - Mainboard (GForce) Firmware [dump and restore](./stm32/mainboard_firmware) via an ST Link or other (e.g. JLink Segger) tools
 - Panel (GForce) Firmware [dump and restore](./stm32/panel_firmware) via an ST Link or other (e.g. JLink Segger) tools
 - [Demo Python code](./playground/) to control the Mower via a Joystick (needs "test_code" STM32 code flashed)
-- ROS Serial node via CDC USB Port with hardware support for
-   - Drive Motors, Encoder readings, Odom messages
-   - Blade Motor, on/off
-   - Panel LED control
+- [ROS Serial node](./stm32/ros_usbnode) via CDC USB Port with full hardware support
 - Serial debugging on the unused (red) J18 header
-- Software I2C on the unusued (red) J18 header - used for IMU
+- Software I2C on the unusued (red) J18 header - used for external IMU
 - [Raspi, IMU, GPS Mounting Options](./Mounting)
+- onboard Buzzer
+- onboard IMU (accelerometer) for tilt protection
+- Safety switches (Hall Sensors) for STOP button
 
 ## TODO
 
 - Move all UART functions use DMA as HAL_IT is a seriously broken API
 - Publish Blade Motor state
-- Make Buzzer work
-- Publish onboard accerlometer
 - (Probably) Shift all the published topics to some common base such as /mowgli/
 
 ## rosserial node
 
-- [See here how to control the bot via ROS](stm32/ros_usbnode)
+- [See here how to use the ROS serial node](stm32/ros_usbnode)
 
 ## Published Topics
 
 - /battery_voltage - std_msgs::Float32 (current Battery Voltage)
 - /charge_voltage - std_msgs::Float32 (PWM controlled Charge Voltage if plugged in)
+- /charge_current - std_msgs:Float32 (still a bit unclear how that works, needs more Kicad'ding)
 - /charge_pwm - std_msgs::Int16 (PWM value for Charge Voltage)
 - /charging_state - std_msgs::Bool (True/False depending on if the bot is charging)
 - /odom - nav_msgs::Odometry (Odometry messages, from motor controller feedback)
-- /left_encoder_val & /right_encoder_val - std_msgs::UInt16 (Raw encoder values)
+- /left_encoder_ticks & /right_encoder_ticks - std_msgs::UInt21 (Accumulated Raw encoder values)
+- /imu_onboard/data_raw - sensor_msgs::Imu - onboard accelerometer data (no gyro, no mag !)
+- /imu_onboard/temp - sensor_msgs::Temperature - onboard accerlerometer temperature
+
+### in case a supported I2C IMU is connected to J18
+
+- /imu/data_raw - sensor_msgs::Imu - external IMU data (acceleration, gyro)
+- /imu/mag - sensor_msgs::MagneticField - external IMU data (compass)
+
+Currently only the [Pololu IMU 10v5](https://www.pololu.com/product/2739) is supported, but any I2C or SPI IMU should work.
+
 ## Planned (TODO) Topics
 - /blade_state - std_msgs::Bool
 

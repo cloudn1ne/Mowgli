@@ -19,7 +19,9 @@ extern "C" {
 #ifdef BOARD_YARDFORCE500    
     #warning "Compiling for YardForce 500 (GForce) board"
     
-
+    #define IMU_ACCELERATION                    1
+    #define IMU_ANGULAR                         1
+    
     #define PANEL_TYPE_YARDFORCE_500_CLASSIC    1
     // #define PANEL_TYPE_YARDFORCE_900_ECO   1
 

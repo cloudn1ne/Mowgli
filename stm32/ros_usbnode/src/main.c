@@ -306,29 +306,10 @@ int main(void)
     debug_printf(" * Hard I2C (onboard Accelerometer) initialized\r\n");
     SW_I2C_Init();
     debug_printf(" * Soft I2C (J18) initialized\r\n");
-    Emergency_Init();
-    debug_printf(" * Emergency sensors initialized\r\n");
-    // test if we have something supported connected
     IMU_TestDevice();
     IMU_Init();
-
-/*
-    int16_t x,y,z;
-    float temp;
-    float alt;
-    while (1)
-    {
-        //IMU_ReadAccelerometer(&x, &y, &z);
-        //IMU_ReadMagnetometer(&x, &y, &z);
-        //debug_printf("x: %d y: %d z: %d\r\n", x, y, z);
-        temp = IMU_ReadBarometerTemperatureC();
-        alt = IMU_ReadBarometerAltitudeMeters();
-
-        debug_printf("temp: %f alt: %f \r\n", temp, alt);
-        HAL_Delay(1000);        
-    }
-*/    
-
+    Emergency_Init();
+    debug_printf(" * Emergency sensors initialized\r\n");
     ADC1_Init();    
     debug_printf(" * ADC1 initialized\r\n");    
     TIM1_Init();   
@@ -780,29 +761,29 @@ void Emergency_Init()
     STOP_BUTTON_GPIO_CLK_ENABLE();
     GPIO_InitStruct.Pin = STOP_BUTTON_YELLOW_PIN;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
     HAL_GPIO_Init(STOP_BUTTON_YELLOW_PORT, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = STOP_BUTTON_WHITE_PIN;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
     HAL_GPIO_Init(STOP_BUTTON_WHITE_PORT, &GPIO_InitStruct);
 
     TILT_GPIO_CLK_ENABLE();
     GPIO_InitStruct.Pin = TILT_PIN;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
     HAL_GPIO_Init(TILT_PORT, &GPIO_InitStruct);
 
     WHEEL_LIFT_GPIO_CLK_ENABLE();
     GPIO_InitStruct.Pin = WHEEL_LIFT_BLUE_PIN;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
     HAL_GPIO_Init(WHEEL_LIFT_BLUE_PORT, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = WHEEL_LIFT_RED_PIN;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
     HAL_GPIO_Init(WHEEL_LIFT_RED_PORT, &GPIO_InitStruct);
 
     PLAY_BUTTON_GPIO_CLK_ENABLE();
@@ -1416,7 +1397,7 @@ void EmergencyController(void)
     GPIO_PinState wheel_lift_blue = HAL_GPIO_ReadPin(WHEEL_LIFT_BLUE_PORT, WHEEL_LIFT_BLUE_PIN);
     GPIO_PinState wheel_lift_red = HAL_GPIO_ReadPin(WHEEL_LIFT_RED_PORT, WHEEL_LIFT_RED_PIN);
     GPIO_PinState tilt = HAL_GPIO_ReadPin(TILT_PORT, TILT_PIN);
-    GPIO_PinState play_button = !HAL_GPIO_ReadPin(PLAY_BUTTON_PORT, PLAY_BUTTON_PIN);
+    GPIO_PinState play_button = !HAL_GPIO_ReadPin(PLAY_BUTTON_PORT, PLAY_BUTTON_PIN); // pullup, active low    
     uint32_t now = HAL_GetTick();
 
     if (stop_button_yellow || stop_button_white)
@@ -1432,9 +1413,11 @@ void EmergencyController(void)
                 if (stop_button_yellow)
                 {
                     emergency_state |= 0b00010;
+                    debug_printf(" ## EMERGENCY ## - STOP BUTTON (yellow) triggered\r\n");
                 }
                 if (stop_button_white) {
                     emergency_state |= 0b00100;
+                    debug_printf(" ## EMERGENCY ## - STOP BUTTON (white) triggered\r\n");
                 }
             }
         }
@@ -1457,10 +1440,12 @@ void EmergencyController(void)
                 if (wheel_lift_blue)
                 {
                     emergency_state |= 0b01000;
+                    debug_printf(" ## EMERGENCY ## - WHEEL LIFT (blue) triggered\r\n");
                 }
                 if (wheel_lift_red)
                 {
                     emergency_state |= 0b10000;
+                    debug_printf(" ## EMERGENCY ## - WHEEL LIFT (red) triggered\r\n");
                 }
             }
         }
@@ -1476,6 +1461,7 @@ void EmergencyController(void)
         {
             if (now - tilt_emergency_started >= TILT_EMERGENCY_MILLIS) {
                 emergency_state |= 0b100000;
+                debug_printf(" ## EMERGENCY ## - MECHANICAL TILT triggered\r\n");
             }
         }
     }
@@ -1484,7 +1470,7 @@ void EmergencyController(void)
         tilt_emergency_started = 0;
     }
 
-    if (play_button)
+    if (emergency_state && play_button)
     {
         if(play_button_started == 0)
         {
@@ -1494,7 +1480,9 @@ void EmergencyController(void)
         {
             if (now - play_button_started >= PLAY_BUTTON_CLEAR_EMERGENCY_MILLIS) {
                 emergency_state = 0;
+                debug_printf(" ## EMERGENCY ## - manual reset\r\n");
 				StatusLEDUpdate();
+                chirp();
             }
         }
     }

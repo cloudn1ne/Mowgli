@@ -780,29 +780,29 @@ void Emergency_Init()
     STOP_BUTTON_GPIO_CLK_ENABLE();
     GPIO_InitStruct.Pin = STOP_BUTTON_YELLOW_PIN;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
     HAL_GPIO_Init(STOP_BUTTON_YELLOW_PORT, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = STOP_BUTTON_WHITE_PIN;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
     HAL_GPIO_Init(STOP_BUTTON_WHITE_PORT, &GPIO_InitStruct);
 
     TILT_GPIO_CLK_ENABLE();
     GPIO_InitStruct.Pin = TILT_PIN;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
     HAL_GPIO_Init(TILT_PORT, &GPIO_InitStruct);
 
     WHEEL_LIFT_GPIO_CLK_ENABLE();
     GPIO_InitStruct.Pin = WHEEL_LIFT_BLUE_PIN;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
     HAL_GPIO_Init(WHEEL_LIFT_BLUE_PORT, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = WHEEL_LIFT_RED_PIN;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
     HAL_GPIO_Init(WHEEL_LIFT_RED_PORT, &GPIO_InitStruct);
 
     PLAY_BUTTON_GPIO_CLK_ENABLE();

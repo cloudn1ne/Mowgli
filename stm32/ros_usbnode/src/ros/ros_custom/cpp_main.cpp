@@ -112,6 +112,7 @@ std_msgs::Bool bool_charging_state_msg;
 nav_msgs::Odometry odom_msg;
 std_msgs::UInt32 left_encoder_ticks_msg;
 std_msgs::UInt32 right_encoder_ticks_msg;
+std_msgs::UInt8 emergency_state_msg;
 
 // IMU
 sensor_msgs::Imu imu_msg;
@@ -132,6 +133,7 @@ ros::Publisher pubBladeState("blade_state", &bool_blade_state_msg);
 ros::Publisher pubOdom("odom", &odom_msg);
 ros::Publisher pubLeftEncoderTicks("left_encoder_ticks", &left_encoder_ticks_msg);
 ros::Publisher pubRightEncoderTicks("right_encoder_ticks", &right_encoder_ticks_msg);
+ros::Publisher pubEmergencyState("emergency_state", &emergency_state_msg);
 
 // IMU
 ros::Publisher pubIMU("imu/data_raw", &imu_msg);
@@ -271,6 +273,9 @@ extern "C" void chatter_handler()
 
 		  bool_charging_state_msg.data =  chargecontrol_is_charging;
 		  pubChargeingState.publish(&bool_charging_state_msg);
+
+		  emergency_state_msg.data = emergency_state;
+		  pubEmergencyState.publish(&emergency_state_msg);
 
  		  //bool_blade_state_msg.data = true; // TODO: read blade status
 //		  pubBladeState.publish(&bool_blade_state_msg);
@@ -534,6 +539,7 @@ extern "C" void init_ROS()
 	nh.advertise(pubIMU);
 	nh.advertise(pubIMUMag);
 	nh.advertise(pubIMUMagCalibration);
+	nh.advertise(pubEmergencyState);
 	
 	// Initialize Subs
 	nh.subscribe(subCommandVelocity);

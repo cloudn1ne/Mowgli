@@ -53,6 +53,7 @@ float ADC_BatteryVoltage();
 float ADC_ChargeVoltage();
 float ADC_ChargeCurrent();
 void ChargeController(void);
+void EmergencyController(void);
 void StatusLEDUpdate(void);
 void setDriveMotors(uint8_t left_speed, uint8_t right_speed, uint8_t left_dir, uint8_t right_dir);
 void setBladeMotor(uint8_t on_off);
@@ -70,6 +71,7 @@ extern int16_t  right_wheel_speed_val;
 extern int16_t  left_wheel_speed_val;
 extern uint32_t right_encoder_ticks;
 extern uint32_t left_encoder_ticks;
+extern uint8_t emergency_state;
 
 // uart statistics
 extern uint16_t cnt_uart4_overrun;      // master
@@ -96,6 +98,7 @@ void ADC1_Init(void);
 void TIM1_Init(void);
 void TIM3_Init(void);
 void MX_DMA_Init(void);
+void Emergency_Init(void);
 
 
 // UART Wrapper functions to hide HAL bullshit ...

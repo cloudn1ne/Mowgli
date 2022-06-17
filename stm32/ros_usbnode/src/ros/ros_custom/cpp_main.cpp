@@ -47,7 +47,9 @@ extern uint8_t RxBuffer[RxBufferSize];
 struct ringbuffer rb;
 
 ros::Time last_cmd_vel(0, 0);
-uint32_t last_cmd_vel_age;
+ros::Time last_cmd_blade(0, 0);
+uint32_t last_cmd_vel_age;		// age of last velocity command
+uint32_t last_cmd_blade_age;		// age of last blade command
 
 // drive motor control
 static uint8_t left_speed=0;
@@ -168,9 +170,10 @@ static nbt_t broadcast_nbt;
  */
 extern "C" void CommandBladeOnMessageCb(const std_msgs::Bool& msg)
 {	
-	debug_printf("/cmd_blade_on: %d\r\n", msg.data);
+	//debug_printf("/cmd_blade_on: %d\r\n", msg.data);
 	if (msg.data)
 	{
+		last_cmd_blade = nh.now();
 		blade_on_off = true;
 	}
 }
@@ -181,9 +184,10 @@ extern "C" void CommandBladeOnMessageCb(const std_msgs::Bool& msg)
  */
 extern "C" void CommandBladeOffMessageCb(const std_msgs::Bool& msg)
 {	
-	debug_printf("/cmd_blade_off: %d\r\n", msg.data);
+	//debug_printf("/cmd_blade_off: %d\r\n", msg.data);
 	if (msg.data)
 	{
+		last_cmd_blade = nh.now();
 		blade_on_off = false;
 	}
 }
@@ -293,14 +297,18 @@ extern "C" void motors_handler()
 			setBladeMotor(0);
 		}
 		else {
-			last_cmd_vel_age = nh.now().sec - last_cmd_vel.sec;
+			// if the last velocity cmd is older than 1sec we stop the drive motors
+			last_cmd_vel_age = nh.now().sec - last_cmd_vel.sec;			
 			if (last_cmd_vel_age > 1) {
 				setDriveMotors(0, 0, left_dir, right_dir);
 			}
 			else {
 				setDriveMotors(left_speed, right_speed, left_dir, right_dir);
 			}
-			if (last_cmd_vel_age > 25) {
+
+			// if the last blade cmd is older than 25sec we stop the motor
+			last_cmd_blade_age = nh.now().sec - last_cmd_blade.sec;
+			if (last_cmd_blade_age > 25) {
 				setBladeMotor(0);
 			}
 			else {

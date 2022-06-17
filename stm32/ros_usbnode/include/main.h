@@ -59,7 +59,7 @@ void setDriveMotors(uint8_t left_speed, uint8_t right_speed, uint8_t left_dir, u
 void setBladeMotor(uint8_t on_off);
 uint8_t crcCalc(uint8_t *msg, uint8_t msg_len);
 void msgPrint(uint8_t *msg, uint8_t msg_len);
-void chirp();
+void chirp(uint8_t count);
 
 extern float battery_voltage;
 extern float charge_voltage;
@@ -93,7 +93,6 @@ void MASTER_USART_Init();
 void DRIVEMOTORS_USART_Init();
 void BLADEMOTOR_USART_Init();
 void SystemClock_Config();
-void I2C_Init(void);
 void ADC1_Init(void);
 void TIM1_Init(void);
 void TIM3_Init(void);

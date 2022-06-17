@@ -942,4 +942,6 @@ Wire Notes Line
 	2150 2050 2150 600 
 Wire Notes Line
 	2150 600  750  600 
+Text Notes 800  2000 0    33   ~ 7
+Warning: this eliminates STOP and LIFT sensors
 $EndSCHEMATC

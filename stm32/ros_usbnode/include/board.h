@@ -37,7 +37,7 @@ extern "C" {
     #define TILT_EMERGENCY_MILLIS 500
     #define STOP_BUTTON_EMERGENCY_MILLIS 20
     #define PLAY_BUTTON_CLEAR_EMERGENCY_MILLIS 2000
-    #define IMU_ONBOARD_INCLINATION_THRESHOLD  0x3A     // stock firmware uses 0x2C (way more allowed inclination)
+    #define IMU_ONBOARD_INCLINATION_THRESHOLD  0x38     // stock firmware uses 0x2C (way more allowed inclination)
 
     // IMU configuration options
     #define IMU_ONBOARD_ACCELERATION            1

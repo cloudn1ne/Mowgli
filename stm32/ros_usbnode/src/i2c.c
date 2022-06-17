@@ -181,6 +181,28 @@ uint8_t I2C_Acclerometer_TestDevice(void)
 }
 
 /*
+ * INT1 will latch if triggered
+ * this function will return its state and unlatch the INT
+ */
+uint8_t I2C_TestZLowINT(void)
+{
+    stmdev_ctx_t dev_ctx;
+
+    dev_ctx.write_reg = I2C_platform_write;
+    dev_ctx.read_reg = I2C_platform_read;
+    dev_ctx.handle = &I2C_Handle;
+
+    lis3dh_int1_src_t int1_src;
+    lis3dh_int1_gen_source_get(&dev_ctx, &int1_src); 
+    
+    //if (int1_src.ia == 1)       
+    //{
+    //    debug_printf("int1_src.ia: %d int1_src.zl: %d\r\n", int1_src.ia, int1_src.zl);        
+    //}
+    return(int1_src.zl && int1_src.ia);
+}
+
+/*
  * Setup Accelerometer and configure the "tilt protection"
  * "tilt protection" works via hardware INT1 that will stop the blade motor if triggered (see Kicad) 
  */
@@ -191,6 +213,10 @@ void I2C_Accelerometer_Setup(void)
     dev_ctx.write_reg = I2C_platform_write;
     dev_ctx.read_reg = I2C_platform_read;
     dev_ctx.handle = &I2C_Handle;
+
+    /* Reboot - reset all settings */
+    lis3dh_boot_set(&dev_ctx, 1);
+    HAL_Delay(50);
 
     /* Enable Block Data Update. */
     lis3dh_block_data_update_set(&dev_ctx, PROPERTY_ENABLE);
@@ -212,9 +238,10 @@ void I2C_Accelerometer_Setup(void)
     lis3dh_int1_gen_threshold_set(&dev_ctx, IMU_ONBOARD_INCLINATION_THRESHOLD);
     
     /* Set INT1 minimum duration (0xFF = 2.55 sec) */
-    lis3dh_int1_gen_duration_set(&dev_ctx, 0x32);   // 500ms
+    lis3dh_int1_gen_duration_set(&dev_ctx, 0x1);   // 10ms
 
-    /* Latch INT1 */
+    /* PULSE INT1 */
+    /* we have to read INT1_SRC (bit 6) to check the status of the INT */
     lis3dh_int1_pin_notification_mode_set(&dev_ctx, LIS3DH_INT1_PULSED);
 
     /*  Enable interrupt generation on Z low event or on Direction recognition. */
@@ -222,6 +249,11 @@ void I2C_Accelerometer_Setup(void)
     memset(&int1_cfg, 0, 1); // clear all flags
     int1_cfg.zlie = 1; // enable Z low interrupt
     lis3dh_int1_gen_conf_set(&dev_ctx, &int1_cfg);
+
+    /* INT Polarity (active-high) */
+    lis3dh_ctrl_reg6_t ctrl_reg6;
+    memset(&ctrl_reg6, 0, 1); // clear all flags means active high for INT_POLARITY
+    lis3dh_pin_int2_config_set(&dev_ctx, &ctrl_reg6); 
 
     /* Enable INT1 */    
     lis3dh_ctrl_reg3_t ctrl_reg3;
@@ -233,64 +265,4 @@ void I2C_Accelerometer_Setup(void)
     lis3dh_fifo_mode_set(&dev_ctx, 0);
     lis3dh_fifo_trigger_event_set(&dev_ctx, 0);
     lis3dh_fifo_watermark_set(&dev_ctx, 0x0);
-}
-
-
-/*
- * test code to interface the LIS accerlometer that is onboard the YF500
- */
-void I2C_Test(void)
-{
-    static int16_t data_raw_acceleration[3];
-    static int16_t data_raw_temperature;
-    static float acceleration_mg[3];
-    static float temperature_degC;
-    // static uint8_t whoamI;
-    stmdev_ctx_t dev_ctx;
-    
-    dev_ctx.write_reg = I2C_platform_write;
-    dev_ctx.read_reg = I2C_platform_read;
-    dev_ctx.handle = &I2C_Handle;
-  
-     /* Enable Block Data Update. */
-    lis3dh_block_data_update_set(&dev_ctx, PROPERTY_ENABLE);
-    /* Set Output Data Rate to 1Hz. */
-    lis3dh_data_rate_set(&dev_ctx, LIS3DH_ODR_100Hz);
-    /* Set full scale to 2g. */
-    lis3dh_full_scale_set(&dev_ctx, LIS3DH_2g);
-    /* Enable temperature sensor. */
-    lis3dh_aux_adc_set(&dev_ctx, LIS3DH_AUX_ON_TEMPERATURE);
-    /* Set device in continuous mode with 12 bit resol. */
-    lis3dh_operating_mode_set(&dev_ctx, LIS3DH_HR_12bit);
-
-    /* Read samples in polling mode (no int) */
-    while (1) {
-        lis3dh_reg_t reg;
-        /* Read output only if new value available */
-        lis3dh_xl_data_ready_get(&dev_ctx, &reg.byte);        
-        if (reg.byte) {
-            /* Read accelerometer data */
-            memset(data_raw_acceleration, 0x00, 3 * sizeof(int16_t));
-            lis3dh_acceleration_raw_get(&dev_ctx, data_raw_acceleration);
-            acceleration_mg[0] =
-                lis3dh_from_fs2_hr_to_mg(data_raw_acceleration[0]);
-            acceleration_mg[1] =
-                lis3dh_from_fs2_hr_to_mg(data_raw_acceleration[1]);
-            acceleration_mg[2] =
-                lis3dh_from_fs2_hr_to_mg(data_raw_acceleration[2]);
-
-            debug_printf("Acceleration [mg]: X=%4.2f\tY=%4.2f\tZ=%4.2f\r\n", acceleration_mg[0], acceleration_mg[1], acceleration_mg[2]);        
-        }
-
-        lis3dh_temp_data_ready_get(&dev_ctx, &reg.byte);
-
-        if (reg.byte) {            
-            // Read temperature data 
-            memset(&data_raw_temperature, 0x00, sizeof(int16_t));
-            lis3dh_temperature_raw_get(&dev_ctx, &data_raw_temperature);
-            temperature_degC =
-                lis3dh_from_lsb_hr_to_celsius(data_raw_temperature);
-            debug_printf("Temperature [degC]:%6.2f\r\n", temperature_degC);
-        }
-    }
 }

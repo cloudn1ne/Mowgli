@@ -96,6 +96,7 @@ uint8_t emergency_state=0;
 uint32_t stop_emergency_started=0;
 uint32_t wheel_lift_emergency_started=0;
 uint32_t tilt_emergency_started=0;
+uint32_t accelerometer_int_emergency_started=0;
 uint32_t play_button_started=0;
 
 UART_HandleTypeDef MASTER_USART_Handler; // UART  Handle
@@ -1264,6 +1265,8 @@ void EmergencyController(void)
     GPIO_PinState wheel_lift_red = HAL_GPIO_ReadPin(WHEEL_LIFT_RED_PORT, WHEEL_LIFT_RED_PIN);
     GPIO_PinState tilt = HAL_GPIO_ReadPin(TILT_PORT, TILT_PIN);
     GPIO_PinState play_button = !HAL_GPIO_ReadPin(PLAY_BUTTON_PORT, PLAY_BUTTON_PIN); // pullup, active low    
+    uint8_t accelerometer_int_triggered = I2C_TestZLowINT();
+
     uint32_t now = HAL_GetTick();
 
     if (stop_button_yellow || stop_button_white)
@@ -1316,7 +1319,25 @@ void EmergencyController(void)
             }
         }
     }
-
+    if (accelerometer_int_triggered)
+    {
+        if(accelerometer_int_emergency_started == 0)
+        {
+            accelerometer_int_emergency_started = now;
+        }
+        else
+        {
+            if (now - accelerometer_int_emergency_started >= TILT_EMERGENCY_MILLIS) {
+                emergency_state |= 0b100000;
+                debug_printf(" ## EMERGENCY ## - ACCELEROMETER TILT triggered\r\n");
+            }
+        }     
+    }
+    else
+    {
+        accelerometer_int_emergency_started = 0;
+    }
+    
     if (tilt)
     {
         if(tilt_emergency_started == 0)

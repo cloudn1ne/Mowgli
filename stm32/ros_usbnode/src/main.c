@@ -39,6 +39,7 @@ static int32_t platform_read(void *handle, uint8_t reg, uint8_t *bufp,
 
 static nbt_t main_chargecontroller_nbt;
 static nbt_t main_statusled_nbt;
+static nbt_t main_emergency_nbt;
 
 enum rx_status_enum { RX_WAIT, RX_VALID, RX_CRC_ERROR};
 
@@ -97,6 +98,11 @@ uint16_t prev_left_encoder_val=0;
 int16_t prev_right_wheel_speed_val=0;
 int16_t prev_left_wheel_speed_val=0;
 
+uint8_t emergency_state=0;
+uint32_t stop_emergency_started=0;
+uint32_t wheel_lift_emergency_started=0;
+uint32_t tilt_emergency_started=0;
+uint32_t play_button_started=0;
 
 UART_HandleTypeDef MASTER_USART_Handler; // UART  Handle
 UART_HandleTypeDef DRIVEMOTORS_USART_Handler; // UART  Handle
@@ -300,6 +306,8 @@ int main(void)
     debug_printf(" * Hard I2C (onboard Accelerometer) initialized\r\n");
     SW_I2C_Init();
     debug_printf(" * Soft I2C (J18) initialized\r\n");
+    Emergency_Init();
+    debug_printf(" * Emergency sensors initialized\r\n");
     // test if we have something supported connected
     IMU_TestDevice();
     IMU_Init();
@@ -378,6 +386,7 @@ int main(void)
     // Initialize Main Timers
 	NBT_init(&main_chargecontroller_nbt, 10);
     NBT_init(&main_statusled_nbt, 1000);
+	NBT_init(&main_emergency_nbt, 10);
     debug_printf(" * NBT Main timers initialized\r\n");     
 
     // Initialize ROS
@@ -493,13 +502,17 @@ int main(void)
         broadcast_handler();   
         if (NBT_handler(&main_chargecontroller_nbt))
 	    {            
-			ChargeController(); 
+			ChargeController();
 	    }
         if (NBT_handler(&main_statusled_nbt))
 	    {            
 			StatusLEDUpdate();          
             // debug_printf("master_rx_STATUS: %d  drivemotors_rx_buf_idx: %d  cnt_usart2_overrun: %x\r\n", master_rx_STATUS, drivemotors_rx_buf_idx, cnt_usart2_overrun);           
-	    }        
+	    }
+		if (NBT_handler(&main_emergency_nbt))
+		{
+			EmergencyController();
+		}
     }
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // we never get here ...
@@ -757,6 +770,48 @@ void PAC5210RESET_Init()
     HAL_GPIO_WritePin(GPIOD, GPIO_PIN_7 | GPIO_PIN_8 , 1);
 }
 
+/**
+ * @brief Emergency sensors
+ * @retval None
+ */
+void Emergency_Init()
+{
+    GPIO_InitTypeDef GPIO_InitStruct;
+    STOP_BUTTON_GPIO_CLK_ENABLE();
+    GPIO_InitStruct.Pin = STOP_BUTTON_YELLOW_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(STOP_BUTTON_YELLOW_PORT, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = STOP_BUTTON_WHITE_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(STOP_BUTTON_WHITE_PORT, &GPIO_InitStruct);
+
+    TILT_GPIO_CLK_ENABLE();
+    GPIO_InitStruct.Pin = TILT_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(TILT_PORT, &GPIO_InitStruct);
+
+    WHEEL_LIFT_GPIO_CLK_ENABLE();
+    GPIO_InitStruct.Pin = WHEEL_LIFT_BLUE_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(WHEEL_LIFT_BLUE_PORT, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = WHEEL_LIFT_RED_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(WHEEL_LIFT_RED_PORT, &GPIO_InitStruct);
+
+    PLAY_BUTTON_GPIO_CLK_ENABLE();
+    GPIO_InitStruct.Pin = PLAY_BUTTON_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    HAL_GPIO_Init(PLAY_BUTTON_PORT, &GPIO_InitStruct);
+
+}
 
 /**
  * @brief  This function is executed in case of error occurrence.
@@ -1352,10 +1407,114 @@ void ChargeController(void)
 }
 
 /*
- * Update the states for the Charge and Low Bat LEDs
+ * Manages the emergency sensors
+ */
+void EmergencyController(void)
+{
+    GPIO_PinState stop_button_yellow = HAL_GPIO_ReadPin(STOP_BUTTON_YELLOW_PORT, STOP_BUTTON_YELLOW_PIN);
+    GPIO_PinState stop_button_white = HAL_GPIO_ReadPin(STOP_BUTTON_WHITE_PORT, STOP_BUTTON_WHITE_PIN);
+    GPIO_PinState wheel_lift_blue = HAL_GPIO_ReadPin(WHEEL_LIFT_BLUE_PORT, WHEEL_LIFT_BLUE_PIN);
+    GPIO_PinState wheel_lift_red = HAL_GPIO_ReadPin(WHEEL_LIFT_RED_PORT, WHEEL_LIFT_RED_PIN);
+    GPIO_PinState tilt = HAL_GPIO_ReadPin(TILT_PORT, TILT_PIN);
+    GPIO_PinState play_button = !HAL_GPIO_ReadPin(PLAY_BUTTON_PORT, PLAY_BUTTON_PIN);
+    uint32_t now = HAL_GetTick();
+
+    if (stop_button_yellow || stop_button_white)
+    {
+        if (stop_emergency_started == 0)
+        {
+            stop_emergency_started = now;
+        }
+        else
+        {
+            if (now - stop_emergency_started >= STOP_BUTTON_EMERGENCY_MILLIS)
+            {
+                if (stop_button_yellow)
+                {
+                    emergency_state |= 0b00010;
+                }
+                if (stop_button_white) {
+                    emergency_state |= 0b00100;
+                }
+            }
+        }
+    }
+    else
+    {
+        stop_emergency_started = 0;
+    }
+
+    if (wheel_lift_blue || wheel_lift_red)
+    {
+        if (wheel_lift_emergency_started == 0)
+        {
+            wheel_lift_emergency_started = now;
+        }
+        else
+        {
+            if (now - wheel_lift_emergency_started >= WHEEL_LIFT_EMERGENCY_MILLIS)
+            {
+                if (wheel_lift_blue)
+                {
+                    emergency_state |= 0b01000;
+                }
+                if (wheel_lift_red)
+                {
+                    emergency_state |= 0b10000;
+                }
+            }
+        }
+    }
+
+    if (tilt)
+    {
+        if(tilt_emergency_started == 0)
+        {
+            tilt_emergency_started = now;
+        }
+        else
+        {
+            if (now - tilt_emergency_started >= TILT_EMERGENCY_MILLIS) {
+                emergency_state |= 0b100000;
+            }
+        }
+    }
+    else
+    {
+        tilt_emergency_started = 0;
+    }
+
+    if (play_button)
+    {
+        if(play_button_started == 0)
+        {
+            play_button_started = now;
+        }
+        else
+        {
+            if (now - play_button_started >= PLAY_BUTTON_CLEAR_EMERGENCY_MILLIS) {
+                emergency_state = 0;
+				StatusLEDUpdate();
+            }
+        }
+    }
+    else
+    {
+        play_button_started = 0;
+    }
+}
+
+/*
+ * Update the states for the Emergency, Charge and Low Bat LEDs
  */
 void StatusLEDUpdate(void)
 {
+        if (emergency_state) {
+            PANEL_Set_LED(PANEL_LED_LIFTED, PANEL_LED_FLASH_FAST);
+        } else {
+            PANEL_Set_LED(PANEL_LED_LIFTED, PANEL_LED_OFF);
+        }
+
         if ((charge_voltage >= MIN_CHARGE_VOLTAGE) && (charge_current >= MIN_CHARGE_CURRENT))         // we are charging ...
         {
             // indicate charging by flashing fast if we are plugged in

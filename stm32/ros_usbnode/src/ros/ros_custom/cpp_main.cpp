@@ -116,9 +116,14 @@ std_msgs::UInt32 left_encoder_ticks_msg;
 std_msgs::UInt32 right_encoder_ticks_msg;
 
 // IMU
+// external IMU (i2c)
 sensor_msgs::Imu imu_msg;
 sensor_msgs::MagneticField imu_mag_msg;
-sensor_msgs::MagneticField imu_mag_calibration_msg;
+// onboard IMU (accelerometer and temp)
+sensor_msgs::Imu imu_onboard_msg;
+sensor_msgs::Temperature imu_onboard_temp_msg;
+
+//sensor_msgs::MagneticField imu_mag_calibration_msg;
 //mowgli::magnetometer imu_mag_calibration_msg;
 
 /*
@@ -135,10 +140,15 @@ ros::Publisher pubOdom("odom", &odom_msg);
 ros::Publisher pubLeftEncoderTicks("left_encoder_ticks", &left_encoder_ticks_msg);
 ros::Publisher pubRightEncoderTicks("right_encoder_ticks", &right_encoder_ticks_msg);
 
-// IMU
+// IMU onboard
+ros::Publisher pubIMUOnboard("imu_onboard/data_raw", &imu_onboard_msg);
+ros::Publisher pubIMUOnboardTemp("imu_onboard/temp", &imu_onboard_temp_msg);
+
+// IMU external
 ros::Publisher pubIMU("imu/data_raw", &imu_msg);
 ros::Publisher pubIMUMag("imu/mag", &imu_mag_msg);
-ros::Publisher pubIMUMagCalibration("imu/mag_calibration", &imu_mag_calibration_msg);
+//ros::Publisher pubIMUMagCalibration("imu/mag_calibration", &imu_mag_calibration_msg);
+
 
 /*
  * SUBSCRIBERS
@@ -484,6 +494,7 @@ extern "C" void broadcast_handler()
 		imu_msg.linear_acceleration_covariance[0] = -1;
 #endif
 
+
 #ifdef IMU_ANGULAR
 		// Angular velocity
 		IMU_ReadGyro(&imu_x, &imu_y, &imu_z);
@@ -519,6 +530,46 @@ extern "C" void broadcast_handler()
 */
 		pubIMUMag.publish(&imu_mag_msg);
 
+
+#ifdef IMU_ONBOARD_ACCELERATION
+		IMU_Onboard_ReadAccelerometer(&imu_x, &imu_y, &imu_z);
+		imu_onboard_msg.linear_acceleration.x = imu_x;
+		imu_onboard_msg.linear_acceleration.y = imu_y;
+		imu_onboard_msg.linear_acceleration.z = imu_z;
+
+	/*
+		imu_onboard_msg.linear_acceleration_covariance[0] = 1e-3;
+		imu_onboard_msg.linear_acceleration_covariance[4] = 1e-3;
+		imu_onboard_msg.linear_acceleration_covariance[8] = 1e-3;
+	*/
+#else
+		imu_onboard_msg.linear_acceleration.x = 0;
+		imu_onboard_msg.linear_acceleration.y = 0;
+		imu_onboard_msg.linear_acceleration.z = 0;
+#endif
+		// no onboard gyro so angular velocities are always zero
+		imu_onboard_msg.angular_velocity.x = 0;
+		imu_onboard_msg.angular_velocity.y = 0;
+		imu_onboard_msg.angular_velocity.z = 0;
+		imu_onboard_msg.angular_velocity_covariance[0] = -1;
+
+		pubIMUOnboard.publish(&imu_onboard_msg);
+
+#ifdef IMU_ONBOARD_TEMP
+		imu_onboard_temp_msg.temperature = IMU_Onboard_ReadTemp();
+#else
+		imu_onboard_temp_msg.temperature = -100;
+#endif
+		imu_onboard_temp_msg.variance = 0;
+		
+
+#ifdef IMU_ONBOARD_TEMP
+		IMU_Onboard_ReadTemp();
+
+#endif
+		pubIMUOnboardTemp.publish(&imu_onboard_temp_msg);
+
+/*
 		// Calibration (Magnetometer)
 		imu_mag_msg.header.frame_id = "imu";
 		imu_mag_msg.header.stamp = current_time;
@@ -527,13 +578,17 @@ extern "C" void broadcast_handler()
 		imu_mag_calibration_msg.magnetic_field.y = imu_y;
 		imu_mag_calibration_msg.magnetic_field.z = imu_z;		
 		pubIMUMagCalibration.publish(&imu_mag_calibration_msg); // this is what ros-calibration_imu expects 
+*/
 
+/*
+		// Calibration (Magnetometer) custom style
+		imu_mag_calibration_msg.x = imu_x;
+		imu_mag_calibration_msg.y = imu_y;
+		imu_mag_calibration_msg.z = imu_z;
+		pubIMUMagCalibration.publish(&imu_mag_calibration_msg); // this is what ros-calibration_imu expects 
+*/
 
-		//imu_mag_calibration_msg.x = imu_x;
-		//imu_mag_calibration_msg.y = imu_y;
-		//imu_mag_calibration_msg.z = imu_z;
-		//pubIMUMagCalibration.publish(&imu_mag_calibration_msg); // this is what ros-calibration_imu expects 
-	  }
+	  } // if (NBT_handler(&broadcast_nbt))
 }
 
 /*
@@ -572,7 +627,10 @@ extern "C" void init_ROS()
 	nh.advertise(pubRightEncoderTicks);
 	nh.advertise(pubIMU);
 	nh.advertise(pubIMUMag);
-	nh.advertise(pubIMUMagCalibration);
+	//nh.advertise(pubIMUMagCalibration);
+	nh.advertise(pubIMUOnboard);
+	nh.advertise(pubIMUOnboardTemp);
+
 	
 	// Initialize Subs
 	nh.subscribe(subCommandVelocity);

@@ -18,10 +18,8 @@ extern "C" {
 ********************************************************************************/
 #ifdef BOARD_YARDFORCE500    
     #warning "Compiling for YardForce 500 (GForce) board"
-    
-    #define IMU_ACCELERATION                    1
-    #define IMU_ANGULAR                         1
-    
+        
+
     #define PANEL_TYPE_YARDFORCE_500_CLASSIC    1
     // #define PANEL_TYPE_YARDFORCE_900_ECO   1
 
@@ -34,11 +32,18 @@ extern "C" {
 
     #define LOW_BAT_THRESHOLD   23.5
 
+    // Emergency sensor timeouts
     #define WHEEL_LIFT_EMERGENCY_MILLIS 500
     #define TILT_EMERGENCY_MILLIS 500
     #define STOP_BUTTON_EMERGENCY_MILLIS 20
     #define PLAY_BUTTON_CLEAR_EMERGENCY_MILLIS 2000
+    #define IMU_ONBOARD_INCLINATION_THRESHOLD  0x3A     // stock firmware uses 0x2C (way more allowed inclination)
 
+    // IMU configuration options
+    #define IMU_ONBOARD_ACCELERATION            1
+    #define IMU_ONBOARD_TEMP                    1
+    #define IMU_ACCELERATION                    1       // external IMU
+    #define IMU_ANGULAR                         1       // external IMU
 
     // we use J18 (Red 9 pin connector as Master Serial Port)
     #define MASTER_J18 1

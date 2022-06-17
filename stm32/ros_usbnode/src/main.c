@@ -299,7 +299,7 @@ int main(void)
     debug_printf(" * Hard I2C initialized\r\n");
     if (I2C_Acclerometer_TestDevice())
     {
-        // I2C_Accelerometer_Setup();  
+         I2C_Accelerometer_Setup();  
         // I2C_Test();  
     }
     else

@@ -12,6 +12,8 @@
   ******************************************************************************
   */
 
+#include "i2c.h"
+
 /**
   * @brief  Reads the 3 magnetometer channels and stores them in *x,*y,*z  
   * then applies the correction factors for x/y
@@ -35,4 +37,20 @@ void IMU_ReadMagnetometer(float *x, float *y, float *z)
     *y = imu_y - (min_y + (max_y-min_y)/2);
     *z = imu_z - (min_z + (max_z-min_z)/2);   
 
+}
+
+/*
+ * Read onboard IMU acceleration in ms^2
+ */
+void IMU_Onboard_ReadAccelerometer(float *x, float *y, float *z)
+{
+   I2C_ReadAccelerometer(x, y, z);
+}
+
+/*
+ * Read onboard IMU temperature in °C
+ */
+float IMU_Onboard_ReadTemp(void)
+{
+  return(I2C_ReadAccelerometerTemp());
 }

@@ -19,25 +19,23 @@ extern "C" {
 #ifdef BOARD_YARDFORCE500    
     #warning "Compiling for YardForce 500 (GForce) board"
         
-
     #define PANEL_TYPE_YARDFORCE_500_CLASSIC    1
     // #define PANEL_TYPE_YARDFORCE_900_ECO   1
 
     // if voltage is greater than this assume we are docked
-    #define MIN_CHARGE_VOLTAGE 5.0
+    #define MIN_CHARGE_VOLTAGE                  5.0
     // must provide at least MIN_CHARGE_VOLTAGE when docked
-    #define MIN_CHARGE_PWM 500
+    #define MIN_CHARGE_PWM                      500
     // if current is greater than this assume the battery is charging
-    #define MIN_CHARGE_CURRENT 0.2
-
-    #define LOW_BAT_THRESHOLD   23.5
+    #define MIN_CHARGE_CURRENT                  0.2
+    #define LOW_BAT_THRESHOLD                   23.5
 
     // Emergency sensor timeouts
-    #define WHEEL_LIFT_EMERGENCY_MILLIS 500
-    #define TILT_EMERGENCY_MILLIS 500
-    #define STOP_BUTTON_EMERGENCY_MILLIS 20
-    #define PLAY_BUTTON_CLEAR_EMERGENCY_MILLIS 2000
-    #define IMU_ONBOARD_INCLINATION_THRESHOLD  0x38     // stock firmware uses 0x2C (way more allowed inclination)
+    #define WHEEL_LIFT_EMERGENCY_MILLIS         500
+    #define TILT_EMERGENCY_MILLIS               500      // used for both the mechanical and accelerometer based detection
+    #define STOP_BUTTON_EMERGENCY_MILLIS        20
+    #define PLAY_BUTTON_CLEAR_EMERGENCY_MILLIS  2000
+    #define IMU_ONBOARD_INCLINATION_THRESHOLD   0x38     // stock firmware uses 0x2C (way more allowed inclination)
 
     // IMU configuration options
     #define IMU_ONBOARD_ACCELERATION            1

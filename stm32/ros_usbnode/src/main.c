@@ -496,10 +496,12 @@ int main(void)
 			StatusLEDUpdate();          
             // debug_printf("master_rx_STATUS: %d  drivemotors_rx_buf_idx: %d  cnt_usart2_overrun: %x\r\n", master_rx_STATUS, drivemotors_rx_buf_idx, cnt_usart2_overrun);           
 	    }
+#ifndef I_DONT_NEED_MY_FINGERS
 		if (NBT_handler(&main_emergency_nbt))
 		{
 			EmergencyController();
 		}
+#endif        
     }
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // we never get here ...

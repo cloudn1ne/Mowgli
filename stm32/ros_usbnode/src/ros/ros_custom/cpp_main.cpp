@@ -156,10 +156,12 @@ ros::Publisher pubIMUMag("imu/mag", &imu_mag_msg);
 extern "C" void CommandVelocityMessageCb(const geometry_msgs::Twist& msg);
 extern "C" void CommandBladeOnMessageCb(const std_msgs::Bool& msg);
 extern "C" void CommandBladeOffMessageCb(const std_msgs::Bool& msg);
+extern "C" void CommandRebootMessageCb(const std_msgs::Bool& msg);
 
 ros::Subscriber<geometry_msgs::Twist> subCommandVelocity("cmd_vel", CommandVelocityMessageCb);
 ros::Subscriber<std_msgs::Bool> subBladeOn("cmd_blade_on", CommandBladeOnMessageCb);
 ros::Subscriber<std_msgs::Bool> subBladeOff("cmd_blade_off", CommandBladeOffMessageCb);
+ros::Subscriber<std_msgs::Bool> subReboot("cmd_reboot", CommandRebootMessageCb);
 // TODO ros::Subscriber<std_msgs::Bool> subLEDSet("cmd_panel_led_set", CommandLEDSetMessageCb);
 // TODO ros::Subscriber<std_msgs::Bool> subLEDFlashSlow("cmd_panel_led_flash_slow", CommandLEDFlashSlowMessageCb);
 // TODO ros::Subscriber<std_msgs::Bool> subLEDFlashFast("cmd_panel_led_flash_fast", CommandLEDFlashFastMessageCb);
@@ -202,6 +204,16 @@ extern "C" void CommandBladeOffMessageCb(const std_msgs::Bool& msg)
 	}
 }
 
+/*
+ * Reboot STM32 if True
+ */
+extern "C" void  CommandRebootMessageCb(const std_msgs::Bool& msg)
+{		
+	if (msg.data)
+	{
+		NVIC_SystemReset();
+	}
+}
 
 /*
  * receive and parse cmd_vel messages
@@ -631,6 +643,7 @@ extern "C" void init_ROS()
 	nh.subscribe(subCommandVelocity);
 	nh.subscribe(subBladeOn);
 	nh.subscribe(subBladeOff);
+	nh.subscribe(subReboot);
 
 	// Initialize Timers
 	NBT_init(&publish_nbt, 1000);

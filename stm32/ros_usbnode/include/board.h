@@ -22,6 +22,8 @@ extern "C" {
     #define PANEL_TYPE_YARDFORCE_500_CLASSIC    1
     // #define PANEL_TYPE_YARDFORCE_900_ECO   1
 
+    //#define I_DONT_NEED_MY_FINGERS              1       // disables EmergencyController() (no wheel lift, or tilt sensing and stopping the blade anymore)
+
     // if voltage is greater than this assume we are docked
     #define MIN_CHARGE_VOLTAGE                  5.0
     // must provide at least MIN_CHARGE_VOLTAGE when docked

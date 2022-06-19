@@ -83,6 +83,7 @@ Currently only the [Pololu IMU 10v5](https://www.pololu.com/product/2739) is sup
 - /cmd_vel - geometry_msgs::Twist (compatible with teleop twist messages, so you can drive the bot)
 - /cmd_blade_on - std_msgs::Bool (set True to turn on the Blade Motor)
 - /cmd_blade_off - std_msgs::Bool (set True to turn off the Blade Motor)
+- /cmd_reboot- std_msgs::Bool (set True to reboot the STM32)
 
 ## Serial Debugging
 

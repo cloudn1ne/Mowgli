@@ -1,0 +1,11 @@
+[Unit]
+Description=ROS Core
+After=network.target
+
+[Service]
+ExecStart=/bin/bash -a -c 'source /opt/ros/noetic/setup.bash && /opt/ros/noetic/bin/roscore'
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+Alias=roscore.service

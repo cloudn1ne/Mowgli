@@ -1,0 +1,11 @@
+[Unit]
+Description=ROS Serial Watchdog
+After=network.target
+
+[Service]
+ExecStart=/bin/bash -a -c 'source /opt/ros/noetic/setup.bash && while true; do rostopic echo -n 2 /rosout/msg |grep "Lost sync" && sudo systemctl restart rosserial; done'
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+Alias=rosserial_watchdog.service

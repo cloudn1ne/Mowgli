@@ -289,6 +289,14 @@ extern "C" void chatter_handler()
  		  //bool_blade_state_msg.data = true; // TODO: read blade status
 //		  pubBladeState.publish(&bool_blade_state_msg);
 
+#ifdef IMU_ONBOARD_TEMP
+		  imu_onboard_temp_msg.temperature = IMU_Onboard_ReadTemp();
+#else
+		  imu_onboard_temp_msg.temperature = -100;
+#endif
+		  imu_onboard_temp_msg.variance = 0;		
+		  pubIMUOnboardTemp.publish(&imu_onboard_temp_msg);
+
 		  HAL_GPIO_TogglePin(LED_GPIO_PORT, LED_PIN);         // flash LED
 	  }
 }
@@ -427,6 +435,7 @@ extern "C" void broadcast_handler()
 			odom_msg.twist.covariance[28] = 1e6;
 			odom_msg.twist.covariance[35] = 1e3;
 		}
+
 		vx = (dt == 0)?  0 : (speed_act_left+speed_act_right)/2.0;
 	//	vth = (dt == 0)? 0 : (speed_act_right-speed_act_left)/WHEEL_BASE;
 		odom_msg.child_frame_id = base_link;
@@ -554,20 +563,6 @@ extern "C" void broadcast_handler()
 		imu_onboard_msg.angular_velocity_covariance[0] = -1;
 
 		pubIMUOnboard.publish(&imu_onboard_msg);
-
-#ifdef IMU_ONBOARD_TEMP
-		imu_onboard_temp_msg.temperature = IMU_Onboard_ReadTemp();
-#else
-		imu_onboard_temp_msg.temperature = -100;
-#endif
-		imu_onboard_temp_msg.variance = 0;
-		
-
-#ifdef IMU_ONBOARD_TEMP
-		IMU_Onboard_ReadTemp();
-
-#endif
-		pubIMUOnboardTemp.publish(&imu_onboard_temp_msg);
 
 /*
 		// Calibration (Magnetometer)

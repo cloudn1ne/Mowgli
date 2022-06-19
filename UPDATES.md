@@ -8,3 +8,5 @@
 * 15/06/22 - double chirp (via buzzer) added upon entering mainloop
 * 17/06/22 - safety hall sensors working, onboard imu (accelerometer) tilt protection
 * 17/06/22 - onboard IMU data is published
+* 19/06/22 - added #define I_DONT_NEED_MY_FINGERS in board.h to disable EmergencyController
+* 19/06/22 - added /cmd_reboot topic (bool) - allows remote reboot of the STM32 cpu

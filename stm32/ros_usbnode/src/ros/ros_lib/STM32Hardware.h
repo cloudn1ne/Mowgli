@@ -7,6 +7,7 @@
 #include "ringbuffer.h"
 
 extern struct ringbuffer rb;
+extern USBD_HandleTypeDef hUsbDeviceFS;
 
 class STM32Hardware
 {
@@ -35,10 +36,16 @@ public:
 
 	// Send a byte of data to ROS connection
 	void write(uint8_t* data, int length)
-	{
-		// make CDC_Transmit_FS blocking
-		while (CDC_Transmit_FS(data, length) != USBD_OK) {}
-		HAL_Delay(1);
+	{		
+	 	USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef*)hUsbDeviceFS.pClassData;		
+		
+		CDC_Transmit_FS(data, length); 	// queue data for sending
+		while (hcdc->TxState != 0)		// wait until all data is sent via USB
+		{
+			//	debug_printf("post send busy %d\r\n", hcdc->TxState);
+			//	HAL_Delay(1);
+		}
+		//debug_printf("post send no longer busy !!!!!\r\n");
 	}
 
 	// Returns milliseconds since start of program

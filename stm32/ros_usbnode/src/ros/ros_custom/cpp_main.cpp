@@ -306,7 +306,8 @@ extern "C" void chatter_handler()
 #else
 		  imu_onboard_temp_msg.temperature = -100;
 #endif
-		  imu_onboard_temp_msg.variance = 0;		
+		  imu_onboard_temp_msg.variance = 0.5;		// 0.5°C resolution
+		  imu_onboard_temp_msg.header.frame_id = base_link;
 		  pubIMUOnboardTemp.publish(&imu_onboard_temp_msg);
 
 		  HAL_GPIO_TogglePin(LED_GPIO_PORT, LED_PIN);         // flash LED

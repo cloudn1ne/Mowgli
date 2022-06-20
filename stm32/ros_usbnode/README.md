@@ -9,7 +9,7 @@
 - Start VS Code and open the project in platform.io.
 - Make sure you Build and Upload from the "Yardforce 500(STM32F103 VCT6)" folder - the generic STM32F103C8 folder is for a bluepill test board only.
 - Having your ST-Link hooked up to the J9 connector on the mainboard the firmware should now be flashed
-- The LED (D3) near the STM32 cpu should flash in a 1sec interval
+- The LED (D3) near the STM32 cpu should flash and you should hear a "double" chirp on bootup
 
 ## Hardware
 

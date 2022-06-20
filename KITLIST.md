@@ -4,6 +4,7 @@
 * Raspi 4 4GB or better + SD card
 * 1x ArduSimple - simpleRTK2B Budget (AS-RTK2B-F9P-L1L2-NH-02) - Rover (Bot)
 * 1x ArduSimple - ANN-MB Antenna - Rover (Bot)
+* ST-Link v2 STM32 programmer 
 * 1x IMU - Pololu IMU-10v5
 * 1x Meanwell NID65-5 - 5V DCDC converter for Raspi
 * 1x ATX 8 pin extension (used to splice the DCDC converter in)

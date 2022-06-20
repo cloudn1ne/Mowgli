@@ -1,0 +1,12 @@
+[Unit]
+Description=ROS Serial
+After=network.target
+
+[Service]
+ExecStartPre=/usr/bin/usbreset "Mowgli"
+ExecStart=/bin/bash -a -c 'source /opt/ros/noetic/setup.bash && /opt/ros/noetic/bin/rosrun rosserial_server serial_node _port:=/dev/mowgli _baud:=115200'
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+Alias=rosserial.service

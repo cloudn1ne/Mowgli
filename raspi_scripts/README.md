@@ -26,9 +26,33 @@ sudo udevadm control --reload-rules && udevadm trigger
 ```
 
 ### Install roscore and rosserial services
+
+To run the binary version (not the python version) install:
+```
+apt-get install ros-noetic-rosserial-server
+```
+
 ```
 sudo cp roscore.service /etc/systemd/system
-sudo cp rosserial.service /etc/systemd/system 
+```
+
+install either the binary (see apt-get above) or use the python version:
+
+```
+sudo cp rosserial-python.service /etc/systemd/system/rosserial.service
+sudo cp rosserial_watchdog-python.service /etc/systemd/system/rosserial_watchdog.service
+```
+
+or
+
+```
+sudo cp rosserial-server.service /etc/systemd/system/rosserial.service
+sudo cp rosserial_watchdog-server.service /etc/systemd/system/rosserial_watchdog.service
+```
+
+
+
+```
 sudo cp rosserial_watchdog.service /etc/systemd/system
 sudo systemctl daemon-reload
 sudo systemctl start roscore

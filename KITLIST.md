@@ -7,6 +7,7 @@
 * 1x IMU - Pololu IMU-10v5
 * 1x Meanwell NID65-5 - 5V DCDC converter for Raspi
 * 1x ATX 8 pin extension (used to splice the DCDC converter in)
+* 1x FR4 copper 100x160mm (single sided) PCB as antenna reflector
 * Bunch of M2,M3,M4 screws and nuts
 * Loctite 243 to secure screws
 * some 24AWG (IMU power) and 16AWG (DCDC converter) cables

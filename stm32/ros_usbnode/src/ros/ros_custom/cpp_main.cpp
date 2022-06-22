@@ -367,7 +367,7 @@ extern "C" void broadcast_handler()
 		// z = BROADCAST_NBT_TIME_MS/1000;
 		// x = right_wheel_speed_val;
 		// y = left_wheel_speed_val;
-		current_time = nh.now();
+		current_time = nh.now(); 
 		//////////////////////////////////////////////////
 		// TF message
 		//////////////////////////////////////////////////
@@ -488,8 +488,7 @@ extern "C" void broadcast_handler()
 		float imu_x,imu_y,imu_z;
 
 		imu_msg.header.frame_id = "imu";
-		imu_msg.header.stamp = current_time;
-
+		
 		// No Orientation
 		imu_msg.orientation.x = 0;
 		imu_msg.orientation.y = 0;
@@ -500,7 +499,7 @@ extern "C" void broadcast_handler()
 
 #ifdef IMU_ACCELERATION
 		// Linear acceleration		
-		IMU_ReadAccelerometer(&imu_x, &imu_y, &imu_z);
+		IMU_ReadAccelerometer(&imu_x, &imu_y, &imu_z);		
 		imu_msg.linear_acceleration.x = imu_x +  0.407;
 		imu_msg.linear_acceleration.y = imu_y + 0.8391;
 		imu_msg.linear_acceleration.z = imu_z;
@@ -535,12 +534,13 @@ extern "C" void broadcast_handler()
 		imu_msg.angular_velocity.z = 0;
 		imu_msg.angular_velocity_covariance[0] = -1;
 #endif		
+		imu_msg.header.stamp =  nh.now();
 		pubIMU.publish(&imu_msg);
 
 		// Orientation (Magnetometer)
-		imu_mag_msg.header.frame_id = "imu";
-		imu_mag_msg.header.stamp = current_time;		
-	 	IMU_ReadMagnetometerRaw(&imu_x, &imu_y, &imu_z);
+		imu_mag_msg.header.frame_id = "imu";			
+	 	IMU_ReadMagnetometerRaw(&imu_x, &imu_y, &imu_z);		
+		imu_msg.header.stamp =  nh.now();
 
 		imu_mag_msg.magnetic_field.x = imu_x;
 		imu_mag_msg.magnetic_field.y = imu_y;
@@ -549,12 +549,13 @@ extern "C" void broadcast_handler()
 		imu_mag_msg.magnetic_field_covariance[0] = 1e-3;
 		imu_mag_msg.magnetic_field_covariance[4] = 1e-3;
 		imu_mag_msg.magnetic_field_covariance[8] = 1e-3;
-*/
+*/		
 		pubIMUMag.publish(&imu_mag_msg);
 
 
 #ifdef IMU_ONBOARD_ACCELERATION
 		IMU_Onboard_ReadAccelerometer(&imu_x, &imu_y, &imu_z);
+		imu_msg.header.stamp =  nh.now();
 		imu_onboard_msg.linear_acceleration.x = imu_x;
 		imu_onboard_msg.linear_acceleration.y = imu_y;
 		imu_onboard_msg.linear_acceleration.z = imu_z;
@@ -575,26 +576,7 @@ extern "C" void broadcast_handler()
 		imu_onboard_msg.angular_velocity.z = 0;
 		imu_onboard_msg.angular_velocity_covariance[0] = -1;
 
-		pubIMUOnboard.publish(&imu_onboard_msg);
-
-/*
-		// Calibration (Magnetometer)
-		imu_mag_msg.header.frame_id = "imu";
-		imu_mag_msg.header.stamp = current_time;
-		IMU_ReadMagnetometerRaw(&imu_x, &imu_y, &imu_z);
-		imu_mag_calibration_msg.magnetic_field.x = imu_x;
-		imu_mag_calibration_msg.magnetic_field.y = imu_y;
-		imu_mag_calibration_msg.magnetic_field.z = imu_z;		
-		pubIMUMagCalibration.publish(&imu_mag_calibration_msg); // this is what ros-calibration_imu expects 
-*/
-
-/*
-		// Calibration (Magnetometer) custom style
-		imu_mag_calibration_msg.x = imu_x;
-		imu_mag_calibration_msg.y = imu_y;
-		imu_mag_calibration_msg.z = imu_z;
-		pubIMUMagCalibration.publish(&imu_mag_calibration_msg); // this is what ros-calibration_imu expects 
-*/
+		pubIMUOnboard.publish(&imu_onboard_msg);		
 
 	  } // if (NBT_handler(&broadcast_nbt))
 }

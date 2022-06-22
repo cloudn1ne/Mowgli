@@ -122,7 +122,7 @@ void IMU_Init(void)
   * @brief  Reads the 3 accelerometer channels and stores them in *x,*y,*z
   * units are m/s^2
   */
-void IMU_ReadAccelerometer(float *x, float *y, float *z)
+void IMU_ReadAccelerometerRaw(float *x, float *y, float *z)
 {
     uint8_t accel_xyz[6];   // 2 bytes each
 
@@ -146,7 +146,7 @@ void IMU_ReadAccelerometer(float *x, float *y, float *z)
   * @brief  Reads the 3 gyro channels and stores them in *x,*y,*z
   * units are rad/sec
   */
-void IMU_ReadGyro(float *x, float *y, float *z)
+void IMU_ReadGyroRaw(float *x, float *y, float *z)
 {
     uint8_t gyro_xyz[6];   // 2 bytes each
 

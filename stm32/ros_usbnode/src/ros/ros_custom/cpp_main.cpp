@@ -485,10 +485,10 @@ extern "C" void broadcast_handler()
 		////////////////////////////////////////
 		// IMU		
 		////////////////////////////////////////
-		float imu_x,imu_y,imu_z;
+	//	float imu_x,imu_y,imu_z;
 
 		imu_msg.header.frame_id = "imu";
-		
+
 		// No Orientation
 		imu_msg.orientation.x = 0;
 		imu_msg.orientation.y = 0;
@@ -499,10 +499,10 @@ extern "C" void broadcast_handler()
 
 #ifdef IMU_ACCELERATION
 		// Linear acceleration		
-		IMU_ReadAccelerometer(&imu_x, &imu_y, &imu_z);		
-		imu_msg.linear_acceleration.x = imu_x +  0.407;
-		imu_msg.linear_acceleration.y = imu_y + 0.8391;
-		imu_msg.linear_acceleration.z = imu_z;
+		IMU_ReadAccelerometer(&imu_msg.linear_acceleration.x, &imu_msg.linear_acceleration.y, &imu_msg.linear_acceleration.z);		
+	//	imu_msg.linear_acceleration.x = imu_x +  0.407;
+	//	imu_msg.linear_acceleration.y = imu_y + 0.8391;
+	//	imu_msg.linear_acceleration.z = imu_z;
 	/*
 		imu_msg.linear_acceleration_covariance[0] = 1e-3;
 		imu_msg.linear_acceleration_covariance[4] = 1e-3;
@@ -518,10 +518,10 @@ extern "C" void broadcast_handler()
 
 #ifdef IMU_ANGULAR
 		// Angular velocity
-		IMU_ReadGyro(&imu_x, &imu_y, &imu_z);
-		imu_msg.angular_velocity.x = imu_x - 0.042378;
-		imu_msg.angular_velocity.y = imu_y + 0.08082;
-		imu_msg.angular_velocity.z = imu_z + 0.079902;
+		IMU_ReadGyro(&imu_msg.angular_velocity.x, &imu_msg.angular_velocity.y, &imu_msg.angular_velocity.z);
+	//	imu_msg.angular_velocity.x = imu_x - 0.042378;
+	//	imu_msg.angular_velocity.y = imu_y + 0.08082;
+	//	imu_msg.angular_velocity.z = imu_z + 0.079902;
 	
 	/*
 		imu_msg.angular_velocity_covariance[0] = 1e-3;
@@ -539,12 +539,12 @@ extern "C" void broadcast_handler()
 
 		// Orientation (Magnetometer)
 		imu_mag_msg.header.frame_id = "imu";			
-	 	IMU_ReadMagnetometerRaw(&imu_x, &imu_y, &imu_z);		
+	 	IMU_ReadMagnetometerRaw(&imu_mag_msg.magnetic_field.x, &imu_mag_msg.magnetic_field.y, &imu_mag_msg.magnetic_field.z);		
 		imu_msg.header.stamp =  nh.now();
 
-		imu_mag_msg.magnetic_field.x = imu_x;
-		imu_mag_msg.magnetic_field.y = imu_y;
-		imu_mag_msg.magnetic_field.z = imu_z;
+		//imu_mag_msg.magnetic_field.x = imu_x;
+		//imu_mag_msg.magnetic_field.y = imu_y;
+		//imu_mag_msg.magnetic_field.z = imu_z;
 /*
 		imu_mag_msg.magnetic_field_covariance[0] = 1e-3;
 		imu_mag_msg.magnetic_field_covariance[4] = 1e-3;
@@ -554,11 +554,11 @@ extern "C" void broadcast_handler()
 
 
 #ifdef IMU_ONBOARD_ACCELERATION
-		IMU_Onboard_ReadAccelerometer(&imu_x, &imu_y, &imu_z);
+		IMU_Onboard_ReadAccelerometer(&imu_onboard_msg.linear_acceleration.x, &imu_onboard_msg.linear_acceleration.y, &imu_onboard_msg.linear_acceleration.z);
 		imu_msg.header.stamp =  nh.now();
-		imu_onboard_msg.linear_acceleration.x = imu_x;
-		imu_onboard_msg.linear_acceleration.y = imu_y;
-		imu_onboard_msg.linear_acceleration.z = imu_z;
+		//imu_onboard_msg.linear_acceleration.x = imu_x;
+		//imu_onboard_msg.linear_acceleration.y = imu_y;
+		//imu_onboard_msg.linear_acceleration.z = imu_z;
 
 	/*
 		imu_onboard_msg.linear_acceleration_covariance[0] = 1e-3;

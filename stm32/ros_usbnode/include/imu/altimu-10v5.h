@@ -21,7 +21,6 @@
 #define LPS25H_WHO_ID   0xBD        // WHO_AM_I will report this value
 
 
-
 #define DS33_FUNC_CFG_ACCESS    0x01
 #define DS33_FIFO_CTRL1         0x06
 #define DS33_FIFO_CTRL2         0x07

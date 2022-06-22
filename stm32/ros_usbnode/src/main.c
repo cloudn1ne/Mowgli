@@ -316,6 +316,7 @@ int main(void)
     debug_printf(" * Testing supported IMUs:\r\n");
     IMU_TestDevice();
     IMU_Init();
+    IMU_Calibrate();
     Emergency_Init();
     debug_printf(" * Emergency sensors initialized\r\n");
     ADC1_Init();    

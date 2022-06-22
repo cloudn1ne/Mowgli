@@ -28,10 +28,19 @@ void IMU_Onboard_ReadAccelerometer(float *x, float *y, float *z);
 float IMU_Onboard_ReadTemp(void);
 void IMU_ReadGyro(float *x, float *y, float *z);
 void IMU_ReadMagnetometer(float *x, float *y, float *z);
-void IMU_ReadMagnetometerRaw(float *x, float *y, float *z);
 float IMU_ReadBarometerTemperatureC(void);
 float IMU_ReadBarometerAltitudeMeters(void);
 
+
+/* Any external IMU needs to implement the following functions and adhere to the ROS REP 103 standard (https://www.ros.org/reps/rep-0103.html) */
+void IMU_ReadGyroRaw(float *x, float *y, float *z);
+void IMU_ReadAccelerometerRaw(float *x, float *y, float *z);
+void IMU_ReadMagnetometerRaw(float *x, float *y, float *z);
+/* end of functions to implement for IMU */
+
+
+/* IMU calibration (accel/gyro only) */
+void IMU_Calibrate(void);
 
 #ifdef __cplusplus
 }

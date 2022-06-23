@@ -15,7 +15,8 @@
 * 1x Female PCB USB A connector
 * 1x 2 pin Screw Terminal
 * some 24AWG (IMU power) and 16AWG (DCDC converter) cables
-* Some 3D printed parts for mounting the Raspi, IMU, DCDC converter
+* some 3D printed parts for mounting the Raspi, IMU, DCDC converter
+* Raspi4 heatsink set
 * Bunch of M2,M3,M4 screws and nuts
 * Loctite 243 to secure screws
  

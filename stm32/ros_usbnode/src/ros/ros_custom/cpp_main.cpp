@@ -1,8 +1,9 @@
 /*
- * C++ Main
- *
- * contains the rosserial handlers
- *
+ * Project Mowgli - ROS NODE
+ * (c) Cybernet / cn@warp.at
+ * 
+ *  ROS node logic
+ * 
  */
 
 #include "board.h"

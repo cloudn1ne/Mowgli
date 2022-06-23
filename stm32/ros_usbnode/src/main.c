@@ -300,16 +300,13 @@ int main(void)
     debug_printf(" * Hard I2C initialized\r\n");
     if (I2C_Acclerometer_TestDevice())
     {
-         I2C_Accelerometer_Setup();  
-        // I2C_Test();  
+         I2C_Accelerometer_Setup();          
     }
     else
     {
         chirp(3);        
         debug_printf(" * WARNING: initalization of onboard accelerometer for tilt protection failed !\r\n");
-    }
-    //I2C_Accelerometer_Setup();    
-    //I2C_Test();
+    }    
     debug_printf(" * Accelerometer (onboard/tilt safety) initialized\r\n");
     SW_I2C_Init();
     debug_printf(" * Soft I2C (J18) initialized\r\n");

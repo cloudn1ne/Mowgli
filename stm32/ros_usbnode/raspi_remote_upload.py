@@ -13,6 +13,7 @@ def mytarget_callback(*args, **kwargs):
     env.Execute("scp \"$BUILD_DIR/${PROGNAME}.bin\" " + user + "@" + host + ":/tmp/firmware.bin")        
     env.Execute("scp ./remote_upload/*.cfg " + user + "@" + host + ":/tmp")    
     env.Execute("ssh " + user + "@" + host + " /usr/bin/openocd -f /tmp/yardforce500.cfg  -f /tmp/prog.cfg")
+    env.Execute("ssh " + user + "@" + host + " \"sleep 5; sudo systemctl restart rosserial\"")
          
 env.AddCustomTarget(
     "Mowgli Remote Upload",

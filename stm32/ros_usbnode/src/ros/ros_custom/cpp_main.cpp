@@ -483,99 +483,69 @@ extern "C" void broadcast_handler()
 
 
 		////////////////////////////////////////
-		// IMU		
+		// int/ext IMU data
 		////////////////////////////////////////
-	//	float imu_x,imu_y,imu_z;
-
 		imu_msg.header.frame_id = "imu";
 
-		// No Orientation
+		// No Orientation in IMU message
 		imu_msg.orientation.x = 0;
 		imu_msg.orientation.y = 0;
 		imu_msg.orientation.z = 0;
 		imu_msg.orientation.w = 0;
-
 		imu_msg.orientation_covariance[0] = -1;
 
+		/**********************************/
+		/* Exernal Accelerometer 		  */
+		/**********************************/
 #ifdef IMU_ACCELERATION
 		// Linear acceleration		
 		IMU_ReadAccelerometer(&imu_msg.linear_acceleration.x, &imu_msg.linear_acceleration.y, &imu_msg.linear_acceleration.z);		
-	//	imu_msg.linear_acceleration.x = imu_x +  0.407;
-	//	imu_msg.linear_acceleration.y = imu_y + 0.8391;
-	//	imu_msg.linear_acceleration.z = imu_z;
-	/*
-		imu_msg.linear_acceleration_covariance[0] = 1e-3;
-		imu_msg.linear_acceleration_covariance[4] = 1e-3;
-		imu_msg.linear_acceleration_covariance[8] = 1e-3;
-	*/
+		IMU_AccelerometerSetCovariance(imu_msg.linear_acceleration_covariance);	
 #else
-		imu_msg.linear_acceleration.x = 0;
-		imu_msg.linear_acceleration.y = 0;
-		imu_msg.linear_acceleration.z = 0;
+		imu_msg.linear_acceleration.x = imu_msg.linear_acceleration.y = imu_msg.linear_acceleration.z = 0;		
 		imu_msg.linear_acceleration_covariance[0] = -1;
 #endif
 
-
+		/**********************************/
+		/* Exernal Gyro					  */
+		/**********************************/
 #ifdef IMU_ANGULAR
 		// Angular velocity
 		IMU_ReadGyro(&imu_msg.angular_velocity.x, &imu_msg.angular_velocity.y, &imu_msg.angular_velocity.z);
-	//	imu_msg.angular_velocity.x = imu_x - 0.042378;
-	//	imu_msg.angular_velocity.y = imu_y + 0.08082;
-	//	imu_msg.angular_velocity.z = imu_z + 0.079902;
-	
-	/*
-		imu_msg.angular_velocity_covariance[0] = 1e-3;
-		imu_msg.angular_velocity_covariance[4] = 1e-3;
-		imu_msg.angular_velocity_covariance[8] = 1e-3;
-	*/
+		IMU_GyroSetCovariance(imu_msg.angular_velocity_covariance);	
 #else
-		imu_msg.angular_velocity.x = 0;
-		imu_msg.angular_velocity.y = 0;
-		imu_msg.angular_velocity.z = 0;
+		imu_msg.angular_velocity.x = imu_msg.angular_velocity.y = imu_msg.angular_velocity.z = 0;		
 		imu_msg.angular_velocity_covariance[0] = -1;
 #endif		
-		imu_msg.header.stamp =  nh.now();
+		imu_msg.header.stamp = nh.now();
 		pubIMU.publish(&imu_msg);
 
+		/**********************************/
+		/* Exernal Magnetometer			  */
+		/**********************************/
 		// Orientation (Magnetometer)
-		imu_mag_msg.header.frame_id = "imu";			
-	 	IMU_ReadMagnetometerRaw(&imu_mag_msg.magnetic_field.x, &imu_mag_msg.magnetic_field.y, &imu_mag_msg.magnetic_field.z);		
-		imu_msg.header.stamp =  nh.now();
-
-		//imu_mag_msg.magnetic_field.x = imu_x;
-		//imu_mag_msg.magnetic_field.y = imu_y;
-		//imu_mag_msg.magnetic_field.z = imu_z;
-/*
+		imu_mag_msg.header.frame_id = "imu";					
+	 	IMU_ReadMagnetometerRaw(&imu_mag_msg.magnetic_field.x, &imu_mag_msg.magnetic_field.y, &imu_mag_msg.magnetic_field.z);				
+		// covariance is fixed for now
 		imu_mag_msg.magnetic_field_covariance[0] = 1e-3;
 		imu_mag_msg.magnetic_field_covariance[4] = 1e-3;
 		imu_mag_msg.magnetic_field_covariance[8] = 1e-3;
-*/		
+		imu_mag_msg.header.stamp = nh.now();
 		pubIMUMag.publish(&imu_mag_msg);
 
-
+		/**********************************/
+		/* Onboard (GForce) Accelerometer */
+		/**********************************/
 #ifdef IMU_ONBOARD_ACCELERATION
-		IMU_Onboard_ReadAccelerometer(&imu_onboard_msg.linear_acceleration.x, &imu_onboard_msg.linear_acceleration.y, &imu_onboard_msg.linear_acceleration.z);
-		imu_msg.header.stamp =  nh.now();
-		//imu_onboard_msg.linear_acceleration.x = imu_x;
-		//imu_onboard_msg.linear_acceleration.y = imu_y;
-		//imu_onboard_msg.linear_acceleration.z = imu_z;
-
-	/*
-		imu_onboard_msg.linear_acceleration_covariance[0] = 1e-3;
-		imu_onboard_msg.linear_acceleration_covariance[4] = 1e-3;
-		imu_onboard_msg.linear_acceleration_covariance[8] = 1e-3;
-	*/
+		IMU_Onboard_ReadAccelerometer(&imu_onboard_msg.linear_acceleration.x, &imu_onboard_msg.linear_acceleration.y, &imu_onboard_msg.linear_acceleration.z);		
+		IMU_Onboard_AccelerometerSetCovariance(imu_onboard_msg.linear_acceleration_covariance);	
 #else
-		imu_onboard_msg.linear_acceleration.x = 0;
-		imu_onboard_msg.linear_acceleration.y = 0;
-		imu_onboard_msg.linear_acceleration.z = 0;
+		imu_onboard_msg.linear_acceleration.x = imu_onboard_msg.linear_acceleration.y = imu_onboard_msg.linear_acceleration.z = 0;		
 #endif
 		// no onboard gyro so angular velocities are always zero
-		imu_onboard_msg.angular_velocity.x = 0;
-		imu_onboard_msg.angular_velocity.y = 0;
-		imu_onboard_msg.angular_velocity.z = 0;
-		imu_onboard_msg.angular_velocity_covariance[0] = -1;
-
+		imu_onboard_msg.angular_velocity.x = imu_onboard_msg.angular_velocity.y = imu_onboard_msg.angular_velocity.z = 0;		
+		imu_onboard_msg.angular_velocity_covariance[0] = -1;		// indicate *not valid* to EKF
+		imu_onboard_msg.header.stamp = nh.now();
 		pubIMUOnboard.publish(&imu_onboard_msg);		
 
 	  } // if (NBT_handler(&broadcast_nbt))

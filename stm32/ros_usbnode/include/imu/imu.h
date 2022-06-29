@@ -13,8 +13,12 @@ extern "C" {
  */
 #define RAD_PER_G               0.01745             // convert °/sec to rad/sec
 #define MS2_PER_G               9.80665             // convert G to m/s^2 
-#define T_PER_GAUSS             1/10000             // conver Gauss to T
+#define T_PER_GAUSS             1/10000             // convert Gauss to T
 
+// magnetometer data is only used relative, so the magniute should not matter,
+// however ROS defines Tesla as unit - so if another ros node requires it we can convert it here
+// default is to report data in Tesla
+#define MAG_IN_TESLA            1
 
 /*
  * IMU functions that a compatible IMU needs to be able to provide
@@ -33,7 +37,7 @@ float IMU_ReadBarometerAltitudeMeters(void);
 void IMU_Onboard_AccelerometerSetCovariance(float *cm);
 void IMU_AccelerometerSetCovariance(float *cm);
 void IMU_GyroSetCovariance(float *cm);
-
+void IMUApplyMagTransformation(float x, float y, float z, float *x_cal, float *y_cal, float *z_cal);
 
 
 /* Any external IMU needs to implement the following functions and adhere to the ROS REP 103 standard (https://www.ros.org/reps/rep-0103.html) */

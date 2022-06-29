@@ -50,8 +50,10 @@ float onboard_imu_cov_az = 0.01;
   * units are tesla uncalibrated
   */ 
 void IMU_ReadMagnetometer(float *x, float *y, float *z)
-{
-    IMU_ReadMagnetometerRaw(x, y, z);    
+{  
+    float imu_x, imu_y, imu_z;    
+    IMU_ReadMagnetometerRaw(&imu_x, &imu_y, &imu_z);
+    IMUApplyMagTransformation(imu_x, imu_y, imu_z, x, y, z);
 }
 
 /**

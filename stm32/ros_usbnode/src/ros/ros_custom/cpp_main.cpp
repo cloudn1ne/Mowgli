@@ -125,7 +125,9 @@ sensor_msgs::Imu imu_onboard_msg;
 sensor_msgs::Temperature imu_onboard_temp_msg;
 
 //sensor_msgs::MagneticField imu_mag_calibration_msg;
-//mowgli::magnetometer imu_mag_calibration_msg;
+#ifdef SUPPORT_ROS_CALIBRATION_IMU
+mowgli::magnetometer imu_mag_calibration_msg;
+#endif
 
 /*
  * PUBLISHERS
@@ -148,7 +150,9 @@ ros::Publisher pubIMUOnboardTemp("imu_onboard/temp", &imu_onboard_temp_msg);
 // IMU external
 ros::Publisher pubIMU("imu/data_raw", &imu_msg);
 ros::Publisher pubIMUMag("imu/mag", &imu_mag_msg);
-//ros::Publisher pubIMUMagCalibration("imu/mag_calibration", &imu_mag_calibration_msg);
+#ifdef SUPPORT_ROS_CALIBRATION_IMU
+ros::Publisher pubIMUMagCalibration("imu/mag_calibration", &imu_mag_calibration_msg);
+#endif
 
 
 /*
@@ -522,17 +526,22 @@ extern "C" void broadcast_handler()
 		pubIMU.publish(&imu_msg);
 
 		/**********************************/
-		/* Exernal Magnetometer			  */
+		/* External Magnetometer			  */
 		/**********************************/
 		// Orientation (Magnetometer)
 		imu_mag_msg.header.frame_id = "imu";					
-	 	IMU_ReadMagnetometerRaw(&imu_mag_msg.magnetic_field.x, &imu_mag_msg.magnetic_field.y, &imu_mag_msg.magnetic_field.z);				
+	 	IMU_ReadMagnetometer(&imu_mag_msg.magnetic_field.x, &imu_mag_msg.magnetic_field.y, &imu_mag_msg.magnetic_field.z);				
 		// covariance is fixed for now
-		imu_mag_msg.magnetic_field_covariance[0] = 1e-3;
-		imu_mag_msg.magnetic_field_covariance[4] = 1e-3;
-		imu_mag_msg.magnetic_field_covariance[8] = 1e-3;
+		imu_mag_msg.magnetic_field_covariance[0] = 1e-5;
+		imu_mag_msg.magnetic_field_covariance[4] = 1e-5;
+		imu_mag_msg.magnetic_field_covariance[8] = 1e-5;
 		imu_mag_msg.header.stamp = nh.now();
 		pubIMUMag.publish(&imu_mag_msg);
+
+#ifdef	SUPPORT_ROS_CALIBRATION_IMU
+		IMU_ReadMagnetometer(&imu_mag_calibration_msg.x, &imu_mag_calibration_msg.y, &imu_mag_calibration_msg.z);				
+		pubIMUMagCalibration.publish(&imu_mag_calibration_msg);
+#endif
 
 		/**********************************/
 		/* Onboard (GForce) Accelerometer */
@@ -588,7 +597,9 @@ extern "C" void init_ROS()
 	nh.advertise(pubRightEncoderTicks);
 	nh.advertise(pubIMU);
 	nh.advertise(pubIMUMag);
-	//nh.advertise(pubIMUMagCalibration);
+#ifdef SUPPORT_ROS_CALIBRATION_IMU	
+	nh.advertise(pubIMUMagCalibration);
+#endif
 	nh.advertise(pubIMUOnboard);
 	nh.advertise(pubIMUOnboardTemp);
 

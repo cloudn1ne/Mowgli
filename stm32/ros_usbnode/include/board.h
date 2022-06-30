@@ -47,6 +47,7 @@ extern "C" {
     #define IMU_ONBOARD_TEMP                    1
     #define IMU_ACCELERATION                    1       // external IMU
     #define IMU_ANGULAR                         1       // external IMU
+    #define IMU_MAG_INDOOR_CAL                  1       // use indoor calibration values
 
     // we use J18 (Red 9 pin connector as Master Serial Port)
     #define MASTER_J18 1

@@ -34,6 +34,8 @@
 #include "sensor_msgs/MagneticField.h"
 #include "sensor_msgs/Temperature.h"
 #include "mowgli/magnetometer.h"
+// Heading Debug 
+#include "imu/heading.h"
 
 
 #define MAX_MPS	  	0.6		 	// Allow maximum speed of 0.6 m/s 
@@ -63,6 +65,9 @@ static uint8_t blade_on_off=0;
 
 ros::NodeHandle nh;
 
+// Heading
+Heading hdg;
+
 // TF
 geometry_msgs::Quaternion quat;
 geometry_msgs::TransformStamped t;
@@ -72,7 +77,7 @@ char odom[] = "odom";
 
 //double radius = 0.04;                              //Wheel radius, in m
 //double wheelbase = 0.187;                          //Wheelbase, in m
-double two_pi = 6.28319;
+double two_pi = 2*M_PI;
 double speed_act_left = 0.0;
 double speed_act_right = 0.0;
 double speed_req1 = 0.0;
@@ -104,6 +109,9 @@ double x = 1.0;
 double y = 0.0;
 double theta = 1.57;
 */
+
+
+
 
 // std_msgs::String str_msg;
 std_msgs::Float32 f32_battery_voltage_msg;
@@ -530,16 +538,23 @@ extern "C" void broadcast_handler()
 		/**********************************/
 		// Orientation (Magnetometer)
 		imu_mag_msg.header.frame_id = "imu";					
-	 	IMU_ReadMagnetometer(&imu_mag_msg.magnetic_field.x, &imu_mag_msg.magnetic_field.y, &imu_mag_msg.magnetic_field.z);				
+	 	IMU_ReadMagnetometer(&imu_mag_msg.magnetic_field.x, &imu_mag_msg.magnetic_field.y, &imu_mag_msg.magnetic_field.z);	
+		hdg.setM(imu_mag_msg.magnetic_field.x, imu_mag_msg.magnetic_field.y, imu_mag_msg.magnetic_field.z);
+		hdg.setA(imu_msg.linear_acceleration.x, imu_msg.linear_acceleration.y, imu_msg.linear_acceleration.z);
+
+		// float h = (atan2(imu_mag_msg.magnetic_field.y,imu_mag_msg.magnetic_field.x) * 180) / M_PI;
+		float h = hdg.heading();
+		debug_printf("heading: %f \r\n", h);
+
 		// covariance is fixed for now
-		imu_mag_msg.magnetic_field_covariance[0] = 1e-5;
-		imu_mag_msg.magnetic_field_covariance[4] = 1e-5;
-		imu_mag_msg.magnetic_field_covariance[8] = 1e-5;
+		imu_mag_msg.magnetic_field_covariance[0] = 1e-3;
+		imu_mag_msg.magnetic_field_covariance[4] = 1e-3;
+		imu_mag_msg.magnetic_field_covariance[8] = 1e-3;
 		imu_mag_msg.header.stamp = nh.now();
 		pubIMUMag.publish(&imu_mag_msg);
 
 #ifdef	SUPPORT_ROS_CALIBRATION_IMU
-		IMU_ReadMagnetometer(&imu_mag_calibration_msg.x, &imu_mag_calibration_msg.y, &imu_mag_calibration_msg.z);				
+		IMU_ReadMagnetometerNormalized(&imu_mag_calibration_msg.x, &imu_mag_calibration_msg.y, &imu_mag_calibration_msg.z);				
 		pubIMUMagCalibration.publish(&imu_mag_calibration_msg);
 #endif
 

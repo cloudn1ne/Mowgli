@@ -15,6 +15,7 @@
 #include <math.h>
 
 #include "imu/imu.h"
+#include "imu/altimu-10v5.h"
 #include "i2c.h"
 #include "main.h"
 
@@ -36,9 +37,9 @@ float imu_cov_ax = 0.01;
 float imu_cov_ay = 0.01;
 float imu_cov_az = 0.01;
 // ---------------------
-float imu_cov_gx = 0.01;
-float imu_cov_gy = 0.01;
-float imu_cov_gz = 0.01;
+float imu_cov_gx = 0.1;
+float imu_cov_gy = 0.1;
+float imu_cov_gz = 0.1;
 // ---------------------
 float onboard_imu_cov_ax = 0.01;
 float onboard_imu_cov_ay = 0.01;
@@ -52,8 +53,30 @@ float onboard_imu_cov_az = 0.01;
 void IMU_ReadMagnetometer(float *x, float *y, float *z)
 {  
     float imu_x, imu_y, imu_z;    
-    IMU_ReadMagnetometerRaw(&imu_x, &imu_y, &imu_z);
-    IMUApplyMagTransformation(imu_x, imu_y, imu_z, x, y, z);
+    IMU_ReadMagnetometerNormalized(&imu_x, &imu_y, &imu_z);
+    
+    float x_bias = 0.20235;
+    float y_bias = -0.803159;
+    *x = imu_x - x_bias;
+    *y = imu_y - y_bias;
+    *z = imu_z;
+
+  //  IMU_ApplyMagTransformation(imu_x, imu_y, imu_z, x, y, z);
+}
+
+/**
+  * @brief  Reads the 3 magnetometer channels and stores them in *x,*y,*z  
+  * 
+  * units are tesla uncalibrated
+  */ 
+void IMU_ReadMagnetometerNormalized(float *x, float *y, float *z)
+{  
+    VECTOR p;    
+    IMU_ReadMagnetometerRaw(&p.x, &p.y, &p.z);
+    IMU_Normalize(&p);
+    *x = p.x;
+    *y = p.y;
+    *z = p.z;    
 }
 
 /**
@@ -245,4 +268,13 @@ void IMU_Calibrate()
     onboard_imu_cov_ay = stddev_y / IMU_CAL_SAMPLES;
     onboard_imu_cov_az = stddev_z / IMU_CAL_SAMPLES;
     debug_printf("   >> Onboard IMU Calibration accelerometer covariance diagonal [%f %f %f]\r\n", onboard_imu_cov_ax, onboard_imu_cov_ay, onboard_imu_cov_az); 
+}
+
+
+void IMU_Normalize( VECTOR* p )
+{
+    float w = sqrt( p->x * p->x + p->y * p->y + p->z * p->z );
+    p->x /= w;
+    p->y /= w;
+    p->z /= w;
 }

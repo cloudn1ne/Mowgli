@@ -167,18 +167,9 @@ void IMU_ReadMagnetometerRaw(float *x, float *y, float *z)
 
     SW_I2C_UTIL_Read_Multi(LIS3MDL_ADDRESS, LIS3MDL_OUT_X_L, 6, (uint8_t*)&mag_xyz);
 
-    *x = (int16_t)(mag_xyz[1] << 8 | mag_xyz[0]) * LIS3MDL_GAUSS_FACTOR;
-    *y = (int16_t)(mag_xyz[3] << 8 | mag_xyz[2]) * LIS3MDL_GAUSS_FACTOR;
-    *z = (int16_t)(mag_xyz[5] << 8 | mag_xyz[4]) * LIS3MDL_GAUSS_FACTOR;    
-
-    // magnetometer data is only used relative, so the magniute should not matter,
-    // however ROS defines Tesla as unit - so if another ros node requires it we can convert it here
-#ifdef MAG_IN_TESLA
-    *x = *x * T_PER_GAUSS;
-    *y = *y * T_PER_GAUSS;
-    *z = *z * T_PER_GAUSS;
-#endif
-
+    *x = (int16_t)(mag_xyz[1] << 8 | mag_xyz[0]);
+    *y = (int16_t)(mag_xyz[3] << 8 | mag_xyz[2]);
+    *z = (int16_t)(mag_xyz[5] << 8 | mag_xyz[4]);    
 }
 
 /**

@@ -20,6 +20,8 @@
 #define LPS25H_ADDRESS  0b1011101
 #define LPS25H_WHO_ID   0xBD        // WHO_AM_I will report this value
 
+/* Conversion functions */
+#define IMU_MAG_TO_T(r) ((r)*LIS3MDL_GAUSS_FACTOR*T_PER_GAUSS)
 
 #define DS33_FUNC_CFG_ACCESS    0x01
 #define DS33_FIFO_CTRL1         0x06

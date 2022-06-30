@@ -8,6 +8,11 @@ extern "C" {
 
 #include "stm32f1xx_hal.h"
 
+typedef struct 
+{
+    float x, y, z;
+} VECTOR;
+
 /*
  * conversions to ROS units
  */
@@ -32,12 +37,15 @@ void IMU_Onboard_ReadAccelerometer(float *x, float *y, float *z);
 float IMU_Onboard_ReadTemp(void);
 void IMU_ReadGyro(float *x, float *y, float *z);
 void IMU_ReadMagnetometer(float *x, float *y, float *z);
+void IMU_ReadMagnetometerNormalized(float *x, float *y, float *z);
 float IMU_ReadBarometerTemperatureC(void);
 float IMU_ReadBarometerAltitudeMeters(void);
 void IMU_Onboard_AccelerometerSetCovariance(float *cm);
 void IMU_AccelerometerSetCovariance(float *cm);
 void IMU_GyroSetCovariance(float *cm);
-void IMUApplyMagTransformation(float x, float y, float z, float *x_cal, float *y_cal, float *z_cal);
+void IMU_ApplyMagTransformation(float x, float y, float z, float *x_cal, float *y_cal, float *z_cal);
+void IMU_Normalize( VECTOR* p );
+
 
 
 /* Any external IMU needs to implement the following functions and adhere to the ROS REP 103 standard (https://www.ros.org/reps/rep-0103.html) */

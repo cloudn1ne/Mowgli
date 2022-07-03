@@ -37,13 +37,15 @@ public:
 	// Send a byte of data to ROS connection
 	void write(uint8_t* data, int length)
 	{		
+		uint16_t timeout_ms = 0;
 	 	USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef*)hUsbDeviceFS.pClassData;		
 		
 		CDC_Transmit_FS(data, length); 	// queue data for sending
-		while (hcdc->TxState != 0)		// wait until all data is sent via USB
+		while (hcdc->TxState != 0 && timeout_ms < 10)		// wait until all data is sent via USB
 		{
 			//	debug_printf("post send busy %d\r\n", hcdc->TxState);
-			//	HAL_Delay(1);
+			HAL_Delay(1);
+			timeout_ms++;
 		}
 		//debug_printf("post send no longer busy !!!!!\r\n");
 	}

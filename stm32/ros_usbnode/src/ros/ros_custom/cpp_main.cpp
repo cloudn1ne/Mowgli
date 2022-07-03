@@ -539,12 +539,12 @@ extern "C" void broadcast_handler()
 		// Orientation (Magnetometer)
 		imu_mag_msg.header.frame_id = "imu";					
 	 	IMU_ReadMagnetometer(&imu_mag_msg.magnetic_field.x, &imu_mag_msg.magnetic_field.y, &imu_mag_msg.magnetic_field.z);	
-		hdg.setM(imu_mag_msg.magnetic_field.x, imu_mag_msg.magnetic_field.y, imu_mag_msg.magnetic_field.z);
-		hdg.setA(imu_msg.linear_acceleration.x, imu_msg.linear_acceleration.y, imu_msg.linear_acceleration.z);
+	//	hdg.setM(imu_mag_msg.magnetic_field.x, imu_mag_msg.magnetic_field.y, imu_mag_msg.magnetic_field.z);
+	//	hdg.setA(imu_msg.linear_acceleration.x, imu_msg.linear_acceleration.y, imu_msg.linear_acceleration.z);
 
 		// float h = (atan2(imu_mag_msg.magnetic_field.y,imu_mag_msg.magnetic_field.x) * 180) / M_PI;
-		float h = hdg.heading();
-		debug_printf("heading: %f \r\n", h);
+	//	float h = hdg.heading();
+	//	debug_printf("heading: %f \r\n", h);
 
 		// covariance is fixed for now
 		imu_mag_msg.magnetic_field_covariance[0] = 1e-3;
@@ -554,7 +554,7 @@ extern "C" void broadcast_handler()
 		pubIMUMag.publish(&imu_mag_msg);
 
 #ifdef	SUPPORT_ROS_CALIBRATION_IMU
-		IMU_ReadMagnetometerNormalized(&imu_mag_calibration_msg.x, &imu_mag_calibration_msg.y, &imu_mag_calibration_msg.z);				
+		IMU_ReadMagnetometerRaw(&imu_mag_calibration_msg.x, &imu_mag_calibration_msg.y, &imu_mag_calibration_msg.z);				
 		pubIMUMagCalibration.publish(&imu_mag_calibration_msg);
 #endif
 

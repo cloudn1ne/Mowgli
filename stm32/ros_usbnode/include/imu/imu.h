@@ -45,6 +45,7 @@ void IMU_AccelerometerSetCovariance(float *cm);
 void IMU_GyroSetCovariance(float *cm);
 void IMU_ApplyMagTransformation(float x, float y, float z, float *x_cal, float *y_cal, float *z_cal);
 void IMU_Normalize( VECTOR* p );
+float IMU_MagHeading(void);
 
 
 

@@ -53,15 +53,8 @@ float onboard_imu_cov_az = 0.01;
 void IMU_ReadMagnetometer(float *x, float *y, float *z)
 {  
     float imu_x, imu_y, imu_z;    
-    IMU_ReadMagnetometerNormalized(&imu_x, &imu_y, &imu_z);
-    
-    float x_bias = 0.20235;
-    float y_bias = -0.803159;
-    *x = imu_x - x_bias;
-    *y = imu_y - y_bias;
-    *z = imu_z;
-
-  //  IMU_ApplyMagTransformation(imu_x, imu_y, imu_z, x, y, z);
+    IMU_ReadMagnetometerRaw(&imu_x, &imu_y, &imu_z);    
+    IMU_ApplyMagTransformation(imu_x, imu_y, imu_z, x, y, z);
 }
 
 /**
@@ -72,11 +65,29 @@ void IMU_ReadMagnetometer(float *x, float *y, float *z)
 void IMU_ReadMagnetometerNormalized(float *x, float *y, float *z)
 {  
     VECTOR p;    
-    IMU_ReadMagnetometerRaw(&p.x, &p.y, &p.z);
+    float imu_x, imu_y, imu_z;    
+    IMU_ReadMagnetometerRaw(&imu_x, &imu_y, &imu_z);    
+    IMU_ApplyMagTransformation(imu_x, imu_y, imu_z, &p.x, &p.y, &p.x);
     IMU_Normalize(&p);
     *x = p.x;
     *y = p.y;
     *z = p.z;    
+}
+
+/**
+  * @brief Calculate heading from Magnetometer 
+  * 
+  * units are ms^2 uncalibrated
+  */
+float IMU_MagHeading(void)
+{
+    float heading;
+		VECTOR p;
+
+		IMU_ReadMagnetometer(&p.x, &p.y, &p.z);
+		IMU_Normalize(&p);
+		heading = (atan2(p.y, p.x) * 180) / M_PI;		
+    return(heading);
 }
 
 /**

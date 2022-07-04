@@ -170,6 +170,10 @@ void IMU_ReadMagnetometerRaw(float *x, float *y, float *z)
     *x = (int16_t)(mag_xyz[1] << 8 | mag_xyz[0]);
     *y = (int16_t)(mag_xyz[3] << 8 | mag_xyz[2]);
     *z = (int16_t)(mag_xyz[5] << 8 | mag_xyz[4]);    
+
+    *x = IMU_MAG_TO_T(*x);
+    *y = IMU_MAG_TO_T(*y);
+    *z = IMU_MAG_TO_T(*z);        
 }
 
 /**

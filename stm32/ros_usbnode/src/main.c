@@ -496,9 +496,8 @@ int main(void)
 			StatusLEDUpdate();          
             
             // RAIN Sense test code
-            int x = RAIN_Sense();    
-            debug_printf("rain sensor: %d\r\n", x);
-
+            //int x = RAIN_Sense();    
+            //debug_printf("rain sensor: %d\r\n", x);
             // debug_printf("master_rx_STATUS: %d  drivemotors_rx_buf_idx: %d  cnt_usart2_overrun: %x\r\n", master_rx_STATUS, drivemotors_rx_buf_idx, cnt_usart2_overrun);           
 	    }
 #ifndef I_DONT_NEED_MY_FINGERS

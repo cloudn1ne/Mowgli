@@ -65,9 +65,6 @@ static uint8_t blade_on_off=0;
 
 ros::NodeHandle nh;
 
-// Heading
-Heading hdg;
-
 // TF
 geometry_msgs::Quaternion quat;
 geometry_msgs::TransformStamped t;
@@ -369,7 +366,7 @@ extern "C" void panel_handler()
 {
 	  if (NBT_handler(&panel_nbt))
 	  {			  
-		PANEL_Tick();		
+			PANEL_Tick();		
 	  }
 }
 
@@ -534,17 +531,15 @@ extern "C" void broadcast_handler()
 		pubIMU.publish(&imu_msg);
 
 		/**********************************/
-		/* External Magnetometer			  */
+		/* External Magnetometer		  */
 		/**********************************/
 		// Orientation (Magnetometer)
 		imu_mag_msg.header.frame_id = "imu";					
 	 	IMU_ReadMagnetometer(&imu_mag_msg.magnetic_field.x, &imu_mag_msg.magnetic_field.y, &imu_mag_msg.magnetic_field.z);	
-	//	hdg.setM(imu_mag_msg.magnetic_field.x, imu_mag_msg.magnetic_field.y, imu_mag_msg.magnetic_field.z);
-	//	hdg.setA(imu_msg.linear_acceleration.x, imu_msg.linear_acceleration.y, imu_msg.linear_acceleration.z);
-
-		// float h = (atan2(imu_mag_msg.magnetic_field.y,imu_mag_msg.magnetic_field.x) * 180) / M_PI;
-	//	float h = hdg.heading();
-	//	debug_printf("heading: %f \r\n", h);
+		
+		// calculate heading (only in x-y plane)		
+		//float h = IMU_MagHeading();	
+		//debug_printf("heading: %f \r\n", h);
 
 		// covariance is fixed for now
 		imu_mag_msg.magnetic_field_covariance[0] = 1e-3;

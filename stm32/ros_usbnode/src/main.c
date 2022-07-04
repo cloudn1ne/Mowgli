@@ -495,6 +495,7 @@ int main(void)
 	    {            
 			StatusLEDUpdate();          
             
+            // RAIN Sense test code
             int x = RAIN_Sense();    
             debug_printf("rain sensor: %d\r\n", x);
 

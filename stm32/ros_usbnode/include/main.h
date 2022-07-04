@@ -87,6 +87,7 @@ void Error_Handler(void);
 
 void LED_Init();
 void TF4_Init();
+void RAIN_Sensor_Init();
 void PAC5223RESET_Init();
 void PAC5210RESET_Init();
 void MASTER_USART_Init();
@@ -104,6 +105,8 @@ void Emergency_Init(void);
 void MASTER_Transmit(uint8_t *buffer, uint8_t len);
 void DRIVEMOTORS_Transmit(uint8_t *buffer, uint8_t len);
 
+// Sensor Wrapper functions
+int RAIN_Sense(void);
 
 void debug_printf(const char *fmt, ...);
 

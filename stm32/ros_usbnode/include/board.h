@@ -109,6 +109,11 @@ extern "C" {
     #define PLAY_BUTTON_PORT GPIOC
     #define PLAY_BUTTON_GPIO_CLK_ENABLE() __HAL_RCC_GPIOC_CLK_ENABLE()
 
+    /* Rain Sensor - (LOW when pressed) */
+    #define RAIN_SENSOR_PIN GPIO_PIN_2
+    #define RAIN_SENSOR_PORT GPIOE
+    #define RAIN_SENSOR_GPIO_CLK_ENABLE() __HAL_RCC_GPIOE_CLK_ENABLE()
+
     /* either J6 or J18 can be the master USART port */
 #ifdef MASTER_J6    
     /* USART1 (J6 Pin 1 (TX) Pin 2 (RX)) */    

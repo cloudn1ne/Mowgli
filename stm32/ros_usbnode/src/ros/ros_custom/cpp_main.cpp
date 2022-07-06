@@ -369,21 +369,7 @@ extern "C" void panel_handler()
 {
 	  if (NBT_handler(&panel_nbt))
 	  {			  
-<<<<<<< HEAD
-		PANEL_Tick();
-		if (buttonupdated == 1)
-		{
-			debug_printf("pub button\r\n");
-			buttonstate_msg.data = (int16_t*) malloc(sizeof(int16_t) * PANEL_BUTTON_BYTES);
-			buttonstate_msg.data_length = PANEL_BUTTON_BYTES;
-			memcpy(buttonstate_msg.data,buttonstate,sizeof(int16_t) * PANEL_BUTTON_BYTES);
-			pubButtonState.publish(&buttonstate_msg);		
-			free(buttonstate_msg.data);
-			buttonupdated=0;
-		}
-=======
 			PANEL_Tick();		
->>>>>>> 79f0f1996556ecac8f58bf8a46a34640c9b69284
 	  }
 }
 

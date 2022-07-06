@@ -109,7 +109,6 @@ extern "C" {
     #define PLAY_BUTTON_PORT GPIOC
     #define PLAY_BUTTON_GPIO_CLK_ENABLE() __HAL_RCC_GPIOC_CLK_ENABLE()
 
-<<<<<<< HEAD
     /* Panel Buttons published in /button_state rostopic via Serial */
     #define PANEL_BUTTON_BYTES 12
     /* Byte Mapping of Bytes 5-16
@@ -130,12 +129,10 @@ extern "C" {
       
       55    aa    02    50    00    timer S1    S2    Lock  OK	  MON   TUE   WED   THU   FRI   SAT   SUN
     */      
-=======
     /* Rain Sensor - (LOW when pressed) */
     #define RAIN_SENSOR_PIN GPIO_PIN_2
     #define RAIN_SENSOR_PORT GPIOE
     #define RAIN_SENSOR_GPIO_CLK_ENABLE() __HAL_RCC_GPIOE_CLK_ENABLE()
->>>>>>> 79f0f1996556ecac8f58bf8a46a34640c9b69284
 
     /* either J6 or J18 can be the master USART port */
 #ifdef MASTER_J6    

@@ -4,3 +4,6 @@
 .vscode/launch.json
 .vscode/ipch
 *.o
+raspi_remote_upload.py
+platformio.ini
+

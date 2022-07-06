@@ -35,8 +35,6 @@
 #include "sensor_msgs/MagneticField.h"
 #include "sensor_msgs/Temperature.h"
 #include "mowgli/magnetometer.h"
-// Heading Debug 
-#include "imu/heading.h"
 
 
 #define MAX_MPS	  	0.6		 	// Allow maximum speed of 0.6 m/s 
@@ -75,7 +73,7 @@ char odom[] = "odom";
 
 //double radius = 0.04;                              //Wheel radius, in m
 //double wheelbase = 0.187;                          //Wheelbase, in m
-double two_pi = 2*M_PI;
+double two_pi = 6.28319;
 double speed_act_left = 0.0;
 double speed_act_right = 0.0;
 double speed_req1 = 0.0;
@@ -108,9 +106,6 @@ double y = 0.0;
 double theta = 1.57;
 */
 
-
-
-
 // std_msgs::String str_msg;
 std_msgs::Float32 f32_battery_voltage_msg;
 std_msgs::Float32 f32_charge_voltage_msg;
@@ -132,9 +127,7 @@ sensor_msgs::Imu imu_onboard_msg;
 sensor_msgs::Temperature imu_onboard_temp_msg;
 
 //sensor_msgs::MagneticField imu_mag_calibration_msg;
-#ifdef SUPPORT_ROS_CALIBRATION_IMU
-mowgli::magnetometer imu_mag_calibration_msg;
-#endif
+//mowgli::magnetometer imu_mag_calibration_msg;
 
 /*
  * PUBLISHERS
@@ -158,9 +151,7 @@ ros::Publisher pubIMUOnboardTemp("imu_onboard/temp", &imu_onboard_temp_msg);
 // IMU external
 ros::Publisher pubIMU("imu/data_raw", &imu_msg);
 ros::Publisher pubIMUMag("imu/mag", &imu_mag_msg);
-#ifdef SUPPORT_ROS_CALIBRATION_IMU
-ros::Publisher pubIMUMagCalibration("imu/mag_calibration", &imu_mag_calibration_msg);
-#endif
+//ros::Publisher pubIMUMagCalibration("imu/mag_calibration", &imu_mag_calibration_msg);
 
 
 /*
@@ -369,7 +360,17 @@ extern "C" void panel_handler()
 {
 	  if (NBT_handler(&panel_nbt))
 	  {			  
-			PANEL_Tick();		
+		PANEL_Tick();
+		if (buttonupdated == 1)
+		{
+			debug_printf("pub button\r\n");
+			buttonstate_msg.data = (int16_t*) malloc(sizeof(int16_t) * PANEL_BUTTON_BYTES);
+			buttonstate_msg.data_length = PANEL_BUTTON_BYTES;
+			memcpy(buttonstate_msg.data,buttonstate,sizeof(int16_t) * PANEL_BUTTON_BYTES);
+			pubButtonState.publish(&buttonstate_msg);		
+			free(buttonstate_msg.data);
+			buttonupdated=0;
+		}
 	  }
 }
 
@@ -534,27 +535,17 @@ extern "C" void broadcast_handler()
 		pubIMU.publish(&imu_msg);
 
 		/**********************************/
-		/* External Magnetometer		  */
+		/* Exernal Magnetometer			  */
 		/**********************************/
 		// Orientation (Magnetometer)
 		imu_mag_msg.header.frame_id = "imu";					
-	 	IMU_ReadMagnetometer(&imu_mag_msg.magnetic_field.x, &imu_mag_msg.magnetic_field.y, &imu_mag_msg.magnetic_field.z);	
-		
-		// calculate heading (only in x-y plane)		
-		//float h = IMU_MagHeading();	
-		//debug_printf("heading: %f \r\n", h);
-
+	 	IMU_ReadMagnetometerRaw(&imu_mag_msg.magnetic_field.x, &imu_mag_msg.magnetic_field.y, &imu_mag_msg.magnetic_field.z);				
 		// covariance is fixed for now
 		imu_mag_msg.magnetic_field_covariance[0] = 1e-3;
 		imu_mag_msg.magnetic_field_covariance[4] = 1e-3;
 		imu_mag_msg.magnetic_field_covariance[8] = 1e-3;
 		imu_mag_msg.header.stamp = nh.now();
 		pubIMUMag.publish(&imu_mag_msg);
-
-#ifdef	SUPPORT_ROS_CALIBRATION_IMU
-		IMU_ReadMagnetometerRaw(&imu_mag_calibration_msg.x, &imu_mag_calibration_msg.y, &imu_mag_calibration_msg.z);				
-		pubIMUMagCalibration.publish(&imu_mag_calibration_msg);
-#endif
 
 		/**********************************/
 		/* Onboard (GForce) Accelerometer */
@@ -611,9 +602,7 @@ extern "C" void init_ROS()
 	nh.advertise(pubButtonState);
 	nh.advertise(pubIMU);
 	nh.advertise(pubIMUMag);
-#ifdef SUPPORT_ROS_CALIBRATION_IMU	
-	nh.advertise(pubIMUMagCalibration);
-#endif
+	//nh.advertise(pubIMUMagCalibration);
 	nh.advertise(pubIMUOnboard);
 	nh.advertise(pubIMUOnboardTemp);
 

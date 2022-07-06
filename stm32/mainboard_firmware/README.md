@@ -102,7 +102,7 @@ Read the firmware and save it to firmware.bin, use the size you got from the pre
 
     flash read bank 0 firmware.bin 0 0x00040000
 
-Exit the session
+Exit the sessionr
 
     exit
 
@@ -113,10 +113,11 @@ Now you should have a firmware.bin file in the CWD you ran the openocd daemon
 | Model | PCB | PCB Version Markings | Controller | FW Version |FW Size | FW SHA256 Hash
 |-------|-----|----------------------|------------|------------|--------|----------------
 |YF500 Classic|Mainboard|20190715 RM-MB-V6.0.0|STM32F103 VCT6|V4.00_2018(191127)|256KB|a98ff567139f2d62c28c4271bea5a46546c7fc518d61985d90bfb66c626d5355
+|YF500 Classic|Mainboard|20200616 RM-MB-V6.0.0|STM32F103 VCT6|V4.02_2020(201126)|256KB|b357bb83294f96a80247ece71a107e271768c9ba40efa532cf010af979e2c988
 |YF500 Classic|Mainboard|20210427 RM-MB-V6.0.0|STM32F103 VCT6|V4.02_2020(210809)|256KB|875bedb32ccb62ee23453581c8af13e61a523bfe758120564d6bdb27cf641998
 |YF500 Classic|Panel    |2020.05.08 RM-ECOW-V1.3.0|GD32F330 R8T6|EC4_V1.00_2020(210629)|64KB|b3b1142bf84e09fd506bf4b399632b60d2a6ae3a520c685d3fdbca08e2c1fb88
 |YF500 ECO?   |Panel    |?|?|ECOW_V1.01_2019(201127)|64KB|00f75588237ef93e4afa7104f261ad112ecf7de2c436d5ac807f2985d8963e57
 |YF900 ?      |Mainboard|?|STM32F103 VC??|V4.02_2020(201109)|256K|6ffa8130e60a0cd9cc4cc70488293e7436dfa909bf81ce09938abc9050f6ea96
-|YF900 ?      |Panel.   |?|STM32F030 R8T6|ECOW_V1.00_2018(181102)|64K|316204837c3ebb85780dc929b4f2631bd4c77528af53aa7c6ea0945698412602
-
-	
+|YF900 ?      |Panel    |?|STM32F030 R8T6|ECOW_V1.00_2018(181102)|64K|316204837c3ebb85780dc929b4f2631bd4c77528af53aa7c6ea0945698412602
+|RM1000 (Biltema)|Mainboard|20190715 RM-MB-V6.0.0|STM32F103 VCT6|V4.01_2019(191130)|256K|593684a5fdf4393c8959570a368361e729bd36272d3cbc66794be2bdff458bd2
+|RM1000 (Biltema)|Panel    |20190218 RM-ECOW-V1.1.0|STM32F030 R8T6|?|?|	

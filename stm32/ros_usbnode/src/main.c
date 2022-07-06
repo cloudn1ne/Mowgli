@@ -294,6 +294,8 @@ int main(void)
     debug_printf(" * Timer3 (Beeper) initialized\r\n");
     TF4_Init();
     debug_printf(" * 24V switched on\r\n");
+    RAIN_Sensor_Init();
+    debug_printf(" * RAIN Sensor enable\r\n");
     PAC5223RESET_Init();
     debug_printf(" * PAC 5223 out of reset\r\n");
     PAC5210RESET_Init();
@@ -494,6 +496,10 @@ int main(void)
         if (NBT_handler(&main_statusled_nbt))
 	    {            
 			StatusLEDUpdate();          
+            
+            // RAIN Sense test code
+            //int x = RAIN_Sense();    
+            //debug_printf("rain sensor: %d\r\n", x);
             // debug_printf("master_rx_STATUS: %d  drivemotors_rx_buf_idx: %d  cnt_usart2_overrun: %x\r\n", master_rx_STATUS, drivemotors_rx_buf_idx, cnt_usart2_overrun);           
 	    }
 #ifndef I_DONT_NEED_MY_FINGERS
@@ -684,7 +690,6 @@ void BLADEMOTOR_USART_Init()
     BLADEMOTOR_USART_Handler.Init.HwFlowCtl = UART_HWCONTROL_NONE; // No hardware flow control
     BLADEMOTOR_USART_Handler.Init.Mode = USART_MODE_TX_RX;         // Transceiver mode
     
-
     HAL_UART_Init(&BLADEMOTOR_USART_Handler); 
 }
 
@@ -703,6 +708,31 @@ void LED_Init()
     GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
     HAL_GPIO_Init(LED_GPIO_PORT, &GPIO_InitStruct);
 }
+
+/**
+ * @brief Poll RAIN Sensor
+ * @retval 1 if rain is detected, 0 if no rain
+ */
+int RAIN_Sense(void)
+{
+  return(!HAL_GPIO_ReadPin(RAIN_SENSOR_PORT, RAIN_SENSOR_PIN)); // pullup, active low
+}
+
+/**
+ * @brief Init RAIN Sensor (PE2) Input
+ * @retval None
+ */
+void RAIN_Sensor_Init()
+{
+    RAIN_SENSOR_GPIO_CLK_ENABLE();
+    GPIO_InitTypeDef GPIO_InitStruct;
+    GPIO_InitStruct.Pin = RAIN_SENSOR_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_LOW;
+    HAL_GPIO_Init(RAIN_SENSOR_PORT, &GPIO_InitStruct);
+}
+
 
 /**
  * @brief Init TF4 (24V Power Switch)

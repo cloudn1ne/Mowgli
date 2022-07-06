@@ -6,6 +6,7 @@
         "stm32f1xx_hal.h": "c",
         "board.h": "c",
         "usbd_cdc_if.h": "c",
-        "i2c.h": "c"
+        "i2c.h": "c",
+        "random": "c"
     }
 }

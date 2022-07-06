@@ -22,6 +22,9 @@ extern "C" {
     #define PANEL_TYPE_YARDFORCE_500_CLASSIC    1
     // #define PANEL_TYPE_YARDFORCE_900_ECO   1
 
+    // define to support IMU Calibration (Mag) via https://github.com/pcdangio/ros-calibration_imu
+    #define SUPPORT_ROS_CALIBRATION_IMU           1     
+
     //#define I_DONT_NEED_MY_FINGERS              1       // disables EmergencyController() (no wheel lift, or tilt sensing and stopping the blade anymore)
 
     // if voltage is greater than this assume we are docked
@@ -44,6 +47,7 @@ extern "C" {
     #define IMU_ONBOARD_TEMP                    1
     #define IMU_ACCELERATION                    1       // external IMU
     #define IMU_ANGULAR                         1       // external IMU
+    #define IMU_MAG_INDOOR_CAL                  1       // use indoor calibration values
 
     // we use J18 (Red 9 pin connector as Master Serial Port)
     #define MASTER_J18 1
@@ -105,6 +109,7 @@ extern "C" {
     #define PLAY_BUTTON_PORT GPIOC
     #define PLAY_BUTTON_GPIO_CLK_ENABLE() __HAL_RCC_GPIOC_CLK_ENABLE()
 
+<<<<<<< HEAD
     /* Panel Buttons published in /button_state rostopic via Serial */
     #define PANEL_BUTTON_BYTES 12
     /* Byte Mapping of Bytes 5-16
@@ -125,6 +130,12 @@ extern "C" {
       
       55    aa    02    50    00    timer S1    S2    Lock  OK	  MON   TUE   WED   THU   FRI   SAT   SUN
     */      
+=======
+    /* Rain Sensor - (LOW when pressed) */
+    #define RAIN_SENSOR_PIN GPIO_PIN_2
+    #define RAIN_SENSOR_PORT GPIOE
+    #define RAIN_SENSOR_GPIO_CLK_ENABLE() __HAL_RCC_GPIOE_CLK_ENABLE()
+>>>>>>> 79f0f1996556ecac8f58bf8a46a34640c9b69284
 
     /* either J6 or J18 can be the master USART port */
 #ifdef MASTER_J6    

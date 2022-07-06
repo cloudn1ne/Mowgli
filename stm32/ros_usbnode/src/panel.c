@@ -217,12 +217,12 @@ void PANEL_Set_LED(uint8_t led, PANEL_LED_STATE state)
  */
 void PANEL_Tick(void)
 {   
-     if (Frame_Received_Panel==1)
+     if (Frame_Received_Panel == 1)
      {
-      if (ReceiveBuffer[0]==0x55 && ReceiveBuffer[1]==0xaa && ReceiveBuffer[3]==0x50) // & ReceiveBuffer[2]==0x02  & ReceiveBuffer[4]==0x00)
+      if (ReceiveBuffer[0] == 0x55 && ReceiveBuffer[1] == 0xaa && ReceiveBuffer[3] == 0x50) // & ReceiveBuffer[2]==0x02  & ReceiveBuffer[4]==0x00)
       {
         
-           // debug_printf("%x %x %x | %x %x\r\n",ReceiveBuffer[2],ReceiveBuffer[3],ReceiveBuffer[4], ReceiveBuffer[5], ReceiveBuffer[6]);
+            debug_printf("%x %x %x | %x %x\r\n",ReceiveBuffer[2],ReceiveBuffer[3],ReceiveBuffer[4], ReceiveBuffer[5], ReceiveBuffer[6]);
             /* if (ReceiveBuffer[5]==0x02) debug_printf("key: timer\r\n");
             if (ReceiveBuffer[6]==0x02) debug_printf("key: S1\r\n");
             if (ReceiveBuffer[7]==0x02) debug_printf("key: S2\r\n");
@@ -236,19 +236,19 @@ void PANEL_Tick(void)
             if (ReceiveBuffer[15]==0x02) debug_printf("key: Sat\r\n");
             if (ReceiveBuffer[16]==0x02) debug_printf("key: Sun\r\n");
             */
-            if ((ReceiveBuffer[5]&0x1)==0) // any button pressed
+            if ((ReceiveBuffer[5]&0x1) == 0) // any button pressed
             {
                for(int button_byte=0;button_byte < PANEL_BUTTON_BYTES;button_byte++)
                 {
                
-                    buttonstate[button_byte]=ReceiveBuffer[button_byte+5];//&0x3;
+                    buttonstate[button_byte] = ReceiveBuffer[button_byte+5];//&0x3;
                     buttonupdated = 1;
                     buttoncleared = 0;
                 }
             }
             else
-            {
-                if (!buttoncleared)
+            {   // no button pressed
+                if (!buttoncleared) // latch to detect first button release only
                 {
                     for(int button_byte=0;button_byte < PANEL_BUTTON_BYTES;button_byte++)
                     {
@@ -267,7 +267,7 @@ void PANEL_Tick(void)
     // uncomment to flash charging led as a test
     // PANEL_Set_LED(PANEL_LED_CHARGING, PANEL_LED_FLASH_FAST);
     
-#ifdef PANEL_USART_ENABLED     //PANEL_Send_Message(Led_States, sizeof(Led_States), 0x508b);
+#ifdef PANEL_USART_ENABLED    
      PANEL_Send_Message(Led_States, sizeof(Led_States), LED_CMD);     
      PANEL_Send_Message((uint8_t*)KEY_ACTIVATE, sizeof(KEY_ACTIVATE), 0x5084);     
 #endif

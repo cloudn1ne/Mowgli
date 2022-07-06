@@ -363,7 +363,7 @@ extern "C" void panel_handler()
 		PANEL_Tick();
 		if (buttonupdated == 1)
 		{
-			debug_printf("pub button\r\n");
+			debug_printf("buttonstate changed\r\n");
 			buttonstate_msg.data = (int16_t*) malloc(sizeof(int16_t) * PANEL_BUTTON_BYTES);
 			buttonstate_msg.data_length = PANEL_BUTTON_BYTES;
 			memcpy(buttonstate_msg.data,buttonstate,sizeof(int16_t) * PANEL_BUTTON_BYTES);

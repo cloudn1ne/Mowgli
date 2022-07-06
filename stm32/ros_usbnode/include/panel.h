@@ -76,6 +76,9 @@ int PANEL_Get_Key_Pressed(void);
 
 void PANEL_Handle_Received_Data(uint8_t rcvd_data);
 
+extern uint16_t buttonstate[PANEL_BUTTON_BYTES];
+extern uint8_t buttonupdated;
+
 #ifdef __cplusplus
 }
 #endif

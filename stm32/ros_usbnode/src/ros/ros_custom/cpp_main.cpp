@@ -24,6 +24,7 @@
 #include "std_msgs/UInt8.h"
 #include "std_msgs/UInt16.h"
 #include "std_msgs/UInt32.h"
+#include "std_msgs/Int16MultiArray.h"
 #include "nav_msgs/Odometry.h"
 #include "nbt.h"
 #include "geometry_msgs/Twist.h"
@@ -112,6 +113,7 @@ std_msgs::Float32 f32_charge_current_msg;
 std_msgs::Int16 int16_charge_pwm_msg;
 std_msgs::Bool bool_blade_state_msg;
 std_msgs::Bool bool_charging_state_msg;
+std_msgs::Int16MultiArray buttonstate_msg;
 nav_msgs::Odometry odom_msg;
 std_msgs::UInt32 left_encoder_ticks_msg;
 std_msgs::UInt32 right_encoder_ticks_msg;
@@ -140,6 +142,7 @@ ros::Publisher pubBladeState("blade_state", &bool_blade_state_msg);
 ros::Publisher pubOdom("odom", &odom_msg);
 ros::Publisher pubLeftEncoderTicks("left_encoder_ticks", &left_encoder_ticks_msg);
 ros::Publisher pubRightEncoderTicks("right_encoder_ticks", &right_encoder_ticks_msg);
+ros::Publisher pubButtonState("buttonstate", &buttonstate_msg);
 
 // IMU onboard
 ros::Publisher pubIMUOnboard("imu_onboard/data_raw", &imu_onboard_msg);
@@ -357,7 +360,17 @@ extern "C" void panel_handler()
 {
 	  if (NBT_handler(&panel_nbt))
 	  {			  
-		PANEL_Tick();		
+		PANEL_Tick();
+		if (buttonupdated == 1)
+		{
+			debug_printf("pub button\r\n");
+			buttonstate_msg.data = (int16_t*) malloc(sizeof(int16_t) * PANEL_BUTTON_BYTES);
+			buttonstate_msg.data_length = PANEL_BUTTON_BYTES;
+			memcpy(buttonstate_msg.data,buttonstate,sizeof(int16_t) * PANEL_BUTTON_BYTES);
+			pubButtonState.publish(&buttonstate_msg);		
+			free(buttonstate_msg.data);
+			buttonupdated=0;
+		}
 	  }
 }
 
@@ -586,6 +599,7 @@ extern "C" void init_ROS()
 	nh.advertise(pubChargeingState);
 	nh.advertise(pubLeftEncoderTicks);
 	nh.advertise(pubRightEncoderTicks);
+	nh.advertise(pubButtonState);
 	nh.advertise(pubIMU);
 	nh.advertise(pubIMUMag);
 	//nh.advertise(pubIMUMagCalibration);

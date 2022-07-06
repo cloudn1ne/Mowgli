@@ -7,6 +7,10 @@
 #include "panel.h"
 #include "board.h"
 
+uint16_t buttonstate[PANEL_BUTTON_BYTES];
+uint8_t buttonupdated = 0; // 1 if buttonstate was updated by the panel
+uint8_t buttoncleared = 0;
+
 /* per panel type initializers */
 #ifdef PANEL_TYPE_YARDFORCE_900_ECO
     const uint8_t KEY_INIT_MSG[] = {0x03, 0x90, 0x28};     
@@ -26,7 +30,10 @@ static uint8_t ReceiveBuffer[256];
 static uint8_t ReceiveIndex = 0;
 static uint8_t ReceiveLength;
 static uint8_t ReceiveCRC;
-static uint8_t Key_Pressed;
+// static uint8_t Key_Pressed;
+static uint8_t Frame_Received_Panel = 0;
+
+
 
 void PANEL_Send_Message(uint8_t *data, uint8_t dataLength, uint16_t command)
 {
@@ -91,7 +98,8 @@ void PANEL_Handle_Received_Data(uint8_t rcvd_data)
     {
         if (ReceiveCRC == rcvd_data)
         {
-            Key_Pressed = 1;
+           // Key_Pressed = 1;
+            Frame_Received_Panel = 1;
         }
         ReceiveIndex = 0;
     }
@@ -208,9 +216,53 @@ void PANEL_Set_LED(uint8_t led, PANEL_LED_STATE state)
  * needs to be called regularly or led states will timeout 
  */
 void PANEL_Tick(void)
-{    
-   
-    // debug_printf("panel key: %d\r\n", PANEL_Get_Key_Pressed());
+{   
+     if (Frame_Received_Panel==1)
+     {
+      if (ReceiveBuffer[0]==0x55 && ReceiveBuffer[1]==0xaa && ReceiveBuffer[3]==0x50) // & ReceiveBuffer[2]==0x02  & ReceiveBuffer[4]==0x00)
+      {
+        
+           // debug_printf("%x %x %x | %x %x\r\n",ReceiveBuffer[2],ReceiveBuffer[3],ReceiveBuffer[4], ReceiveBuffer[5], ReceiveBuffer[6]);
+            /* if (ReceiveBuffer[5]==0x02) debug_printf("key: timer\r\n");
+            if (ReceiveBuffer[6]==0x02) debug_printf("key: S1\r\n");
+            if (ReceiveBuffer[7]==0x02) debug_printf("key: S2\r\n");
+            if (ReceiveBuffer[8]==0x02) debug_printf("key: Lock\r\n");
+            if (ReceiveBuffer[9]==0x02) debug_printf("key: OK\r\n");
+            if (ReceiveBuffer[10]==0x02) debug_printf("key: Mon\r\n");
+            if (ReceiveBuffer[11]==0x02) debug_printf("key: Tue\r\n");
+            if (ReceiveBuffer[12]==0x02) debug_printf("key: Wed\r\n");
+            if (ReceiveBuffer[13]==0x02) debug_printf("key: Thu\r\n");
+            if (ReceiveBuffer[14]==0x02) debug_printf("key: Fri\r\n");
+            if (ReceiveBuffer[15]==0x02) debug_printf("key: Sat\r\n");
+            if (ReceiveBuffer[16]==0x02) debug_printf("key: Sun\r\n");
+            */
+            if ((ReceiveBuffer[5]&0x1)==0) // any button pressed
+            {
+               for(int button_byte=0;button_byte < PANEL_BUTTON_BYTES;button_byte++)
+                {
+               
+                    buttonstate[button_byte]=ReceiveBuffer[button_byte+5];//&0x3;
+                    buttonupdated = 1;
+                    buttoncleared = 0;
+                }
+            }
+            else
+            {
+                if (!buttoncleared)
+                {
+                    for(int button_byte=0;button_byte < PANEL_BUTTON_BYTES;button_byte++)
+                    {
+                      buttonstate[button_byte] = 0;
+                    }
+                    buttonupdated = 1;
+                    buttoncleared = 1;
+                }
+            }
+    
+      }
+      Frame_Received_Panel=0;
+     }
+     
 
     // uncomment to flash charging led as a test
     // PANEL_Set_LED(PANEL_LED_CHARGING, PANEL_LED_FLASH_FAST);
@@ -220,10 +272,11 @@ void PANEL_Tick(void)
      PANEL_Send_Message((uint8_t*)KEY_ACTIVATE, sizeof(KEY_ACTIVATE), 0x5084);     
 #endif
 }
-
+/*
 int PANEL_Get_Key_Pressed(void)
 {
     uint8_t result = Key_Pressed;
     Key_Pressed = 0;
     return result;
 }
+*/

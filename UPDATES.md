@@ -11,3 +11,4 @@
 * 19/06/22 - added #define I_DONT_NEED_MY_FINGERS in board.h to disable EmergencyController
 * 19/06/22 - added /cmd_reboot topic (bool) - allows remote reboot of the STM32 cpu
 * 25/06/22 - 2nd Bot build, updated IMU, DCDC converter wiring diagrams and pics
+* 09/07/22 - Mounting details

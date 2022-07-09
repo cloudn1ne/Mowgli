@@ -11,3 +11,7 @@ You will need to relocate the pins using a sharp pick tool (gently lift the smal
 <img src="serial_and_i2c_mowgli.png" width="100%">
 
 If you do not need the I2C IMU you can obmit those cables, and just connect Black (GND), Blue (TX), Yellow (RX) to the Raspi GPIO header
+
+## IMU Mounting location
+
+<img src="imu_mounted.jpg" width="100%">

@@ -21,3 +21,7 @@ You can use the drill template (PDF) with an Eurocard singled sided copper PCB (
 ### ST-Link
 
 * [ST Link Mount STL + Image](./STLink)
+
+## Overview
+
+<img src="mowgli_overview.jpg" width="100%">

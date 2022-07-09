@@ -4,3 +4,7 @@
 <img src="ublox_mag_removal2.jpg" width="300">
 <img src="ublox_mag_removal3.jpg" width="300">
 <img src="ublox_mag_removal4.jpg" width="300">
+
+## Mounting
+
+<img src="ublox_mounting.jpg" width="100%">

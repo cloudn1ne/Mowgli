@@ -46,6 +46,7 @@ The custom firmware has no protections - no tilt sensing, no stop buttons will w
 - onboard Buzzer
 - onboard IMU (accelerometer) for tilt protection
 - Safety switches (Hall Sensors) for STOP button
+- Rain Sensor
 
 ## TODO
 
@@ -68,6 +69,7 @@ The custom firmware has no protections - no tilt sensing, no stop buttons will w
 - /left_encoder_ticks & /right_encoder_ticks - std_msgs::UInt21 (Accumulated Raw encoder values)
 - /imu_onboard/data_raw - sensor_msgs::Imu - onboard accelerometer data (no gyro, no mag !)
 - /imu_onboard/temp - sensor_msgs::Temperature - onboard accerlerometer temperature
+- /buttonstates - on supported panels
 
 ### in case a supported I2C IMU is connected to J18
 

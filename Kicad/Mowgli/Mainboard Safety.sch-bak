@@ -782,7 +782,7 @@ Wire Wire Line
 Wire Wire Line
 	8050 4500 8050 5200
 Text Notes 8550 4800 0    87   Italic 0
-Mech Tilt Sensor
+Mech Tilt Sensor (flip over)
 $Comp
 L Sensor_Motion:LIS3DH U13
 U 1 1 62D389A7
@@ -944,4 +944,6 @@ Wire Notes Line
 	2150 600  750  600 
 Text Notes 800  2000 0    33   ~ 7
 Warning: this eliminates STOP and LIFT sensors
+Text Notes 9400 3200 0    55   ~ 11
+R195 Not populated on all boards !
 $EndSCHEMATC

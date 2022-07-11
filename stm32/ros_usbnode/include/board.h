@@ -25,7 +25,7 @@ extern "C" {
     // define to support IMU Calibration (Mag) via https://github.com/pcdangio/ros-calibration_imu
     #define SUPPORT_ROS_CALIBRATION_IMU           1     
 
-    //#define I_DONT_NEED_MY_FINGERS              1       // disables EmergencyController() (no wheel lift, or tilt sensing and stopping the blade anymore)
+    #define I_DONT_NEED_MY_FINGERS              1       // disables EmergencyController() (no wheel lift, or tilt sensing and stopping the blade anymore)
 
     // if voltage is greater than this assume we are docked
     #define MIN_CHARGE_VOLTAGE                  5.0

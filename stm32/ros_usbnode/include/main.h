@@ -49,9 +49,9 @@ extern "C" {
 /* USER CODE BEGIN EM */
 
 void ADC_Test();
-float ADC_BatteryVoltage();
-float ADC_ChargeVoltage();
-float ADC_ChargeCurrent();
+float ADC_BatteryVoltage(uint8_t adc_conversions);
+float ADC_ChargeVoltage(uint8_t adc_conversions);
+float ADC_ChargeCurrent(uint8_t adc_conversions);
 void ChargeController(void);
 void EmergencyController(void);
 void StatusLEDUpdate(void);

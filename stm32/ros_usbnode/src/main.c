@@ -75,22 +75,23 @@ static uint8_t panel_rcvd_data;
 float_t battery_voltage;
 float_t charge_voltage;
 float_t charge_current;
-uint16_t chargecontrol_pwm_val=MIN_CHARGE_PWM;
-uint8_t  chargecontrol_is_charging=0;
-uint32_t right_encoder_ticks=0;
-uint32_t left_encoder_ticks=0;
-int8_t left_direction=0;
-int8_t right_direction=0;
-uint16_t right_encoder_val=0;
-uint16_t left_encoder_val=0;
-int16_t right_wheel_speed_val=0;
-int16_t left_wheel_speed_val=0;
-int8_t prev_left_direction=0;
-int8_t prev_right_direction=0;
-uint16_t prev_right_encoder_val=0;
-uint16_t prev_left_encoder_val=0;
-int16_t prev_right_wheel_speed_val=0;
-int16_t prev_left_wheel_speed_val=0;
+float_t charge_current_offset;
+uint16_t chargecontrol_pwm_val = MIN_CHARGE_PWM;
+uint8_t  chargecontrol_is_charging = 0;
+uint32_t right_encoder_ticks = 0;
+uint32_t left_encoder_ticks = 0;
+int8_t left_direction = 0;
+int8_t right_direction = 0;
+uint16_t right_encoder_val = 0;
+uint16_t left_encoder_val = 0;
+int16_t right_wheel_speed_val = 0;
+int16_t left_wheel_speed_val = 0;
+int8_t prev_left_direction = 0;
+int8_t prev_right_direction = 0;
+uint16_t prev_right_encoder_val = 0;
+uint16_t prev_left_encoder_val = 0;
+int16_t prev_right_wheel_speed_val = 0;
+int16_t prev_left_wheel_speed_val = 0;
 
 
 
@@ -333,7 +334,7 @@ int main(void)
     HAL_TIM_PWM_Start(&TIM1_Handle, TIM_CHANNEL_1);
     HAL_TIMEx_PWMN_Start(&TIM1_Handle, TIM_CHANNEL_1);
     debug_printf(" * Charge Controler PWM Timers initialized\r\n");
-
+    
     // Init Drive Motors and Blade Motor
     #ifdef DRIVEMOTORS_USART_ENABLED
         DRIVEMOTORS_USART_Init();
@@ -374,6 +375,10 @@ int main(void)
     debug_printf(" * Blade Motor initialized\r\n");
     debug_printf(" * HW Init completed\r\n");    
     
+    // read zero offset for charge current
+    charge_current_offset = ADC_ChargeCurrent(50);
+    debug_printf("Charge Current Offset: %2.2f\r\n", charge_current_offset);
+
     // Initialize Main Timers
 	NBT_init(&main_chargecontroller_nbt, 10);
     NBT_init(&main_statusled_nbt, 1000);
@@ -943,7 +948,7 @@ void ADC1_Init(void)
     }
 
     // calibrate  - important for accuracy !
-    HAL_ADCEx_Calibration_Start(&ADC_Handle);
+    HAL_ADCEx_Calibration_Start(&ADC_Handle); 
 }
 
 /**
@@ -1138,9 +1143,11 @@ void MX_DMA_Init(void)
 /*
  * Charge Current
  */
-float ADC_ChargeCurrent()
+float ADC_ChargeCurrent(uint8_t adc_conversions)
 {
     float_t adc_current;
+    uint8_t i;
+    uint32_t adc_val_sum;
     uint16_t adc_val;
     ADC_ChannelConfTypeDef sConfig = {0};
 
@@ -1153,12 +1160,17 @@ float ADC_ChargeCurrent()
        Error_Handler();
     }
     // do adc conversion
-    HAL_ADC_Start(&ADC_Handle);
-    HAL_ADC_PollForConversion(&ADC_Handle, 200);
-    adc_val = (uint16_t) HAL_ADC_GetValue(&ADC_Handle);
-    HAL_ADC_Stop(&ADC_Handle);
+    adc_val_sum = 0;    
+    for (i=0; i<adc_conversions; i++)
+    {
+        HAL_ADC_Start(&ADC_Handle);
+        HAL_ADC_PollForConversion(&ADC_Handle, 200);
+        adc_val_sum += (uint16_t) HAL_ADC_GetValue(&ADC_Handle);
+        HAL_ADC_Stop(&ADC_Handle);
+    }    
+    adc_val = adc_val_sum/adc_conversions;
     // guessed from experiments, close enough to at least determine when the battery is charging
-    adc_current= ((float)(adc_val/4095.0f)*3.3f - 2.5f) * 8;
+    adc_current= ((float)(adc_val/4095.0f)*3.3f - 2.5f) * 100/12.0;
     return(adc_current);
 }
 
@@ -1166,10 +1178,13 @@ float ADC_ChargeCurrent()
 /*
  * Charge Voltage
  */
-float ADC_ChargeVoltage()
+float ADC_ChargeVoltage(uint8_t adc_conversions)
 {
     float_t adc_volt;
+    uint8_t i;
+    uint32_t adc_val_sum;
     uint16_t adc_val;
+
     ADC_ChannelConfTypeDef sConfig = {0};
 
     // switch channel
@@ -1181,10 +1196,15 @@ float ADC_ChargeVoltage()
        Error_Handler();
     }
     // do adc conversion
-    HAL_ADC_Start(&ADC_Handle);
-    HAL_ADC_PollForConversion(&ADC_Handle, 200);
-    adc_val = (uint16_t) HAL_ADC_GetValue(&ADC_Handle);
-    HAL_ADC_Stop(&ADC_Handle);
+    adc_val_sum = 0;    
+    for (i=0; i<adc_conversions; i++)
+    {
+        HAL_ADC_Start(&ADC_Handle);
+        HAL_ADC_PollForConversion(&ADC_Handle, 200);
+        adc_val_sum += (uint16_t) HAL_ADC_GetValue(&ADC_Handle);
+        HAL_ADC_Stop(&ADC_Handle);
+    }    
+    adc_val = adc_val_sum/adc_conversions;
     adc_volt= (float)(adc_val/4095.0f)*3.3f*16;     //PA2 has a 1:16 divider
     return(adc_volt);
 }
@@ -1193,10 +1213,13 @@ float ADC_ChargeVoltage()
 /*
  * Battery Voltage
  */
-float ADC_BatteryVoltage()
+float ADC_BatteryVoltage(uint8_t adc_conversions)
 {
     float_t adc_volt;
+    uint8_t i;
+    uint32_t adc_val_sum;
     uint16_t adc_val;
+
     ADC_ChannelConfTypeDef sConfig = {0};
 
     // switch channel
@@ -1208,11 +1231,16 @@ float ADC_BatteryVoltage()
        Error_Handler();
     }
     // do adc conversion
-    HAL_ADC_Start(&ADC_Handle);
-    HAL_ADC_PollForConversion(&ADC_Handle, 200);
-    adc_val = (uint16_t) HAL_ADC_GetValue(&ADC_Handle);
-    HAL_ADC_Stop(&ADC_Handle);
-    adc_volt= (float)(adc_val/4095.0f)*3.3f*10;  //PA3 has a 1:10 divider
+    adc_val_sum = 0;    
+    for (i=0; i<adc_conversions; i++)
+    {
+        HAL_ADC_Start(&ADC_Handle);
+        HAL_ADC_PollForConversion(&ADC_Handle, 200);
+        adc_val_sum += (uint16_t) HAL_ADC_GetValue(&ADC_Handle);
+        HAL_ADC_Stop(&ADC_Handle);
+    }    
+    adc_val = adc_val_sum/adc_conversions;
+    adc_volt= (float)(adc_val/4095.0f)*3.3f*10 + 0.3;  //PA3 has a 1:10 divider - and there is a 0.3V drop between Bat and ADC
     return(adc_volt);
 }
 
@@ -1265,23 +1293,29 @@ void ADC_Test()
  * needs to be called frequently
  */
 void ChargeController(void)
-{        
-        charge_voltage =  ADC_ChargeVoltage();            
-        charge_current = ADC_ChargeCurrent();
-        battery_voltage = ADC_BatteryVoltage();
+{                        
+        charge_voltage =  ADC_ChargeVoltage(5);            
+        charge_current = ADC_ChargeCurrent(5) - charge_current_offset;
+        battery_voltage = ADC_BatteryVoltage(5);
+        
         if (charge_voltage >= MIN_CHARGE_VOLTAGE ) {
             // set PWM to approach 29.4V charge voltage
             if ((charge_voltage < 29.4) && (chargecontrol_pwm_val < 1350))
             {
                 chargecontrol_pwm_val++;
-            }
+            }            
             if ((charge_voltage > 29.4) && (chargecontrol_pwm_val > 50))
+            {
+                chargecontrol_pwm_val--;
+            }
+            // cap charge current at 1.0 Amps
+            if (charge_current > 1.0)
             {
                 chargecontrol_pwm_val--;
             }
         }
         else {
-            chargecontrol_pwm_val = MIN_CHARGE_PWM;
+             chargecontrol_pwm_val = MIN_CHARGE_PWM;          
         }
         TIM1->CCR1 = chargecontrol_pwm_val;  
 }
@@ -1448,7 +1482,7 @@ void StatusLEDUpdate(void)
         {
             PANEL_Set_LED(PANEL_LED_BATTERY_LOW, PANEL_LED_OFF); // bat ok
         }                
-        debug_printf(" > Chg Voltage: %2.2fV | Bat Voltage %2.2fV\r\n", charge_voltage, battery_voltage);                           
+        debug_printf(" > Chg Voltage: %2.2fV | Chg Current: %2.2fA | PWM: %d | Bat Voltage %2.2fV\r\n", charge_voltage, charge_current, chargecontrol_pwm_val, battery_voltage);                           
 }
 
 /*

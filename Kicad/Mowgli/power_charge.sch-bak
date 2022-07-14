@@ -3,7 +3,7 @@ EELAYER 30 0
 EELAYER END
 $Descr A3 16535 11693
 encoding utf-8
-Sheet 10 14
+Sheet 8 14
 Title ""
 Date ""
 Rev ""
@@ -913,8 +913,8 @@ Wire Wire Line
 Connection ~ 10450 7500
 Wire Wire Line
 	10450 8500 15150 8500
-Text Notes 15150 5000 0    59   ~ 0
-to PA1 (1:?)
+Text Notes 14650 4950 0    59   ~ 0
+to PA1\n\ni=(Vout-2.5) x (100/12)
 Wire Wire Line
 	5450 5000 6850 5000
 Connection ~ 6850 5000

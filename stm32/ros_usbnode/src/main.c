@@ -106,6 +106,9 @@ UART_HandleTypeDef MASTER_USART_Handler; // UART  Handle
 UART_HandleTypeDef DRIVEMOTORS_USART_Handler; // UART  Handle
 UART_HandleTypeDef BLADEMOTOR_USART_Handler; // UART  Handle
 
+// SPI3 FLASH
+SPI_HandleTypeDef SPI3_Handle;
+
 // Drive Motors DMA
 DMA_HandleTypeDef hdma_usart2_rx;
 DMA_HandleTypeDef hdma_usart2_tx;
@@ -264,6 +267,50 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
        }
 }
 
+/**
+ * @brief Init and test SPI Flash attached to SPI3
+ * @retval 1 if device found, 0 otherwise
+ */
+void SPI3_TestDevice(void)
+{
+    uint8_t tx_buf[8], rx_buf[8];    //Buffers for the first read.
+    uint32_t addr;
+    tx_buf[0] = 0x9F; // ID Code
+    //tx_buf[1] = 0x0; 
+    //tx_buf[2] = 0x0; 
+    //tx_buf[3] = 0x1; 
+        
+
+    HAL_GPIO_WritePin(FLASH_SPICS_PORT, FLASH_nCS_PIN, GPIO_PIN_RESET);
+    HAL_SPI_Transmit(&SPI3_Handle, tx_buf, 1, HAL_MAX_DELAY);
+    HAL_SPI_Receive(&SPI3_Handle, rx_buf, 3, HAL_MAX_DELAY);   //Returns the right value
+    HAL_GPIO_WritePin(FLASH_SPICS_PORT, FLASH_nCS_PIN, GPIO_PIN_SET);
+
+    debug_printf("\r\n\r\nSPI3 ID: 0x%02x 0x%02x 0x%02x\r\n\r\n", rx_buf[0], rx_buf[1], rx_buf[2]);
+
+
+    addr = 0x0;
+    HAL_GPIO_WritePin(FLASH_SPICS_PORT, FLASH_nCS_PIN, GPIO_PIN_RESET);
+
+    tx_buf[0] = 0x3; // READ
+    tx_buf[1] = addr>>16;
+    tx_buf[2] = addr>>8;
+    tx_buf[3] = addr&0xFF;;
+    HAL_SPI_Transmit(&SPI3_Handle, tx_buf, 4, HAL_MAX_DELAY);
+    while (addr < 0xFF)
+    {
+        HAL_SPI_Receive(&SPI3_Handle, rx_buf, 1, HAL_MAX_DELAY);   //Returns the right value
+        debug_printf("0x%02x ", rx_buf[0]);
+        addr++;
+        if (addr % 0x10 == 0) debug_printf("\r\n");
+    }
+    debug_printf("\r\n");
+
+    HAL_GPIO_WritePin(FLASH_SPICS_PORT, FLASH_nCS_PIN, GPIO_PIN_SET);
+
+
+}
+
 
 int main(void)
 {    
@@ -274,6 +321,7 @@ int main(void)
     SystemClock_Config();
 
     __HAL_RCC_AFIO_CLK_ENABLE();    
+    __HAL_RCC_PWR_CLK_ENABLE();
 
     MX_DMA_Init();
     
@@ -301,6 +349,12 @@ int main(void)
     debug_printf(" * PAC 5223 out of reset\r\n");
     PAC5210RESET_Init();
     debug_printf(" * PAC 5210 out of reset\r\n");    
+    SPI3_Init();    
+    SPI3_TestDevice();        
+    SPI3_DeInit();
+    debug_printf(" * Onboard SPI Flash initialized\r\n");
+
+
     I2C_Init();
     debug_printf(" * Hard I2C initialized\r\n");
     if (I2C_Acclerometer_TestDevice())
@@ -312,7 +366,7 @@ int main(void)
         chirp(3);        
         debug_printf(" * WARNING: initalization of onboard accelerometer for tilt protection failed !\r\n");
     }    
-    debug_printf(" * Accelerometer (onboard/tilt safety) initialized\r\n");
+    debug_printf(" * Accelerometer (onboard/tilt safety) initialized\r\n");    
     SW_I2C_Init();
     debug_printf(" * Soft I2C (J18) initialized\r\n");
     debug_printf(" * Testing supported IMUs:\r\n");
@@ -335,6 +389,20 @@ int main(void)
     HAL_TIMEx_PWMN_Start(&TIM1_Handle, TIM_CHANNEL_1);
     debug_printf(" * Charge Controler PWM Timers initialized\r\n");
     
+
+
+    SW_I2C_DeInit();
+    debug_printf("SPI3 access\r\n");
+    SPI3_Init();
+    //while (1)
+    //{
+        SPI3_TestDevice();
+        //HAL_Delay(100);
+    //}
+    SPI3_DeInit();
+    SW_I2C_Init();
+
+
     // Init Drive Motors and Blade Motor
     #ifdef DRIVEMOTORS_USART_ENABLED
         DRIVEMOTORS_USART_Init();
@@ -376,8 +444,8 @@ int main(void)
     debug_printf(" * HW Init completed\r\n");    
     
     // read zero offset for charge current
-    charge_current_offset = ADC_ChargeCurrent(50);
-    debug_printf("Charge Current Offset: %2.2f\r\n", charge_current_offset);
+    charge_current_offset = ADC_ChargeCurrent(10);
+    debug_printf(" * Charge Current Offset: %2.2fA\r\n", charge_current_offset);
 
     // Initialize Main Timers
 	NBT_init(&main_chargecontroller_nbt, 10);
@@ -834,8 +902,70 @@ void Emergency_Init()
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
     GPIO_InitStruct.Pull = GPIO_PULLUP;
     HAL_GPIO_Init(PLAY_BUTTON_PORT, &GPIO_InitStruct);
-
 }
+
+/**
+ * @brief SPI3 Bus (onboard FLASH)
+ * @retval None
+ */
+void SPI3_Init()
+{
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+    
+    // Disable JTAG only to free PA15, PB3* and PB4. SWD remains active
+    MODIFY_REG(AFIO->MAPR, AFIO_MAPR_SWJ_CFG, AFIO_MAPR_SWJ_CFG_JTAGDISABLE);
+
+    __HAL_RCC_SPI3_CLK_ENABLE();
+    FLASH_SPI_CLK_ENABLE();
+    FLASH_SPICS_CLK_ENABLE();
+
+    GPIO_InitStruct.Pin = FLASH_CLK_PIN | FLASH_MOSI_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+    HAL_GPIO_Init(FLASH_SPI_PORT, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = FLASH_MISO_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(FLASH_SPI_PORT, &GPIO_InitStruct);
+  
+    GPIO_InitStruct.Pin = FLASH_nCS_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+    HAL_GPIO_Init(FLASH_SPICS_PORT, &GPIO_InitStruct);
+ 
+    // now init HAL SPI3_Handle
+    SPI3_Handle.Instance = SPI3;
+    SPI3_Handle.Init.Mode = SPI_MODE_MASTER;
+    SPI3_Handle.Init.Direction = SPI_DIRECTION_2LINES;
+    SPI3_Handle.Init.DataSize = SPI_DATASIZE_8BIT;
+    SPI3_Handle.Init.CLKPolarity = SPI_POLARITY_LOW;
+    SPI3_Handle.Init.CLKPhase = SPI_PHASE_1EDGE;
+    SPI3_Handle.Init.NSS = SPI_NSS_HARD_OUTPUT;
+    SPI3_Handle.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
+    SPI3_Handle.Init.FirstBit = SPI_FIRSTBIT_MSB;
+    SPI3_Handle.Init.TIMode = SPI_TIMODE_DISABLE;
+    SPI3_Handle.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+    SPI3_Handle.Init.CRCPolynomial = 10;
+    if (HAL_SPI_Init(&SPI3_Handle) != HAL_OK)
+    {
+        Error_Handler();
+    }    
+}
+
+/**
+ * @brief Deinit SPI3 Bus (onboard FLASH)
+ * @retval None
+ */
+void SPI3_DeInit()
+{        
+    __HAL_RCC_SPI3_CLK_DISABLE();
+    
+    HAL_GPIO_DeInit(FLASH_SPI_PORT,FLASH_CLK_PIN | FLASH_MISO_PIN | FLASH_nCS_PIN);
+    HAL_GPIO_DeInit(FLASH_SPICS_PORT,FLASH_nCS_PIN);
+}
+
 
 /**
  * @brief  This function is executed in case of error occurrence.
@@ -1294,9 +1424,11 @@ void ADC_Test()
  */
 void ChargeController(void)
 {                        
-        charge_voltage =  ADC_ChargeVoltage(5);            
-        charge_current = ADC_ChargeCurrent(5) - charge_current_offset;
+        charge_voltage =  ADC_ChargeVoltage(5);                    
         battery_voltage = ADC_BatteryVoltage(5);
+        charge_current = ADC_ChargeCurrent(5) - charge_current_offset;
+        if (charge_current < 0)
+            charge_current = 0;
         
         if (charge_voltage >= MIN_CHARGE_VOLTAGE ) {
             // set PWM to approach 29.4V charge voltage
@@ -1309,14 +1441,19 @@ void ChargeController(void)
                 chargecontrol_pwm_val--;
             }
             // cap charge current at 1.0 Amps
-            if (charge_current > 1.0)
+            if (charge_current > MAX_CHARGE_CURRENT)
             {
                 chargecontrol_pwm_val--;
             }
         }
         else {
-             chargecontrol_pwm_val = MIN_CHARGE_PWM;          
-        }
+             chargecontrol_pwm_val = MIN_CHARGE_PWM;    
+             // constantly get fresh offet if we are not charging      
+             if (charge_voltage == 0)
+             {
+                charge_current_offset = ADC_ChargeCurrent(5);
+             }
+        }        
         TIM1->CCR1 = chargecontrol_pwm_val;  
 }
 
@@ -1482,7 +1619,7 @@ void StatusLEDUpdate(void)
         {
             PANEL_Set_LED(PANEL_LED_BATTERY_LOW, PANEL_LED_OFF); // bat ok
         }                
-        debug_printf(" > Chg Voltage: %2.2fV | Chg Current: %2.2fA | PWM: %d | Bat Voltage %2.2fV\r\n", charge_voltage, charge_current, chargecontrol_pwm_val, battery_voltage);                           
+        debug_printf(" > Chg Voltage: %2.2fV | Chg Current: %2.2fA (offset: %2.2fA) | PWM: %d | Bat Voltage %2.2fV\r\n", charge_voltage, charge_current, charge_current_offset,  chargecontrol_pwm_val, battery_voltage);                           
 }
 
 /*

@@ -20,6 +20,7 @@
 
 /* functions */
 void SW_I2C_Init(void);
+void SW_I2C_DeInit(void);
 
 void i2c_port_initial(void);		
 

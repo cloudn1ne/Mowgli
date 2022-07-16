@@ -75,7 +75,13 @@ void SW_I2C_Init(void)
 
     GPIO_InitStruct.Pin   = SW_I2C1_SDA_PIN;
     HAL_GPIO_Init(SW_I2C1_SDA_GPIO, &GPIO_InitStruct);    
+}
 
+/* de-init soft i2c pins */
+void SW_I2C_DeInit(void)
+{ 
+   HAL_GPIO_DeInit(SW_I2C1_SCL_GPIO, SW_I2C1_SCL_PIN);
+   HAL_GPIO_DeInit(SW_I2C1_SDA_GPIO, SW_I2C1_SDA_PIN);
 }
 
 // SDA High

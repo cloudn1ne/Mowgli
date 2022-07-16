@@ -27,6 +27,8 @@ extern "C" {
 
     #define I_DONT_NEED_MY_FINGERS              1       // disables EmergencyController() (no wheel lift, or tilt sensing and stopping the blade anymore)
 
+    /// nominal max charge current is 1 Amp
+    #define MAX_CHARGE_CURRENT                  1.0
     // if voltage is greater than this assume we are docked
     #define MIN_CHARGE_VOLTAGE                  5.0
     // must provide at least MIN_CHARGE_VOLTAGE when docked
@@ -96,6 +98,16 @@ extern "C" {
     #define TILT_PIN GPIO_PIN_8
     #define TILT_PORT GPIOA
     #define TILT_GPIO_CLK_ENABLE() __HAL_RCC_GPIOA_CLK_ENABLE()
+
+    /* SPI3 Flash */
+    #define FLASH_CLK_PIN GPIO_PIN_3 // GPIO B
+    #define FLASH_MISO_PIN GPIO_PIN_4  // GPIO B
+    #define FLASH_MOSI_PIN GPIO_PIN_5  // GPIO B
+    #define FLASH_SPI_PORT GPIOB
+    #define FLASH_SPI_CLK_ENABLE() __HAL_RCC_GPIOB_CLK_ENABLE()
+    #define FLASH_nCS_PIN GPIO_PIN_15 // GPIO A
+    #define FLASH_SPICS_PORT GPIOA
+    #define FLASH_SPICS_CLK_ENABLE() __HAL_RCC_GPIOA_CLK_ENABLE()
 
     /* Wheel lift - (HIGH when set) */
     #define WHEEL_LIFT_BLUE_PIN GPIO_PIN_0

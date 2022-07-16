@@ -349,8 +349,10 @@ int main(void)
     debug_printf(" * PAC 5223 out of reset\r\n");
     PAC5210RESET_Init();
     debug_printf(" * PAC 5210 out of reset\r\n");    
+
     SPI3_Init();    
     SPI3_TestDevice();        
+    SPIFLASH_Config();
     SPI3_DeInit();
     debug_printf(" * Onboard SPI Flash initialized\r\n");
 
@@ -390,7 +392,7 @@ int main(void)
     debug_printf(" * Charge Controler PWM Timers initialized\r\n");
     
 
-
+/*
     SW_I2C_DeInit();
     debug_printf("SPI3 access\r\n");
     SPI3_Init();
@@ -401,7 +403,7 @@ int main(void)
     //}
     SPI3_DeInit();
     SW_I2C_Init();
-
+*/
 
     // Init Drive Motors and Blade Motor
     #ifdef DRIVEMOTORS_USART_ENABLED

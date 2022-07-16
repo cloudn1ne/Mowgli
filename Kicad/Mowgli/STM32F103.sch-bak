@@ -161,7 +161,7 @@ PD0_Wheel_blue
 Text HLabel 7300 1400 2    50   Output ~ 0
 (ghidra:output,pushpull,alternatefunc?)
 Text HLabel 7300 1500 2    50   Output ~ 0
-(ghidra:output,pushpull,alternatefunc?)-also_analog_in?
+Charge_Current
 Wire Wire Line
 	6450 1400 7300 1400
 Wire Wire Line

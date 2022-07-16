@@ -267,51 +267,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
        }
 }
 
-/**
- * @brief Init and test SPI Flash attached to SPI3
- * @retval 1 if device found, 0 otherwise
- */
-void SPI3_TestDevice(void)
-{
-    uint8_t tx_buf[8], rx_buf[8];    //Buffers for the first read.
-    uint32_t addr;
-    tx_buf[0] = 0x9F; // ID Code
-    //tx_buf[1] = 0x0; 
-    //tx_buf[2] = 0x0; 
-    //tx_buf[3] = 0x1; 
-        
-
-    HAL_GPIO_WritePin(FLASH_SPICS_PORT, FLASH_nCS_PIN, GPIO_PIN_RESET);
-    HAL_SPI_Transmit(&SPI3_Handle, tx_buf, 1, HAL_MAX_DELAY);
-    HAL_SPI_Receive(&SPI3_Handle, rx_buf, 3, HAL_MAX_DELAY);   //Returns the right value
-    HAL_GPIO_WritePin(FLASH_SPICS_PORT, FLASH_nCS_PIN, GPIO_PIN_SET);
-
-    debug_printf("\r\n\r\nSPI3 ID: 0x%02x 0x%02x 0x%02x\r\n\r\n", rx_buf[0], rx_buf[1], rx_buf[2]);
-
-
-    addr = 0x0;
-    HAL_GPIO_WritePin(FLASH_SPICS_PORT, FLASH_nCS_PIN, GPIO_PIN_RESET);
-
-    tx_buf[0] = 0x3; // READ
-    tx_buf[1] = addr>>16;
-    tx_buf[2] = addr>>8;
-    tx_buf[3] = addr&0xFF;;
-    HAL_SPI_Transmit(&SPI3_Handle, tx_buf, 4, HAL_MAX_DELAY);
-    while (addr < 0xFF)
-    {
-        HAL_SPI_Receive(&SPI3_Handle, rx_buf, 1, HAL_MAX_DELAY);   //Returns the right value
-        debug_printf("0x%02x ", rx_buf[0]);
-        addr++;
-        if (addr % 0x10 == 0) debug_printf("\r\n");
-    }
-    debug_printf("\r\n");
-
-    HAL_GPIO_WritePin(FLASH_SPICS_PORT, FLASH_nCS_PIN, GPIO_PIN_SET);
-
-
-}
-
-
 int main(void)
 {    
     uint8_t blademotor_init[] =  { 0x55, 0xaa, 0x12, 0x20, 0x80, 0x00, 0xac, 0x0d, 0x00, 0x02, 0x32, 0x50, 0x1e, 0x04, 0x00, 0x15, 0x21, 0x05, 0x0a, 0x19, 0x3c, 0xaa };    
@@ -349,12 +304,16 @@ int main(void)
     debug_printf(" * PAC 5223 out of reset\r\n");
     PAC5210RESET_Init();
     debug_printf(" * PAC 5210 out of reset\r\n");    
-
-    SPI3_Init();    
-    SPI3_TestDevice();        
-    SPIFLASH_Config();
-    SPI3_DeInit();
-    debug_printf(" * Onboard SPI Flash initialized\r\n");
+    
+    if (SPIFLASH_TestDevice())
+    {        
+        SPIFLASH_Config();
+    }
+    else
+    {
+         debug_printf(" * SPIFLASH: unable to locate SPI Flash\r\n");    
+    }    
+    debug_printf(" * SPIFLASH initialized\r\n");
 
 
     I2C_Init();

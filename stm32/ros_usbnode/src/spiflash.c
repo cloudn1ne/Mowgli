@@ -17,6 +17,17 @@
 #include "littlefs/lfs.h"
 #include "littlefs/lfs_util.h"
 
+// #define SPIFLASH_DEBUG 1
+
+lfs_t lfs;
+lfs_file_t file;
+struct lfs_config cfg;
+
+uint8_t lfs_read_buf[256];
+uint8_t lfs_prog_buf[256];
+uint8_t lfs_lookahead_buf[16];	// 128/8=16
+uint8_t lfs_file_buf[256];
+
 
 /*********************************************************************************************************
  * SPI Flash Driver for 25D40/20 SPI Flash
@@ -48,18 +59,23 @@ void FLASH25D_WriteEnable(void)
     HAL_SPI_Transmit(&SPI3_Handle, tx_buf, 1, HAL_MAX_DELAY);    
     HAL_GPIO_WritePin(FLASH_SPICS_PORT, FLASH_nCS_PIN, GPIO_PIN_SET);
 
-   // debug_printf("WEL Bit: %x\r\n", (FLASH25D_ReadStatusReg()&2)>>1);    
-   // debug_printf("BP2 BP1 Bp0 Bits:  %x %x %x\r\n", (FLASH25D_ReadStatusReg()&16)>>4, (FLASH25D_ReadStatusReg()&8)>>3, (FLASH25D_ReadStatusReg()&4)>>2);    
+#ifdef SPIFLASH_DEBUG
+   debug_printf("WEL Bit: %x\r\n", (FLASH25D_ReadStatusReg()&2)>>1);    
+   debug_printf("BP2 BP1 Bp0 Bits:  %x %x %x\r\n", (FLASH25D_ReadStatusReg()&16)>>4, (FLASH25D_ReadStatusReg()&8)>>3, (FLASH25D_ReadStatusReg()&4)>>2);    
+#endif   
 }
 
 void FLASH25D_Read(uint8_t *buffer, uint32_t addr, uint32_t size)
 {
-    uint8_t tx_buf[8], rx_buf;    //Buffers 
-    uint32_t i=0;
+    uint8_t tx_buf[8];    //Buffers     
     tx_buf[0] = 0x3; // READ
     tx_buf[1] = (addr>>16)&0xFF;
     tx_buf[2] = (addr>>8)&0xFF;
     tx_buf[3] = addr&0xFF;;
+
+#ifdef SPIFLASH_DEBUG
+   debug_printf("FLASH25D_Read: addr=0x%x len=%d\r\n", addr, size);       
+#endif  
 
     HAL_GPIO_WritePin(FLASH_SPICS_PORT, FLASH_nCS_PIN, GPIO_PIN_RESET);
     HAL_SPI_Transmit(&SPI3_Handle, tx_buf, 4, HAL_MAX_DELAY);    
@@ -69,17 +85,21 @@ void FLASH25D_Read(uint8_t *buffer, uint32_t addr, uint32_t size)
 
 void FLASH25D_Write_NoCheck(uint8_t *buffer, uint32_t addr, uint32_t size)
 {
-    uint8_t tx_buf[8];    //Buffers
-    uint32_t i=0;
+    uint8_t tx_buf[8];    //Buffers    
     tx_buf[0] = 0x2; // PAGE PROGRAMM 
     tx_buf[1] = (addr>>16)&0xFF;
     tx_buf[2] = (addr>>8)&0xFF;
     tx_buf[3] = addr&0xFF;;
 
+#ifdef SPIFLASH_DEBUG
+   debug_printf("FLASH25D_Write_NoCheck: addr=0x%x len=%d\r\n", addr, size);       
+#endif  
+
     HAL_GPIO_WritePin(FLASH_SPICS_PORT, FLASH_nCS_PIN, GPIO_PIN_RESET);
     HAL_SPI_Transmit(&SPI3_Handle, tx_buf, 4, HAL_MAX_DELAY);
     HAL_SPI_Transmit(&SPI3_Handle, buffer, size, HAL_MAX_DELAY);            
     HAL_GPIO_WritePin(FLASH_SPICS_PORT, FLASH_nCS_PIN, GPIO_PIN_SET);
+    while (FLASH25D_Busy()) { };
 }
 
 void FLASH25D_Erase_Sector(uint32_t addr)
@@ -91,12 +111,13 @@ void FLASH25D_Erase_Sector(uint32_t addr)
     tx_buf[2] = (addr>>8)&0xFF;
     tx_buf[3] = addr&0xFF;;
 
-    debug_printf("FLASH25D_Erase_Sector addr=%x\r\n", addr);
+#ifdef SPIFLASH_DEBUG
+    debug_printf("FLASH25D_Erase_Sector addr=0x%x\r\n", addr);
+#endif
     HAL_GPIO_WritePin(FLASH_SPICS_PORT, FLASH_nCS_PIN, GPIO_PIN_RESET);
     HAL_SPI_Transmit(&SPI3_Handle, tx_buf, 4, HAL_MAX_DELAY);    
     HAL_GPIO_WritePin(FLASH_SPICS_PORT, FLASH_nCS_PIN, GPIO_PIN_SET);    
     while (FLASH25D_Busy()) { };
-
 }
 
 /********************************************************************************************************
@@ -105,48 +126,34 @@ void FLASH25D_Erase_Sector(uint32_t addr)
 
 int block_device_read(const struct lfs_config *c, lfs_block_t block,
 	lfs_off_t off, void *buffer, lfs_size_t size)
-{    
-    debug_printf("LittleFS:  block_device_read(0x%x size: %d)\r\n", (block * c->block_size + off), size);
+{        
 	FLASH25D_Read((uint8_t*)buffer, (block * c->block_size + off), size);
 	return 0;
 }
 
 int block_device_prog(const struct lfs_config *c, lfs_block_t block,
 	lfs_off_t off, const void *buffer, lfs_size_t size)
-{
-    uint32_t i;
-
-  //  debug_printf("LittleFS:  block_device_prog(0x%x size: %d)\r\n", (block * c->block_size + off), size);    
+{  
     FLASH25D_WriteEnable();
-	FLASH25D_Write_NoCheck((uint8_t*)buffer, (block * c->block_size + off), size);
-	
+	FLASH25D_Write_NoCheck((uint8_t*)buffer, (block * c->block_size + off), size);	
 	return 0;
 }
 
 int block_device_erase(const struct lfs_config *c, lfs_block_t block)
-{
-   // debug_printf("LittleFS:  block_device_erase(%x)\r\n", block * c->block_size);
+{   
     FLASH25D_WriteEnable();
-	FLASH25D_Erase_Sector(block * c->block_size);
-	
+	FLASH25D_Erase_Sector(block * c->block_size);	
 	return 0;
 }
 
 int block_device_sync(const struct lfs_config *c)
-{
-  //  debug_printf("LittleFS:  block_device_sync()\r\n");
+{  
 	return 0;
 }
 
-lfs_t lfs;
-lfs_file_t file;
-struct lfs_config cfg;
-
-uint8_t lfs_read_buf[256];
-uint8_t lfs_prog_buf[256];
-uint8_t lfs_lookahead_buf[16];	// 128/8=16
-uint8_t lfs_file_buf[256];
-
+/**
+ * @brief Initialize LittleFS and increase bootcounter 
+ */
 void SPIFLASH_Config(void)
 {
 	// block device operations
@@ -165,7 +172,8 @@ void SPIFLASH_Config(void)
     cfg.block_cycles = 500;    
 
 
-    debug_printf("LittleFS: mounting ... ");
+    SPI3_Init();
+    debug_printf("   >> LittleFS: mounting ... ");
     int err = lfs_mount(&lfs, &cfg);
     // reformat if we can't mount the filesystem
     // this should only happen on the first boot
@@ -178,7 +186,7 @@ void SPIFLASH_Config(void)
 
     if (!err) // filesystem or, or reformat of filesystem is ok
     {
-        debug_printf(" MOUNTED SUCCESSFULLY\r\n");
+        debug_printf("OK\r\n");
         // read current count
         uint32_t boot_count = 0;
         lfs_file_open(&lfs, &file, "boot_count", LFS_O_RDWR | LFS_O_CREAT);
@@ -196,7 +204,28 @@ void SPIFLASH_Config(void)
         lfs_unmount(&lfs);
 
         // print the boot count
-        debug_printf("boot_count: %d\n", boot_count);
-    }
-    
+        debug_printf("   >> boot_count: %d\r\n", boot_count);
+    }   
+    SPI3_DeInit();
+}
+
+
+/**
+ * @brief Init and test SPI Flash attached to SPI3
+ * @retval 1 if device found, 0 otherwise
+ */
+uint8_t SPIFLASH_TestDevice(void)
+{
+    uint8_t tx_buf[8], rx_buf[8];    //Buffers for the first read.
+    tx_buf[0] = 0x9F; // ID Code
+
+    SPI3_Init();
+    HAL_GPIO_WritePin(FLASH_SPICS_PORT, FLASH_nCS_PIN, GPIO_PIN_RESET);
+    HAL_SPI_Transmit(&SPI3_Handle, tx_buf, 1, HAL_MAX_DELAY);
+    HAL_SPI_Receive(&SPI3_Handle, rx_buf, 3, HAL_MAX_DELAY);   //Returns the right value
+    HAL_GPIO_WritePin(FLASH_SPICS_PORT, FLASH_nCS_PIN, GPIO_PIN_SET);
+
+    debug_printf(" * SPI3 SPIFlash ID: 0x%02x 0x%02x 0x%02x\r\n", rx_buf[0], rx_buf[1], rx_buf[2]);
+    SPI3_DeInit();
+    return(rx_buf[0]>0); // manufactorer id present
 }

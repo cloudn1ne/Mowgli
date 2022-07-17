@@ -25,7 +25,7 @@ extern "C" {
     // define to support IMU Calibration (Mag) via https://github.com/pcdangio/ros-calibration_imu
     #define SUPPORT_ROS_CALIBRATION_IMU           1     
 
-    #define I_DONT_NEED_MY_FINGERS              1       // disables EmergencyController() (no wheel lift, or tilt sensing and stopping the blade anymore)
+   // #define I_DONT_NEED_MY_FINGERS              1       // disables EmergencyController() (no wheel lift, or tilt sensing and stopping the blade anymore)
 
     /// nominal max charge current is 1 Amp
     #define MAX_CHARGE_CURRENT                  1.0

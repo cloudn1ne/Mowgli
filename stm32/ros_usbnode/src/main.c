@@ -20,6 +20,7 @@
 // stm32 custom
 #include "board.h"
 #include "panel.h"
+#include "emergency.h"
 #include "soft_i2c.h"
 #include "i2c.h"
 #include "imu/imu.h"
@@ -50,8 +51,6 @@ volatile uint8_t  drivemotors_tx_busy = 0;
 static uint8_t drivemotors_tx_buffer_len;
 static char drivemotors_tx_buffer[32];
 
-
-
 // MASTER rx buffering
 static uint8_t master_rcvd_data;
 volatile uint8_t  master_rx_buf[32];
@@ -66,8 +65,7 @@ static uint8_t master_tx_buffer_len;
 static char master_tx_buffer[255];
 
 
-
-int    blade_motor = 0;
+int blade_motor = 0;
 
 static uint8_t panel_rcvd_data;
 
@@ -92,15 +90,6 @@ uint16_t prev_right_encoder_val = 0;
 uint16_t prev_left_encoder_val = 0;
 int16_t prev_right_wheel_speed_val = 0;
 int16_t prev_left_wheel_speed_val = 0;
-
-
-
-uint8_t emergency_state=0;
-uint32_t stop_emergency_started=0;
-uint32_t wheel_lift_emergency_started=0;
-uint32_t tilt_emergency_started=0;
-uint32_t accelerometer_int_emergency_started=0;
-uint32_t play_button_started=0;
 
 UART_HandleTypeDef MASTER_USART_Handler; // UART  Handle
 UART_HandleTypeDef DRIVEMOTORS_USART_Handler; // UART  Handle
@@ -811,48 +800,6 @@ void PAC5210RESET_Init()
 }
 
 /**
- * @brief Emergency sensors
- * @retval None
- */
-void Emergency_Init()
-{
-    GPIO_InitTypeDef GPIO_InitStruct;
-    STOP_BUTTON_GPIO_CLK_ENABLE();
-    GPIO_InitStruct.Pin = STOP_BUTTON_YELLOW_PIN;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-    HAL_GPIO_Init(STOP_BUTTON_YELLOW_PORT, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin = STOP_BUTTON_WHITE_PIN;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-    HAL_GPIO_Init(STOP_BUTTON_WHITE_PORT, &GPIO_InitStruct);
-
-    TILT_GPIO_CLK_ENABLE();
-    GPIO_InitStruct.Pin = TILT_PIN;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-    HAL_GPIO_Init(TILT_PORT, &GPIO_InitStruct);
-
-    WHEEL_LIFT_GPIO_CLK_ENABLE();
-    GPIO_InitStruct.Pin = WHEEL_LIFT_BLUE_PIN;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-    HAL_GPIO_Init(WHEEL_LIFT_BLUE_PORT, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin = WHEEL_LIFT_RED_PIN;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-    HAL_GPIO_Init(WHEEL_LIFT_RED_PORT, &GPIO_InitStruct);
-
-    PLAY_BUTTON_GPIO_CLK_ENABLE();
-    GPIO_InitStruct.Pin = PLAY_BUTTON_PIN;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_PULLUP;
-    HAL_GPIO_Init(PLAY_BUTTON_PORT, &GPIO_InitStruct);
-}
-
-/**
  * @brief SPI3 Bus (onboard FLASH)
  * @retval None
  */
@@ -1406,136 +1353,12 @@ void ChargeController(void)
 }
 
 /*
- * Manages the emergency sensors
- */
-void EmergencyController(void)
-{
-    GPIO_PinState stop_button_yellow = HAL_GPIO_ReadPin(STOP_BUTTON_YELLOW_PORT, STOP_BUTTON_YELLOW_PIN);
-    GPIO_PinState stop_button_white = HAL_GPIO_ReadPin(STOP_BUTTON_WHITE_PORT, STOP_BUTTON_WHITE_PIN);
-    GPIO_PinState wheel_lift_blue = HAL_GPIO_ReadPin(WHEEL_LIFT_BLUE_PORT, WHEEL_LIFT_BLUE_PIN);
-    GPIO_PinState wheel_lift_red = HAL_GPIO_ReadPin(WHEEL_LIFT_RED_PORT, WHEEL_LIFT_RED_PIN);
-    GPIO_PinState tilt = HAL_GPIO_ReadPin(TILT_PORT, TILT_PIN);
-    GPIO_PinState play_button = !HAL_GPIO_ReadPin(PLAY_BUTTON_PORT, PLAY_BUTTON_PIN); // pullup, active low    
-    uint8_t accelerometer_int_triggered = I2C_TestZLowINT();
-
-    uint32_t now = HAL_GetTick();
-
-    if (stop_button_yellow || stop_button_white)
-    {
-        if (stop_emergency_started == 0)
-        {
-            stop_emergency_started = now;
-        }
-        else
-        {
-            if (now - stop_emergency_started >= STOP_BUTTON_EMERGENCY_MILLIS)
-            {
-                if (stop_button_yellow)
-                {
-                    emergency_state |= 0b00010;
-                    debug_printf(" ## EMERGENCY ## - STOP BUTTON (yellow) triggered\r\n");
-                }
-                if (stop_button_white) {
-                    emergency_state |= 0b00100;
-                    debug_printf(" ## EMERGENCY ## - STOP BUTTON (white) triggered\r\n");
-                }
-            }
-        }
-    }
-    else
-    {
-        stop_emergency_started = 0;
-    }
-
-    if (wheel_lift_blue || wheel_lift_red)
-    {
-        if (wheel_lift_emergency_started == 0)
-        {
-            wheel_lift_emergency_started = now;
-        }
-        else
-        {
-            if (now - wheel_lift_emergency_started >= WHEEL_LIFT_EMERGENCY_MILLIS)
-            {
-                if (wheel_lift_blue)
-                {
-                    emergency_state |= 0b01000;
-                    debug_printf(" ## EMERGENCY ## - WHEEL LIFT (blue) triggered\r\n");
-                }
-                if (wheel_lift_red)
-                {
-                    emergency_state |= 0b10000;
-                    debug_printf(" ## EMERGENCY ## - WHEEL LIFT (red) triggered\r\n");
-                }
-            }
-        }
-    }
-    if (accelerometer_int_triggered)
-    {
-        if(accelerometer_int_emergency_started == 0)
-        {
-            accelerometer_int_emergency_started = now;
-        }
-        else
-        {
-            if (now - accelerometer_int_emergency_started >= TILT_EMERGENCY_MILLIS) {
-                emergency_state |= 0b100000;
-                debug_printf(" ## EMERGENCY ## - ACCELEROMETER TILT triggered\r\n");
-            }
-        }     
-    }
-    else
-    {
-        accelerometer_int_emergency_started = 0;
-    }
-    
-    if (tilt)
-    {
-        if(tilt_emergency_started == 0)
-        {
-            tilt_emergency_started = now;
-        }
-        else
-        {
-            if (now - tilt_emergency_started >= TILT_EMERGENCY_MILLIS) {
-                emergency_state |= 0b100000;
-                debug_printf(" ## EMERGENCY ## - MECHANICAL TILT triggered\r\n");
-            }
-        }
-    }
-    else
-    {
-        tilt_emergency_started = 0;
-    }
-
-    if (emergency_state && play_button)
-    {
-        if(play_button_started == 0)
-        {
-            play_button_started = now;
-        }
-        else
-        {
-            if (now - play_button_started >= PLAY_BUTTON_CLEAR_EMERGENCY_MILLIS) {
-                emergency_state = 0;
-                debug_printf(" ## EMERGENCY ## - manual reset\r\n");
-				StatusLEDUpdate();
-                chirp(1);
-            }
-        }
-    }
-    else
-    {
-        play_button_started = 0;
-    }
-}
-
-/*
  * Update the states for the Emergency, Charge and Low Bat LEDs
  */
 void StatusLEDUpdate(void)
 {
-        if (emergency_state) {
+        if (Emergency_State()) {
+            debug_printf("Emergency !");
             PANEL_Set_LED(PANEL_LED_LIFTED, PANEL_LED_FLASH_FAST);
         } else {
             PANEL_Set_LED(PANEL_LED_LIFTED, PANEL_LED_OFF);

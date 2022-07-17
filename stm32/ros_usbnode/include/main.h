@@ -71,7 +71,7 @@ extern int16_t  right_wheel_speed_val;
 extern int16_t  left_wheel_speed_val;
 extern uint32_t right_encoder_ticks;
 extern uint32_t left_encoder_ticks;
-extern uint8_t emergency_state;
+
 
 // uart statistics
 extern uint16_t cnt_uart4_overrun;      // master

@@ -7,6 +7,11 @@
         "board.h": "c",
         "usbd_cdc_if.h": "c",
         "i2c.h": "c",
-        "random": "c"
+        "random": "c",
+        "chrono": "cpp",
+        "__locale": "c",
+        "__string": "c",
+        "string": "c",
+        "string_view": "c"
     }
 }

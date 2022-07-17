@@ -14,6 +14,7 @@
 #include "stm32f1xx_hal.h"
 #include "board.h"
 #include "main.h"
+#include "soft_i2c.h"
 #include "littlefs/lfs.h"
 #include "littlefs/lfs_util.h"
 
@@ -152,7 +153,7 @@ int block_device_sync(const struct lfs_config *c)
 }
 
 /**
- * @brief Initialize LittleFS and increase bootcounter 
+ * @brief Initialize LittleFS configuration values
  */
 void SPIFLASH_Config(void)
 {
@@ -170,8 +171,13 @@ void SPIFLASH_Config(void)
 	cfg.lookahead_size = 256;
     cfg.cache_size = 256;
     cfg.block_cycles = 500;    
+}
 
-
+/**
+ * @brief Mount LittleFS and increase boot counter
+ */
+void SPIFLASH_IncBootCounter(void)
+{
     SPI3_Init();
     debug_printf("   >> LittleFS: mounting ... ");
     int err = lfs_mount(&lfs, &cfg);
@@ -183,7 +189,6 @@ void SPIFLASH_Config(void)
         err = lfs_mount(&lfs, &cfg);
     }
     
-
     if (!err) // filesystem or, or reformat of filesystem is ok
     {
         debug_printf("OK\r\n");
@@ -199,6 +204,9 @@ void SPIFLASH_Config(void)
 
         // remember the storage is not updated until the file is closed successfully
         lfs_file_close(&lfs, &file);
+
+        // show contents of / folder
+        SPIFLASH_ListDir("/");
 
         // release any resources we were using
         lfs_unmount(&lfs);
@@ -228,4 +236,165 @@ uint8_t SPIFLASH_TestDevice(void)
     debug_printf(" * SPI3 SPIFlash ID: 0x%02x 0x%02x 0x%02x\r\n", rx_buf[0], rx_buf[1], rx_buf[2]);
     SPI3_DeInit();
     return(rx_buf[0]>0); // manufactorer id present
+}
+
+/**
+ * @brief List contents of LittleFS on internal SPI Flash
+ */
+int SPIFLASH_ListDir(const char *path) 
+{ 
+    lfs_dir_t dir;
+    int err = lfs_dir_open(&lfs, &dir, path);
+    if (err) {
+        debug_printf(" SPIFLASH_ListDir: unable to open dir: %s\r\n", path);
+        return err;
+    }
+
+    debug_printf("   >> LittleFS '%s' content ... \r\n\r\n", path);
+    struct lfs_info info;
+    while (true) {
+        int res = lfs_dir_read(&lfs, &dir, &info);
+        if (res < 0) {
+            debug_printf(" SPIFLASH_ListDir: lfs_dir_read error\r\n");
+            return res;
+        }
+
+        if (res == 0) {                     
+            break;
+        }
+
+        switch (info.type) {
+            case LFS_TYPE_REG: debug_printf("      (file)"); break;
+            case LFS_TYPE_DIR: debug_printf("      (dir) "); break;
+            default:           debug_printf("      ?     "); break;
+        }
+
+        debug_printf(" \'%s\' ", info.name);
+
+        if (info.type != LFS_TYPE_DIR)
+        {
+            static const char *prefixes[] = {"", "K", "M", "G"};
+            for (int i = sizeof(prefixes)/sizeof(prefixes[0])-1; i >= 0; i--) {
+                if (info.size >= (1 << 10*i)-1) {
+                    debug_printf(" %*u %sB\r\n", 4-(i != 0), info.size >> 10*i, prefixes[i]);
+                    break;
+                }
+            }
+        }
+        else
+        {
+            debug_printf("\r\n");
+        }
+    }
+
+    err = lfs_dir_close(&lfs, &dir);
+    if (err) {
+        debug_printf(" SPIFLASH_ListDir: lfs_dir_close error\r\n");
+        return err;
+    }
+    debug_printf("\r\n");
+    return 0;
+}
+
+/**
+ * @brief Save Cfg Value to LittleFS
+ */
+void SPIFLASH_WriteCfgValue(const char *name, uint8_t type, uint8_t len, uint8_t *data)
+{
+    SW_I2C_DeInit();  // disable SOFT I2C
+    SPI3_Init();    // enable SPI3
+
+#ifdef SPIFLASH_DEBUG
+    debug_printf("   >> LittleFS: mounting ... ");
+#endif    
+    int err = lfs_mount(&lfs, &cfg);
+  
+    if (!err) // filesystem or, or reformat of filesystem is ok
+    {
+#ifdef SPIFLASH_DEBUG        
+        debug_printf("OK\r\n");
+#endif        
+        // read current count        
+        lfs_file_open(&lfs, &file, name, LFS_O_RDWR | LFS_O_CREAT);
+        
+        lfs_file_rewind(&lfs, &file);
+        lfs_file_write(&lfs, &file, (uint8_t*)&type, 1);
+        lfs_file_write(&lfs, &file, (uint8_t*)&len, 1);
+        lfs_file_write(&lfs, &file, data, len);
+
+        // remember the storage is not updated until the file is closed successfully
+        lfs_file_close(&lfs, &file);
+        // release any resources we were using
+        lfs_unmount(&lfs);
+
+      
+#ifdef SPIFLASH_DEBUG        
+        debug_printf("   >> value saved\r\n");
+#endif        
+    }   
+    SPI3_DeInit();  // disable SPI3
+    SW_I2C_Init();  // re-enable SOFT I2C
+}
+
+/**
+ * @brief Read Double Cfg Value
+ */
+double SPIFLASH_ReadDouble(char *name)
+{
+    double d;
+    uint8_t type;
+
+    SW_I2C_DeInit();  // disable SOFT I2C
+    SPI3_Init();    // enable SPI3
+
+    SPIFLASH_ReadCfgValue(name, &type, (uint8_t*)&d);
+
+    SPI3_DeInit();  // disable SPI3
+    SW_I2C_Init();  // re-enable SOFT I2C
+
+    return(d);
+}
+
+/**
+ * @brief Save Cfg Value to LittleFS  
+ */
+uint8_t SPIFLASH_ReadCfgValue(const char *name, uint8_t *type, uint8_t *data)
+{
+    uint8_t length = 0;
+    
+    SW_I2C_DeInit();  // disable SOFT I2C
+    SPI3_Init();    // enable SPI3
+
+#ifdef SPIFLASH_DEBUG
+    debug_printf("   >> LittleFS: mounting ... ");
+#endif    
+    int err = lfs_mount(&lfs, &cfg);
+
+    if (!err) // filesystem or, or reformat of filesystem is ok
+    {
+#ifdef SPIFLASH_DEBUG        
+        debug_printf("OK\r\n");
+#endif
+        // read current count        
+        lfs_file_open(&lfs, &file, name, LFS_O_RDWR | LFS_O_CREAT);
+        lfs_file_read(&lfs, &file, type, 1);        // first byte is type
+        lfs_file_read(&lfs, &file, &length, 1);      // second byte is len in bytes
+#ifdef SPIFLASH_DEBUG
+        debug_printf("      SPIFLASH_ReadCfgValue type=%d len=%d\r\n", *type, length);
+#endif        
+        lfs_file_read(&lfs, &file, data, length);
+
+        // remember the storage is not updated until the file is closed successfully
+        lfs_file_close(&lfs, &file);
+        // release any resources we were using
+        lfs_unmount(&lfs);
+
+        // print the boot count
+#ifdef SPIFLASH_DEBUG        
+        debug_printf("   >> value read\r\n");        
+#endif        
+    }   
+    SPI3_DeInit();  // disable SPI3
+    SW_I2C_Init();  // re-enable SOFT I2C
+    return(length);
 }

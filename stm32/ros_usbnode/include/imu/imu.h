@@ -10,7 +10,7 @@ extern "C" {
 
 typedef struct 
 {
-    float x, y, z;
+    double x, y, z;
 } VECTOR;
 
 /*
@@ -36,14 +36,14 @@ void IMU_ReadAccelerometer(float *x, float *y, float *z);
 void IMU_Onboard_ReadAccelerometer(float *x, float *y, float *z);
 float IMU_Onboard_ReadTemp(void);
 void IMU_ReadGyro(float *x, float *y, float *z);
-void IMU_ReadMagnetometer(float *x, float *y, float *z);
-void IMU_ReadMagnetometerNormalized(float *x, float *y, float *z);
+void IMU_ReadMagnetometer(double *x, double *y, double *z);
+void IMU_ReadMagnetometerNormalized(double *x, double *y, double *z);
 float IMU_ReadBarometerTemperatureC(void);
 float IMU_ReadBarometerAltitudeMeters(void);
 void IMU_Onboard_AccelerometerSetCovariance(float *cm);
 void IMU_AccelerometerSetCovariance(float *cm);
 void IMU_GyroSetCovariance(float *cm);
-void IMU_ApplyMagTransformation(float x, float y, float z, float *x_cal, float *y_cal, float *z_cal);
+void IMU_ApplyMagTransformation(double x, double y, double z, double *x_cal, double *y_cal, double *z_cal);
 void IMU_Normalize( VECTOR* p );
 float IMU_MagHeading(void);
 
@@ -52,7 +52,7 @@ float IMU_MagHeading(void);
 /* Any external IMU needs to implement the following functions and adhere to the ROS REP 103 standard (https://www.ros.org/reps/rep-0103.html) */
 void IMU_ReadGyroRaw(float *x, float *y, float *z);
 void IMU_ReadAccelerometerRaw(float *x, float *y, float *z);
-void IMU_ReadMagnetometerRaw(float *x, float *y, float *z);
+void IMU_ReadMagnetometerRaw(double *x, double *y, double *z);
 /* end of functions to implement for IMU */
 
 
@@ -60,6 +60,9 @@ void IMU_ReadMagnetometerRaw(float *x, float *y, float *z);
 #define IMU_CAL_SAMPLES     100
 void IMU_Calibrate(void);
 
+/* Magnetometer Calibration Values */
+extern double onboard_imu_mag_bias[3];          // hard iron compensation
+extern double onboard_imu_mag_cal_matrix[3][3]; // soft iron compensation
 #ifdef __cplusplus
 }
 #endif

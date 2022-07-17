@@ -308,6 +308,7 @@ int main(void)
     if (SPIFLASH_TestDevice())
     {        
         SPIFLASH_Config();
+        SPIFLASH_IncBootCounter();
     }
     else
     {
@@ -350,20 +351,6 @@ int main(void)
     HAL_TIMEx_PWMN_Start(&TIM1_Handle, TIM_CHANNEL_1);
     debug_printf(" * Charge Controler PWM Timers initialized\r\n");
     
-
-/*
-    SW_I2C_DeInit();
-    debug_printf("SPI3 access\r\n");
-    SPI3_Init();
-    //while (1)
-    //{
-        SPI3_TestDevice();
-        //HAL_Delay(100);
-    //}
-    SPI3_DeInit();
-    SW_I2C_Init();
-*/
-
     // Init Drive Motors and Blade Motor
     #ifdef DRIVEMOTORS_USART_ENABLED
         DRIVEMOTORS_USART_Init();

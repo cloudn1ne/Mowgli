@@ -46,6 +46,7 @@ namespace mowgli
 
     virtual const char * getType() override { return "mowgli/magnetometer"; };
     virtual const char * getMD5() override { return "4a842b65f413084dc2b10fb484ea7f17"; };
+
   };
 
 }

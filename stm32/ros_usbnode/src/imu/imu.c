@@ -18,6 +18,7 @@
 #include "imu/altimu-10v5.h"
 #include "i2c.h"
 #include "main.h"
+#include "spiflash.h"
 
 /* accelerometer calibration values */
 float imu_cal_ax = 0.0;
@@ -44,17 +45,18 @@ float imu_cov_gz = 0.1;
 float onboard_imu_cov_ax = 0.01;
 float onboard_imu_cov_ay = 0.01;
 float onboard_imu_cov_az = 0.01;
+// ---------------------
 
 /**
   * @brief  Reads the 3 magnetometer channels and stores them in *x,*y,*z  
   * 
   * units are tesla uncalibrated
   */ 
-void IMU_ReadMagnetometer(float *x, float *y, float *z)
+void IMU_ReadMagnetometer(double *x, double *y, double *z)
 {  
-    float imu_x, imu_y, imu_z;    
-    IMU_ReadMagnetometerRaw(&imu_x, &imu_y, &imu_z);    
-    IMU_ApplyMagTransformation(imu_x, imu_y, imu_z, x, y, z);
+    double imu_x, imu_y, imu_z;        
+    IMU_ReadMagnetometerRaw(&imu_x, &imu_y, &imu_z);        
+    IMU_ApplyMagTransformation(imu_x, imu_y, imu_z, x, y, z);    
 }
 
 /**
@@ -62,11 +64,12 @@ void IMU_ReadMagnetometer(float *x, float *y, float *z)
   * 
   * units are tesla uncalibrated
   */ 
-void IMU_ReadMagnetometerNormalized(float *x, float *y, float *z)
+void IMU_ReadMagnetometerNormalized(double *x, double *y, double *z)
 {  
     VECTOR p;    
-    float imu_x, imu_y, imu_z;    
+    double imu_x, imu_y, imu_z;    
     IMU_ReadMagnetometerRaw(&imu_x, &imu_y, &imu_z);    
+
     IMU_ApplyMagTransformation(imu_x, imu_y, imu_z, &p.x, &p.y, &p.x);
     IMU_Normalize(&p);
     *x = p.x;
@@ -279,12 +282,38 @@ void IMU_Calibrate()
     onboard_imu_cov_ay = stddev_y / IMU_CAL_SAMPLES;
     onboard_imu_cov_az = stddev_z / IMU_CAL_SAMPLES;
     debug_printf("   >> Onboard IMU Calibration accelerometer covariance diagonal [%f %f %f]\r\n", onboard_imu_cov_ax, onboard_imu_cov_ay, onboard_imu_cov_az); 
+
+
+    /***************************************************/
+    /* load magnetometer calibration (hard/soft iron)  */
+    /****************************************************/    
+    onboard_imu_mag_bias[0] = SPIFLASH_ReadDouble("mag_bias_x");
+    onboard_imu_mag_bias[1] = SPIFLASH_ReadDouble("mag_bias_y");
+    onboard_imu_mag_bias[2] = SPIFLASH_ReadDouble("mag_bias_z");
+    debug_printf("   >> Onboard IMU Calibration magentometer biases (hard iron) [%f %f %f]\r\n", onboard_imu_mag_bias[0],  onboard_imu_mag_bias[1],  onboard_imu_mag_bias[2]); 
+
+    // ROW 0
+    onboard_imu_mag_cal_matrix[0][0] = SPIFLASH_ReadDouble("mag_dist_00");
+    onboard_imu_mag_cal_matrix[0][1] = SPIFLASH_ReadDouble("mag_dist_01");
+    onboard_imu_mag_cal_matrix[0][2] = SPIFLASH_ReadDouble("mag_dist_02");
+    // ROW 1
+    onboard_imu_mag_cal_matrix[1][0] = SPIFLASH_ReadDouble("mag_dist_10");
+    onboard_imu_mag_cal_matrix[1][1] = SPIFLASH_ReadDouble("mag_dist_11");
+    onboard_imu_mag_cal_matrix[1][2] = SPIFLASH_ReadDouble("mag_dist_12");
+    // ROW 2
+    onboard_imu_mag_cal_matrix[2][0] = SPIFLASH_ReadDouble("mag_dist_20");
+    onboard_imu_mag_cal_matrix[2][1] = SPIFLASH_ReadDouble("mag_dist_21");
+    onboard_imu_mag_cal_matrix[2][2] = SPIFLASH_ReadDouble("mag_dist_22");
+    debug_printf("   >> Onboard IMU Calibration magentometer compensation (soft iron)\r\n");
+    debug_printf("       [ %f\t%f\t%f\r\n", onboard_imu_mag_cal_matrix[0][0], onboard_imu_mag_cal_matrix[0][1], onboard_imu_mag_cal_matrix[0][2]); 
+    debug_printf("         %f\t%f\t%f\r\n", onboard_imu_mag_cal_matrix[1][0], onboard_imu_mag_cal_matrix[1][1], onboard_imu_mag_cal_matrix[1][2]); 
+    debug_printf("         %f\t%f\t%f ]\r\n", onboard_imu_mag_cal_matrix[2][0], onboard_imu_mag_cal_matrix[2][1], onboard_imu_mag_cal_matrix[2][2]);     
 }
 
 
 void IMU_Normalize( VECTOR* p )
 {
-    float w = sqrt( p->x * p->x + p->y * p->y + p->z * p->z );
+    double w = sqrt( p->x * p->x + p->y * p->y + p->z * p->z );
     p->x /= w;
     p->y /= w;
     p->z /= w;

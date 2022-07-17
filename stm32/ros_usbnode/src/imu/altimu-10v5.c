@@ -161,7 +161,7 @@ void IMU_ReadGyroRaw(float *x, float *y, float *z)
   * @brief  Reads the 3 magnetometer channels and stores them in *x,*y,*z  
   * units are tesla uncalibrated
   */
-void IMU_ReadMagnetometerRaw(float *x, float *y, float *z)
+void IMU_ReadMagnetometerRaw(double *x, double *y, double *z)
 {
     uint8_t mag_xyz[6];   // 2 bytes each
 

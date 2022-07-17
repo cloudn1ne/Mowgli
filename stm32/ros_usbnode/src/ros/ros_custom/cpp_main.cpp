@@ -11,6 +11,7 @@
 #include <cpp_main.h>
 #include "main.h"
 #include "panel.h"
+#include "spiflash.h"
 #include "stm32f1xx_hal.h"
 #include "ringbuffer.h"
 #include "ros.h"
@@ -28,6 +29,8 @@
 #include "nav_msgs/Odometry.h"
 #include "nbt.h"
 #include "geometry_msgs/Twist.h"
+#include "std_srvs/SetBool.h"
+#include "std_srvs/Empty.h"
 
 // IMU
 #include "imu/imu.h"
@@ -35,6 +38,10 @@
 #include "sensor_msgs/MagneticField.h"
 #include "sensor_msgs/Temperature.h"
 #include "mowgli/magnetometer.h"
+
+// Flash Configuration Services
+#include "mowgli/SetCfg.h"
+#include "mowgli/GetCfg.h"
 
 
 #define MAX_MPS	  	0.6		 	// Allow maximum speed of 0.6 m/s 
@@ -61,6 +68,8 @@ static uint8_t right_dir=0;
 
 // blade motor control
 static uint8_t blade_on_off=0;
+
+static uint8_t svcCfgDataBuffer[256];
 
 ros::NodeHandle nh;
 
@@ -127,7 +136,7 @@ sensor_msgs::Imu imu_onboard_msg;
 sensor_msgs::Temperature imu_onboard_temp_msg;
 
 //sensor_msgs::MagneticField imu_mag_calibration_msg;
-//mowgli::magnetometer imu_mag_calibration_msg;
+mowgli::magnetometer imu_mag_calibration_msg;
 
 /*
  * PUBLISHERS
@@ -151,25 +160,31 @@ ros::Publisher pubIMUOnboardTemp("imu_onboard/temp", &imu_onboard_temp_msg);
 // IMU external
 ros::Publisher pubIMU("imu/data_raw", &imu_msg);
 ros::Publisher pubIMUMag("imu/mag", &imu_mag_msg);
-//ros::Publisher pubIMUMagCalibration("imu/mag_calibration", &imu_mag_calibration_msg);
+ros::Publisher pubIMUMagCalibration("imu/mag_calibration", &imu_mag_calibration_msg);
 
 
 /*
  * SUBSCRIBERS
  */
 extern "C" void CommandVelocityMessageCb(const geometry_msgs::Twist& msg);
-extern "C" void CommandBladeOnMessageCb(const std_msgs::Bool& msg);
-extern "C" void CommandBladeOffMessageCb(const std_msgs::Bool& msg);
-extern "C" void CommandRebootMessageCb(const std_msgs::Bool& msg);
-
 ros::Subscriber<geometry_msgs::Twist> subCommandVelocity("cmd_vel", CommandVelocityMessageCb);
-ros::Subscriber<std_msgs::Bool> subBladeOn("cmd_blade_on", CommandBladeOnMessageCb);
-ros::Subscriber<std_msgs::Bool> subBladeOff("cmd_blade_off", CommandBladeOffMessageCb);
-ros::Subscriber<std_msgs::Bool> subReboot("cmd_reboot", CommandRebootMessageCb);
+
 // TODO ros::Subscriber<std_msgs::Bool> subLEDSet("cmd_panel_led_set", CommandLEDSetMessageCb);
 // TODO ros::Subscriber<std_msgs::Bool> subLEDFlashSlow("cmd_panel_led_flash_slow", CommandLEDFlashSlowMessageCb);
 // TODO ros::Subscriber<std_msgs::Bool> subLEDFlashFast("cmd_panel_led_flash_fast", CommandLEDFlashFastMessageCb);
 // TODO ros::Subscriber<std_msgs::Bool> subLEDClear("cmd_panel_led_clear", CommandLEDClearMessageCb);
+
+// SERVICES
+void cbSetCfg(const mowgli::SetCfgRequest &req, mowgli::SetCfgResponse &res);
+void cbGetCfg(const mowgli::GetCfgRequest &req, mowgli::GetCfgResponse &res);
+void cbEnableMowerMotor(const std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
+void cbReboot(const std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
+
+ros::ServiceServer<mowgli::SetCfgRequest, mowgli::SetCfgResponse> svcSetCfg("mowgli/SetCfg", cbSetCfg);
+ros::ServiceServer<mowgli::GetCfgRequest, mowgli::GetCfgResponse> svcGetCfg("mowgli/GetCfg", cbGetCfg);
+ros::ServiceServer<std_srvs::SetBool::Request, std_srvs::SetBool::Response> svcEnableMowerMotor("mowgli/EnableMowerMotor", cbEnableMowerMotor);
+ros::ServiceServer<std_srvs::Empty::Request, std_srvs::Empty::Response> svcReboot("mowgli/Reboot", cbReboot);
+
 
 /*
  * NON BLOCKING TIMERS
@@ -181,43 +196,9 @@ static nbt_t panel_nbt;
 static nbt_t broadcast_nbt;
 
 /*
- * receive and parse cmd_blade_on messages
- * if True, turns ON the Blade Motor - (False is ignored, use the cmd_blade_off with a True message to turn it off)
+ * reboot flag, if true we reboot after next publish_nbt
  */
-extern "C" void CommandBladeOnMessageCb(const std_msgs::Bool& msg)
-{	
-	//debug_printf("/cmd_blade_on: %d\r\n", msg.data);
-	if (msg.data)
-	{
-		last_cmd_blade = nh.now();
-		blade_on_off = true;
-	}
-}
-
-/*
- * receive and parse cmd_blade_on messages
- * if True, turns OFF the Blade Motor - (False is ignored, use the cmd_blade_on with a True message to turn it ON)
- */
-extern "C" void CommandBladeOffMessageCb(const std_msgs::Bool& msg)
-{	
-	//debug_printf("/cmd_blade_off: %d\r\n", msg.data);
-	if (msg.data)
-	{
-		last_cmd_blade = nh.now();
-		blade_on_off = false;
-	}
-}
-
-/*
- * Reboot STM32 if True
- */
-extern "C" void  CommandRebootMessageCb(const std_msgs::Bool& msg)
-{		
-	if (msg.data)
-	{
-		NVIC_SystemReset();
-	}
-}
+static bool reboot_flag = false;
 
 /*
  * receive and parse cmd_vel messages
@@ -315,6 +296,14 @@ extern "C" void chatter_handler()
 		  pubIMUOnboardTemp.publish(&imu_onboard_temp_msg);
 
 		  HAL_GPIO_TogglePin(LED_GPIO_PORT, LED_PIN);         // flash LED
+
+		  // reboot if set via cbReboot (mowgli/Reboot)
+		  if (reboot_flag)
+		  {
+			nh.spinOnce();
+			NVIC_SystemReset();
+			// we never get here ...
+		  }
 	  }
 }
 
@@ -535,17 +524,34 @@ extern "C" void broadcast_handler()
 		pubIMU.publish(&imu_msg);
 
 		/**********************************/
-		/* Exernal Magnetometer			  */
+		/* Exernal Magnetometer Corrected */
 		/**********************************/
+		double x,y,z;	
+
 		// Orientation (Magnetometer)
-		imu_mag_msg.header.frame_id = "imu";					
-	 	IMU_ReadMagnetometerRaw(&imu_mag_msg.magnetic_field.x, &imu_mag_msg.magnetic_field.y, &imu_mag_msg.magnetic_field.z);				
+		imu_mag_msg.header.frame_id = "imu";								
+	 	IMU_ReadMagnetometer(&x, &y, &z);
+		imu_mag_msg.magnetic_field.x = x;
+		imu_mag_msg.magnetic_field.y = y;
+		imu_mag_msg.magnetic_field.z = z;
+
 		// covariance is fixed for now
 		imu_mag_msg.magnetic_field_covariance[0] = 1e-3;
 		imu_mag_msg.magnetic_field_covariance[4] = 1e-3;
 		imu_mag_msg.magnetic_field_covariance[8] = 1e-3;
 		imu_mag_msg.header.stamp = nh.now();
 		pubIMUMag.publish(&imu_mag_msg);
+
+		/******************************************/
+		/* Exernal Magnetometer RAW (Calibration) */
+		/******************************************/
+		IMU_ReadMagnetometerRaw(&x, &y, &z);
+		imu_mag_calibration_msg.x = x;
+		imu_mag_calibration_msg.y = y;
+		imu_mag_calibration_msg.z = z;
+
+		imu_mag_msg.header.stamp = nh.now();
+		pubIMUMagCalibration.publish(&imu_mag_calibration_msg);
 
 		/**********************************/
 		/* Onboard (GForce) Accelerometer */
@@ -563,6 +569,129 @@ extern "C" void broadcast_handler()
 		pubIMUOnboard.publish(&imu_onboard_msg);		
 
 	  } // if (NBT_handler(&broadcast_nbt))
+}
+
+/*
+ *  callback for mowgli/GetCfg Service
+ */
+void cbGetCfg(const mowgli::GetCfgRequest &req, mowgli::GetCfgResponse &res) 
+{	
+    debug_printf("cbGetCfg:\r\n");	
+	debug_printf(" name: %s\r\n", req.name);
+
+	res.data_length = SPIFLASH_ReadCfgValue(req.name, &res.type, svcCfgDataBuffer);
+
+	if (res.data_length > 0)
+	{		
+		res.data = (uint8_t*)&svcCfgDataBuffer;	
+		res.status = 1;
+	}
+	else
+	{
+		res.status = 0;
+	}
+}
+
+/*
+ *  callback for mowgli/SetCfg Service
+ */
+void cbSetCfg(const mowgli::SetCfgRequest &req, mowgli::SetCfgResponse &res) {
+	union {
+		float f;
+		uint8_t b[4];
+	} float_val;
+
+	union {
+		double d;
+		uint8_t b[8];
+	} double_val;
+	uint8_t i;
+
+    debug_printf("cbSetCfg:\r\n");
+	debug_printf(" type: %d\r\n", req.type);
+	debug_printf(" len: %d\r\n", req.data_length);
+	debug_printf(" name: %s\r\n", req.name);
+
+	if (req.type == 0) // TYPE_INT32 (0)
+	{
+		int32_t int32_val = (req.data[0]) + (req.data[1]<<8) + (req.data[2]<<16) + (req.data[3]<<24);
+		debug_printf("(int32) data: %d\r\n", int32_val);			
+	}
+	if (req.type == 1) // TYPE_UINT32 (1)
+	{
+		uint32_t uint32_val = (req.data[0]) + (req.data[1]<<8) + (req.data[2]<<16) + (req.data[3]<<24);
+		debug_printf("(uint32) data: %d\r\n", uint32_val);			
+	}
+	if (req.type == 2) // TYPE_FLOAT (2)
+	{		
+		for (i=0;i<4;i++)
+		{
+			float_val.b[i] = req.data[i];
+		}		
+		debug_printf("(float) data: %f\r\n", float_val.f);					
+	}
+	if (req.type == 3)  // TYPE_DOUBLE (3)
+	{		
+		for (i=0;i<8;i++)
+		{
+			double_val.b[i] = req.data[i];
+		}
+		debug_printf("(double) data: %Lf\r\n", double_val.d);			
+	}
+	if (req.type == 4)	// TYPE_STRING (4)
+	{	
+		debug_printf("(string) data: '");				
+		for (i=0;i<req.data_length;i++)
+		{
+			debug_printf("%c", req.data[i]);
+		}
+		debug_printf("'\r\n");	
+	}
+	if (req.type == 5)	// TYPE_BARRAY (5)
+	{	
+		debug_printf("(byte array) data: '");				
+		for (i=0;i<req.data_length;i++)
+		{
+			debug_printf("0x%02x ", req.data[i]);
+		}
+		debug_printf("'\r\n");	
+	}
+
+	// debug print data[] array
+	for (i=0;i<req.data_length;i++)
+	{
+		debug_printf(" data[%d]: %d\r\n", i, req.data[i]);	
+	}		
+
+	SPIFLASH_WriteCfgValue(req.name, req.type, req.data_length, req.data);
+	res.status = 1;
+}
+
+/*
+ *  callback for mowgli/EnableMowerMotor Service
+ */
+void cbEnableMowerMotor(const std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res)
+{
+	//debug_printf("cbEnableMowerMotor:\r\n");
+	last_cmd_blade = nh.now();	// if the last blade cmd is older than 25sec the motor will be stopped !
+	blade_on_off = req.data;
+    if (req.data) {        		
+        res.success = true;
+        res.message = "Mower Blade has been started";
+    }
+    else {
+        res.success = false;
+        res.message = "Mower Blade has been stopped";
+    }    
+}
+
+/*
+ *  callback for mowgli/Reboot Service
+ */
+void cbReboot(const std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
+{
+	//debug_printf("cbReboot:\r\n");
+	reboot_flag = true;	
 }
 
 /*
@@ -595,6 +724,7 @@ extern "C" void init_ROS()
 	nh.advertise(pubChargeCurrent);
 	nh.advertise(pubChargePWM);
 	nh.advertise(pubOdom);
+
 	nh.advertise(pubBladeState);
 	nh.advertise(pubChargeingState);
 	nh.advertise(pubLeftEncoderTicks);
@@ -602,17 +732,19 @@ extern "C" void init_ROS()
 	nh.advertise(pubButtonState);
 	nh.advertise(pubIMU);
 	nh.advertise(pubIMUMag);
-	//nh.advertise(pubIMUMagCalibration);
+	nh.advertise(pubIMUMagCalibration);
 	nh.advertise(pubIMUOnboard);
 	nh.advertise(pubIMUOnboardTemp);
-
 	
-	// Initialize Subs
+	// Initialize Subscribers
 	nh.subscribe(subCommandVelocity);
-	nh.subscribe(subBladeOn);
-	nh.subscribe(subBladeOff);
-	nh.subscribe(subReboot);
 
+	// Initialize Services	
+	nh.advertiseService(svcSetCfg);	  
+	nh.advertiseService(svcGetCfg);	  
+    nh.advertiseService(svcEnableMowerMotor);
+	nh.advertiseService(svcReboot);
+	
 	// Initialize Timers
 	NBT_init(&publish_nbt, 1000);
 	NBT_init(&panel_nbt, 100);

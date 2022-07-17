@@ -1,8 +1,13 @@
 
-/*
- * Project Mowgli - Emergency Controller 
- * (c) Cybernet / cn@warp.at
- */
+/**
+  ******************************************************************************
+  * @file    emergency.c
+  * @author  Georg Swoboda <cn@warp.at>
+  * @brief   Emergency handling, buttons, lift sensors, tilt sensors
+  ******************************************************************************  
+  * 
+  ******************************************************************************
+  */
 #include <stdio.h>
 #include <stdarg.h>
 #include <math.h>

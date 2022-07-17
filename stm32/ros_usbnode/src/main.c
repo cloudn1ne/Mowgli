@@ -1,14 +1,18 @@
-/*
- * Project Mowgli - STM32 ROS SERIAL USB
- * (c) Cybernet / cn@warp.at
- * 
- *  Version 1.0 
- *  
- *  compile with -DBOARD_YARDFORCE500 to enable the YF500 GForce pinout
- * 
- *  ROS integration howto taken from here: https://github.com/Itamare4/ROS_stm32f1_rosserial_USB_VCP (Itamar Eliakim)
- *  
- */
+/**
+  ******************************************************************************
+  * @file    main.c
+  * @author  Georg Swoboda <cn@warp.at>
+  * @brief   main / bootup and initialization, motor control routines, usb init
+  ******************************************************************************
+  * Version 1.0 
+  * 
+  * compile with -DBOARD_YARDFORCE500 to enable the YF500 GForce pinout
+  * 
+  * ROS integration howto taken from here: https://github.com/Itamare4/ROS_stm32f1_rosserial_USB_VCP (Itamar Eliakim)
+  * 
+  ******************************************************************************
+  */
+
 #include <stdio.h>
 #include <stdarg.h>
 #include <math.h>

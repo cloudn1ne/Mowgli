@@ -11,6 +11,7 @@
 #include <cpp_main.h>
 #include "main.h"
 #include "panel.h"
+#include "emergency.h"
 #include "spiflash.h"
 #include "stm32f1xx_hal.h"
 #include "ringbuffer.h"
@@ -42,6 +43,9 @@
 // Flash Configuration Services
 #include "mowgli/SetCfg.h"
 #include "mowgli/GetCfg.h"
+
+// Status message
+#include "mowgli/status.h"
 
 
 #define MAX_MPS	  	0.6		 	// Allow maximum speed of 0.6 m/s 
@@ -107,25 +111,20 @@ double dth = 0.0;
 double dxy = 0.0;
 double vx = 0.0;
 double vy = 0.0;
-// double vth = 0.0;
-// ros::Duration d(0,1000000);
-/*
-double x = 1.0;
-double y = 0.0;
-double theta = 1.57;
-*/
+
+float imu_onboard_temperature;
 
 // std_msgs::String str_msg;
-std_msgs::Float32 f32_battery_voltage_msg;
-std_msgs::Float32 f32_charge_voltage_msg;
-std_msgs::Float32 f32_charge_current_msg;
-std_msgs::Int16 int16_charge_pwm_msg;
-std_msgs::Bool bool_blade_state_msg;
-std_msgs::Bool bool_charging_state_msg;
+//std_msgs::Float32 f32_battery_voltage_msg;
+//std_msgs::Float32 f32_charge_voltage_msg;
+//std_msgs::Float32 f32_charge_current_msg;
+//std_msgs::Int16 int16_charge_pwm_msg;
+//std_msgs::Bool bool_blade_state_msg;
+//std_msgs::Bool bool_charging_state_msg;
 std_msgs::Int16MultiArray buttonstate_msg;
 nav_msgs::Odometry odom_msg;
-std_msgs::UInt32 left_encoder_ticks_msg;
-std_msgs::UInt32 right_encoder_ticks_msg;
+//std_msgs::UInt32 left_encoder_ticks_msg;
+//std_msgs::UInt32 right_encoder_ticks_msg;
 
 // IMU
 // external IMU (i2c)
@@ -133,29 +132,33 @@ sensor_msgs::Imu imu_msg;
 sensor_msgs::MagneticField imu_mag_msg;
 // onboard IMU (accelerometer and temp)
 sensor_msgs::Imu imu_onboard_msg;
-sensor_msgs::Temperature imu_onboard_temp_msg;
+//sensor_msgs::Temperature imu_onboard_temp_msg;
 
 //sensor_msgs::MagneticField imu_mag_calibration_msg;
 mowgli::magnetometer imu_mag_calibration_msg;
+
+// mowgli status message
+mowgli::status status_msg;
 
 /*
  * PUBLISHERS
  */
 // ros::Publisher chatter("version", &str_msg);
-ros::Publisher pubBatteryVoltage("battery_voltage", &f32_battery_voltage_msg);
-ros::Publisher pubChargeVoltage("charge_voltage", &f32_charge_voltage_msg);
-ros::Publisher pubChargeCurrent("charge_current", &f32_charge_current_msg);
-ros::Publisher pubChargePWM("charge_pwm", &int16_charge_pwm_msg);
-ros::Publisher pubChargeingState("charging_state", &bool_charging_state_msg);
-ros::Publisher pubBladeState("blade_state", &bool_blade_state_msg);
+// ros::Publisher pubBatteryVoltage("battery_voltage", &f32_battery_voltage_msg);
+// ros::Publisher pubChargeVoltage("charge_voltage", &f32_charge_voltage_msg);
+// ros::Publisher pubChargeCurrent("charge_current", &f32_charge_current_msg);
+// ros::Publisher pubChargePWM("charge_pwm", &int16_charge_pwm_msg);
+// ros::Publisher pubChargeingState("charging_state", &bool_charging_state_msg);
+// ros::Publisher pubBladeState("blade_state", &bool_blade_state_msg);
 ros::Publisher pubOdom("odom", &odom_msg);
-ros::Publisher pubLeftEncoderTicks("left_encoder_ticks", &left_encoder_ticks_msg);
-ros::Publisher pubRightEncoderTicks("right_encoder_ticks", &right_encoder_ticks_msg);
+// ros::Publisher pubLeftEncoderTicks("left_encoder_ticks", &left_encoder_ticks_msg);
+// ros::Publisher pubRightEncoderTicks("right_encoder_ticks", &right_encoder_ticks_msg);
 ros::Publisher pubButtonState("buttonstate", &buttonstate_msg);
+ros::Publisher pubStatus("mowgli/status", &status_msg);
 
 // IMU onboard
 ros::Publisher pubIMUOnboard("imu_onboard/data_raw", &imu_onboard_msg);
-ros::Publisher pubIMUOnboardTemp("imu_onboard/temp", &imu_onboard_temp_msg);
+// ros::Publisher pubIMUOnboardTemp("imu_onboard/temp", &imu_onboard_temp_msg);
 
 // IMU external
 ros::Publisher pubIMU("imu/data_raw", &imu_msg);
@@ -267,7 +270,7 @@ extern "C" void chatter_handler()
 		  str_msg.data = version;
 		  chatter.publish(&str_msg);
 		  */
-		  
+		  /*
 		  f32_battery_voltage_msg.data = battery_voltage;
 		  pubBatteryVoltage.publish(&f32_battery_voltage_msg);
 
@@ -282,19 +285,20 @@ extern "C" void chatter_handler()
 
 		  bool_charging_state_msg.data =  chargecontrol_is_charging;
 		  pubChargeingState.publish(&bool_charging_state_msg);
-
+*/
  		  //bool_blade_state_msg.data = true; // TODO: read blade status
 //		  pubBladeState.publish(&bool_blade_state_msg);
 
 #ifdef IMU_ONBOARD_TEMP
-		  imu_onboard_temp_msg.temperature = IMU_Onboard_ReadTemp();
+		  imu_onboard_temperature = IMU_Onboard_ReadTemp();
 #else
-		  imu_onboard_temp_msg.temperature = -100;
+		  imu_onboard_temperature = -100;
 #endif
+/*
 		  imu_onboard_temp_msg.variance = 0.5;		// 0.5°C resolution
 		  imu_onboard_temp_msg.header.frame_id = base_link;
 		  pubIMUOnboardTemp.publish(&imu_onboard_temp_msg);
-
+*/
 		  HAL_GPIO_TogglePin(LED_GPIO_PORT, LED_PIN);         // flash LED
 
 		  // reboot if set via cbReboot (mowgli/Reboot)
@@ -315,7 +319,7 @@ extern "C" void motors_handler()
 {
 	  if (NBT_handler(&motors_nbt))
 	  {
-		if (emergency_state)
+		if (Emergency_State())
 		{
 			setDriveMotors(0,0,0,0);
 			setBladeMotor(0);
@@ -461,29 +465,34 @@ extern "C" void broadcast_handler()
 		pubOdom.publish(&odom_msg);
 
 		// pub encoder values as well
+		/*
 		left_encoder_ticks_msg.data = left_encoder_ticks;
 		pubLeftEncoderTicks.publish(&left_encoder_ticks_msg);
 		right_encoder_ticks_msg.data = right_encoder_ticks;
 		pubRightEncoderTicks.publish(&right_encoder_ticks_msg);
-/*
-		double dx = 0.2;
-		double dtheta = 0.18;
+		*/
 
-		x += cos(theta)*dx*0.1;
-		y += sin(theta)*dx*0.1;
-		theta += dtheta*0.1;
-		if (theta > 3.14)
-		  	theta = -3.14;
-		t.header.frame_id = odom;
-		t.child_frame_id = base_link;
-		t.transform.translation.x = x;
-		t.transform.translation.y = y;
-		t.transform.rotation = tf::createQuaternionFromYaw(theta);
-		t.header.stamp = nh.now();
-		
-		broadcaster.sendTransform(t);		
-*/		
-
+		////////////////////////////////////////
+		// Mowgli Status
+		////////////////////////////////////////		
+		status_msg.stamp = current_time;
+		status_msg.rain_detected = RAIN_Sense();
+		status_msg.emergency_tilt_mech_triggered = Emergency_Tilt();
+		status_msg.emergency_tilt_accel_triggered = Emergency_LowZAccelerometer();
+		status_msg.emergency_left_wheel_lifted = Emergency_WheelLiftBlue();
+		status_msg.emergency_right_wheel_lifted = Emergency_WheelLiftRed();
+		status_msg.emergency_stopbutton_triggered = Emergency_StopButtonYellow() || Emergency_StopButtonWhite();
+		status_msg.left_encoder_ticks = left_encoder_ticks;
+		status_msg.right_encoder_ticks = right_encoder_ticks;
+		status_msg.v_charge = charge_voltage;
+		status_msg.i_charge = charge_current;
+		status_msg.v_battery = battery_voltage;
+		status_msg.charge_pwm = chargecontrol_pwm_val;
+		status_msg.is_charging = chargecontrol_is_charging;
+		status_msg.imu_temp = imu_onboard_temperature;
+		status_msg.blade_motor_ctrl_enabled = true;	// hardcoded for now
+		status_msg.drive_motor_ctrl_enabled = true; // hardcoded for now
+		pubStatus.publish(&status_msg);
 
 		////////////////////////////////////////
 		// int/ext IMU data
@@ -677,11 +686,11 @@ void cbEnableMowerMotor(const std_srvs::SetBool::Request &req, std_srvs::SetBool
 	blade_on_off = req.data;
     if (req.data) {        		
         res.success = true;
-        res.message = "Mower Blade has been started";
+        res.message = "Mower Blade Motor has been started";
     }
     else {
         res.success = false;
-        res.message = "Mower Blade has been stopped";
+        res.message = "Mower Blade Motor is being stopped";
     }    
 }
 
@@ -719,22 +728,23 @@ extern "C" void init_ROS()
 	broadcaster.init(nh);
 
 	// Initialize Pubs
-	nh.advertise(pubBatteryVoltage);
-	nh.advertise(pubChargeVoltage);
-	nh.advertise(pubChargeCurrent);
-	nh.advertise(pubChargePWM);
+	//nh.advertise(pubBatteryVoltage);
+	//nh.advertise(pubChargeVoltage);
+	//nh.advertise(pubChargeCurrent);
+	//nh.advertise(pubChargePWM);
 	nh.advertise(pubOdom);
 
-	nh.advertise(pubBladeState);
-	nh.advertise(pubChargeingState);
-	nh.advertise(pubLeftEncoderTicks);
-	nh.advertise(pubRightEncoderTicks);
+	//nh.advertise(pubBladeState);
+	//nh.advertise(pubChargeingState);
+	//nh.advertise(pubLeftEncoderTicks);
+	//nh.advertise(pubRightEncoderTicks);
 	nh.advertise(pubButtonState);
 	nh.advertise(pubIMU);
 	nh.advertise(pubIMUMag);
 	nh.advertise(pubIMUMagCalibration);
 	nh.advertise(pubIMUOnboard);
-	nh.advertise(pubIMUOnboardTemp);
+	//nh.advertise(pubIMUOnboardTemp);
+	nh.advertise(pubStatus);
 	
 	// Initialize Subscribers
 	nh.subscribe(subCommandVelocity);

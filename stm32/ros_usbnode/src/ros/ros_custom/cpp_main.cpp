@@ -383,7 +383,7 @@ extern "C" void broadcast_handler()
 		// IMU Messages
 		////////////////////////////////////////		
 		imu_msg.header.frame_id = "imu";
-
+		
 		// No Orientation in IMU message
 		imu_msg.orientation.x = 0;
 		imu_msg.orientation.y = 0;
@@ -468,7 +468,7 @@ extern "C" void broadcast_handler()
 		////////////////////////////////////////
 		// mowgli/status Message
 		////////////////////////////////////////		
-		status_msg.stamp = current_time;
+		status_msg.stamp = nh.now();
 		status_msg.rain_detected = RAIN_Sense();
 		status_msg.emergency_tilt_mech_triggered = Emergency_Tilt();
 		status_msg.emergency_tilt_accel_triggered = Emergency_LowZAccelerometer();
@@ -489,10 +489,9 @@ extern "C" void broadcast_handler()
 	  } // if (NBT_handler(&status_nbt))
 
 	  if (NBT_handler(&odom_nbt))
-	  {			
-		current_time = nh.now(); 		
+	  {					
 		speed_act_left = left_wheel_speed_val/PWM_PER_MPS;			// wheel speed in m/s
-		speed_act_right = right_wheel_speed_val/PWM_PER_MPS;			// wheel speed in m/s
+		speed_act_right = right_wheel_speed_val/PWM_PER_MPS;		// wheel speed in m/s
 		// debug_printf("speed_act_left: %f speed_act_right: %f\r\n",  speed_act_left, speed_act_right);		
 		dt = (ODOM_NBT_TIME_MS/1000.0);
 		dxy = (speed_act_left+speed_act_right)*dt/2.0;
@@ -520,7 +519,7 @@ extern "C" void broadcast_handler()
 		//////////////////////////////////////////////////
 		// odom message
 		//////////////////////////////////////////////////
-		odom_msg.header.stamp = current_time;
+		odom_msg.header.stamp = nh.now(); 	
 		odom_msg.header.frame_id = odom;
 		odom_msg.pose.pose.position.x = x_pos;
 		odom_msg.pose.pose.position.y = y_pos;

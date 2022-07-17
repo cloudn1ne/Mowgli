@@ -17,8 +17,6 @@ int Emergency_LowZAccelerometer(void);
 void EmergencyController(void);
 void Emergency_Init(void);
 
-// extern uint8_t emergency_state;
-
 #ifdef __cplusplus
 }
 #endif

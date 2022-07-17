@@ -54,7 +54,10 @@
 #define WHEEL_BASE  0.325		// The distance between the center of the wheels in meters
 #define WHEEL_DIAMETER 0.198 	// The diameter of the wheels in meters
 
-#define BROADCAST_NBT_TIME_MS 50 	// 50ms interval where we set drive motors and read back values
+#define ODOM_NBT_TIME_MS   20 	// 20ms
+#define IMU_NBT_TIME_MS    20  
+#define MOTORS_NBT_TIME_MS 50
+#define STATUS_NBT_TIME_MS 100
 
 extern uint8_t RxBuffer[RxBufferSize];
 struct ringbuffer rb;
@@ -77,7 +80,7 @@ static uint8_t svcCfgDataBuffer[256];
 
 ros::NodeHandle nh;
 
-// TF
+// odom message
 geometry_msgs::Quaternion quat;
 geometry_msgs::TransformStamped t;
 tf::TransformBroadcaster broadcaster;
@@ -196,7 +199,9 @@ static nbt_t ros_nbt;
 static nbt_t publish_nbt;
 static nbt_t motors_nbt;
 static nbt_t panel_nbt;
-static nbt_t broadcast_nbt;
+static nbt_t odom_nbt;
+static nbt_t imu_nbt;
+static nbt_t status_nbt;
 
 /*
  * reboot flag, if true we reboot after next publish_nbt
@@ -369,134 +374,11 @@ extern "C" void panel_handler()
 
 extern "C" void broadcast_handler()
 {
-	  if (NBT_handler(&broadcast_nbt))
-	  {		
-		// z = BROADCAST_NBT_TIME_MS/1000;
-		// x = right_wheel_speed_val;
-		// y = left_wheel_speed_val;
-		current_time = nh.now(); 
-		//////////////////////////////////////////////////
-		// TF message
-		//////////////////////////////////////////////////
-		speed_act_left = left_wheel_speed_val/PWM_PER_MPS;			// wheel speed in m/s
-		speed_act_right = right_wheel_speed_val/PWM_PER_MPS;			// wheel speed in m/s
-		// debug_printf("speed_act_left: %f speed_act_right: %f\r\n",  speed_act_left, speed_act_right);		
-		dt = (BROADCAST_NBT_TIME_MS/1000.0);
-		dxy = (speed_act_left+speed_act_right)*dt/2.0;
-		dth = - 1.0 * ((speed_act_right-speed_act_left)*dt)/WHEEL_BASE;
-
-		//debug_printf("dt: %f dxy: %f dth: %f\r\n",  dt, dxy, dth);		
-
-		if (dth > 0) dth *= angular_scale_positive;
-    	if (dth < 0) dth *= angular_scale_negative;
-    	if (dxy > 0) dxy *= linear_scale_positive;
-    	if (dxy < 0) dxy *= linear_scale_negative;
-
-    	dx = cos(dth) * dxy;
-    	dy = sin(dth) * dxy;
-
-    	x_pos += (cos(theta) * dx - sin(theta) * dy);
-    	y_pos += (sin(theta) * dx + cos(theta) * dy);
-    	theta += dth;
-
-    	if(theta >= two_pi) theta -= two_pi;
-    	if(theta <= -two_pi) theta += two_pi;
-
-		quat = tf::createQuaternionFromYaw(theta);
-		if(publish_tf) {
-			geometry_msgs::TransformStamped t;						
-			t.header.frame_id = odom;
-			t.child_frame_id = base_link;
-			t.transform.translation.x = x_pos;
-			t.transform.translation.y = y_pos;
-			t.transform.translation.z = 0.0;
-			t.transform.rotation = quat;
-			t.header.stamp = current_time;					
-			broadcaster.sendTransform(t);			
-		}
-		//////////////////////////////////////////////////
-		// odom message
-		//////////////////////////////////////////////////
-		odom_msg.header.stamp = current_time;
-		odom_msg.header.frame_id = odom;
-		odom_msg.pose.pose.position.x = x_pos;
-		odom_msg.pose.pose.position.y = y_pos;
-		odom_msg.pose.pose.position.z = 0.0;
-		odom_msg.pose.pose.orientation = quat;
-		if (speed_act_left == 0 && speed_act_right == 0){
-			odom_msg.pose.covariance[0] = 1e-9;
-			odom_msg.pose.covariance[7] = 1e-3;
-			odom_msg.pose.covariance[8] = 1e-9;
-			odom_msg.pose.covariance[14] = 1e6;
-			odom_msg.pose.covariance[21] = 1e6;
-			odom_msg.pose.covariance[28] = 1e6;
-			odom_msg.pose.covariance[35] = 1e-9;
-			odom_msg.twist.covariance[0] = 1e-9;
-			odom_msg.twist.covariance[7] = 1e-3;
-			odom_msg.twist.covariance[8] = 1e-9;
-			odom_msg.twist.covariance[14] = 1e6;
-			odom_msg.twist.covariance[21] = 1e6;
-			odom_msg.twist.covariance[28] = 1e6;
-			odom_msg.twist.covariance[35] = 1e-9;
-		}
-		else{
-			odom_msg.pose.covariance[0] = 1e-3;
-			odom_msg.pose.covariance[7] = 1e-3;
-			odom_msg.pose.covariance[8] = 0.0;
-			odom_msg.pose.covariance[14] = 1e6;
-			odom_msg.pose.covariance[21] = 1e6;
-			odom_msg.pose.covariance[28] = 1e6;
-			odom_msg.pose.covariance[35] = 1e3;
-			odom_msg.twist.covariance[0] = 1e-3;
-			odom_msg.twist.covariance[7] = 1e-3;
-			odom_msg.twist.covariance[8] = 0.0;
-			odom_msg.twist.covariance[14] = 1e6;
-			odom_msg.twist.covariance[21] = 1e6;
-			odom_msg.twist.covariance[28] = 1e6;
-			odom_msg.twist.covariance[35] = 1e3;
-		}
-
-		vx = (dt == 0)?  0 : (speed_act_left+speed_act_right)/2.0;
-	//	vth = (dt == 0)? 0 : (speed_act_right-speed_act_left)/WHEEL_BASE;
-		odom_msg.child_frame_id = base_link;
-		odom_msg.twist.twist.linear.x = vx;
-		odom_msg.twist.twist.linear.y = 0.0;
-		odom_msg.twist.twist.angular.z = dth;
-		pubOdom.publish(&odom_msg);
-
-		// pub encoder values as well
-		/*
-		left_encoder_ticks_msg.data = left_encoder_ticks;
-		pubLeftEncoderTicks.publish(&left_encoder_ticks_msg);
-		right_encoder_ticks_msg.data = right_encoder_ticks;
-		pubRightEncoderTicks.publish(&right_encoder_ticks_msg);
-		*/
-
+	  if (NBT_handler(&imu_nbt))
+	  {
 		////////////////////////////////////////
-		// Mowgli Status
+		// IMU Messages
 		////////////////////////////////////////		
-		status_msg.stamp = current_time;
-		status_msg.rain_detected = RAIN_Sense();
-		status_msg.emergency_tilt_mech_triggered = Emergency_Tilt();
-		status_msg.emergency_tilt_accel_triggered = Emergency_LowZAccelerometer();
-		status_msg.emergency_left_wheel_lifted = Emergency_WheelLiftBlue();
-		status_msg.emergency_right_wheel_lifted = Emergency_WheelLiftRed();
-		status_msg.emergency_stopbutton_triggered = Emergency_StopButtonYellow() || Emergency_StopButtonWhite();
-		status_msg.left_encoder_ticks = left_encoder_ticks;
-		status_msg.right_encoder_ticks = right_encoder_ticks;
-		status_msg.v_charge = charge_voltage;
-		status_msg.i_charge = charge_current;
-		status_msg.v_battery = battery_voltage;
-		status_msg.charge_pwm = chargecontrol_pwm_val;
-		status_msg.is_charging = chargecontrol_is_charging;
-		status_msg.imu_temp = imu_onboard_temperature;
-		status_msg.blade_motor_ctrl_enabled = true;	// hardcoded for now
-		status_msg.drive_motor_ctrl_enabled = true; // hardcoded for now
-		pubStatus.publish(&status_msg);
-
-		////////////////////////////////////////
-		// int/ext IMU data
-		////////////////////////////////////////
 		imu_msg.header.frame_id = "imu";
 
 		// No Orientation in IMU message
@@ -576,7 +458,119 @@ extern "C" void broadcast_handler()
 		imu_onboard_msg.angular_velocity_covariance[0] = -1;		// indicate *not valid* to EKF
 		imu_onboard_msg.header.stamp = nh.now();
 		pubIMUOnboard.publish(&imu_onboard_msg);		
+	  } // if (NBT_handler(&imu_nbt))
 
+  	  if (NBT_handler(&status_nbt))
+	  {
+		////////////////////////////////////////
+		// mowgli/status Message
+		////////////////////////////////////////		
+		status_msg.stamp = current_time;
+		status_msg.rain_detected = RAIN_Sense();
+		status_msg.emergency_tilt_mech_triggered = Emergency_Tilt();
+		status_msg.emergency_tilt_accel_triggered = Emergency_LowZAccelerometer();
+		status_msg.emergency_left_wheel_lifted = Emergency_WheelLiftBlue();
+		status_msg.emergency_right_wheel_lifted = Emergency_WheelLiftRed();
+		status_msg.emergency_stopbutton_triggered = Emergency_StopButtonYellow() || Emergency_StopButtonWhite();
+		status_msg.left_encoder_ticks = left_encoder_ticks;
+		status_msg.right_encoder_ticks = right_encoder_ticks;
+		status_msg.v_charge = charge_voltage;
+		status_msg.i_charge = charge_current;
+		status_msg.v_battery = battery_voltage;
+		status_msg.charge_pwm = chargecontrol_pwm_val;
+		status_msg.is_charging = chargecontrol_is_charging;
+		status_msg.imu_temp = imu_onboard_temperature;
+		status_msg.blade_motor_ctrl_enabled = true;	// hardcoded for now
+		status_msg.drive_motor_ctrl_enabled = true; // hardcoded for now
+		pubStatus.publish(&status_msg);		
+	  } // if (NBT_handler(&status_nbt))
+
+	  if (NBT_handler(&odom_nbt))
+	  {			
+		current_time = nh.now(); 		
+		speed_act_left = left_wheel_speed_val/PWM_PER_MPS;			// wheel speed in m/s
+		speed_act_right = right_wheel_speed_val/PWM_PER_MPS;			// wheel speed in m/s
+		// debug_printf("speed_act_left: %f speed_act_right: %f\r\n",  speed_act_left, speed_act_right);		
+		dt = (ODOM_NBT_TIME_MS/1000.0);
+		dxy = (speed_act_left+speed_act_right)*dt/2.0;
+		dth = - 1.0 * ((speed_act_right-speed_act_left)*dt)/WHEEL_BASE;
+
+		//debug_printf("dt: %f dxy: %f dth: %f\r\n",  dt, dxy, dth);		
+
+		if (dth > 0) dth *= angular_scale_positive;
+    	if (dth < 0) dth *= angular_scale_negative;
+    	if (dxy > 0) dxy *= linear_scale_positive;
+    	if (dxy < 0) dxy *= linear_scale_negative;
+
+    	dx = cos(dth) * dxy;
+    	dy = sin(dth) * dxy;
+
+    	x_pos += (cos(theta) * dx - sin(theta) * dy);
+    	y_pos += (sin(theta) * dx + cos(theta) * dy);
+    	theta += dth;
+
+    	if(theta >= two_pi) theta -= two_pi;
+    	if(theta <= -two_pi) theta += two_pi;
+
+		quat = tf::createQuaternionFromYaw(theta);
+		
+		//////////////////////////////////////////////////
+		// odom message
+		//////////////////////////////////////////////////
+		odom_msg.header.stamp = current_time;
+		odom_msg.header.frame_id = odom;
+		odom_msg.pose.pose.position.x = x_pos;
+		odom_msg.pose.pose.position.y = y_pos;
+		odom_msg.pose.pose.position.z = 0.0;
+		odom_msg.pose.pose.orientation = quat;
+		if (speed_act_left == 0 && speed_act_right == 0){
+			odom_msg.pose.covariance[0] = 1e-9;
+			odom_msg.pose.covariance[7] = 1e-3;
+			odom_msg.pose.covariance[8] = 1e-9;
+			odom_msg.pose.covariance[14] = 1e6;
+			odom_msg.pose.covariance[21] = 1e6;
+			odom_msg.pose.covariance[28] = 1e6;
+			odom_msg.pose.covariance[35] = 1e-9;
+			odom_msg.twist.covariance[0] = 1e-9;
+			odom_msg.twist.covariance[7] = 1e-3;
+			odom_msg.twist.covariance[8] = 1e-9;
+			odom_msg.twist.covariance[14] = 1e6;
+			odom_msg.twist.covariance[21] = 1e6;
+			odom_msg.twist.covariance[28] = 1e6;
+			odom_msg.twist.covariance[35] = 1e-9;
+		}
+		else{
+			odom_msg.pose.covariance[0] = 1e-3;
+			odom_msg.pose.covariance[7] = 1e-3;
+			odom_msg.pose.covariance[8] = 0.0;
+			odom_msg.pose.covariance[14] = 1e6;
+			odom_msg.pose.covariance[21] = 1e6;
+			odom_msg.pose.covariance[28] = 1e6;
+			odom_msg.pose.covariance[35] = 1e3;
+			odom_msg.twist.covariance[0] = 1e-3;
+			odom_msg.twist.covariance[7] = 1e-3;
+			odom_msg.twist.covariance[8] = 0.0;
+			odom_msg.twist.covariance[14] = 1e6;
+			odom_msg.twist.covariance[21] = 1e6;
+			odom_msg.twist.covariance[28] = 1e6;
+			odom_msg.twist.covariance[35] = 1e3;
+		}
+
+		vx = (dt == 0)?  0 : (speed_act_left+speed_act_right)/2.0;
+	//	vth = (dt == 0)? 0 : (speed_act_right-speed_act_left)/WHEEL_BASE;
+		odom_msg.child_frame_id = base_link;
+		odom_msg.twist.twist.linear.x = vx;
+		odom_msg.twist.twist.linear.y = 0.0;
+		odom_msg.twist.twist.angular.z = dth;
+		pubOdom.publish(&odom_msg);
+
+		// pub encoder values as well
+		/*
+		left_encoder_ticks_msg.data = left_encoder_ticks;
+		pubLeftEncoderTicks.publish(&left_encoder_ticks_msg);
+		right_encoder_ticks_msg.data = right_encoder_ticks;
+		pubRightEncoderTicks.publish(&right_encoder_ticks_msg);
+		*/
 	  } // if (NBT_handler(&broadcast_nbt))
 }
 
@@ -757,8 +751,10 @@ extern "C" void init_ROS()
 	
 	// Initialize Timers
 	NBT_init(&publish_nbt, 1000);
-	NBT_init(&panel_nbt, 100);
-	NBT_init(&motors_nbt, BROADCAST_NBT_TIME_MS);
-	NBT_init(&broadcast_nbt, BROADCAST_NBT_TIME_MS);
+	NBT_init(&panel_nbt, 100);	
+	NBT_init(&status_nbt, STATUS_NBT_TIME_MS);
+	NBT_init(&imu_nbt, IMU_NBT_TIME_MS);
+	NBT_init(&motors_nbt, MOTORS_NBT_TIME_MS);
+	NBT_init(&odom_nbt, ODOM_NBT_TIME_MS);
 	NBT_init(&ros_nbt, 10);	
 }

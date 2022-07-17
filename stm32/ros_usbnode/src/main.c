@@ -22,6 +22,7 @@
 #include "panel.h"
 #include "emergency.h"
 #include "soft_i2c.h"
+#include "spiflash.h"
 #include "i2c.h"
 #include "imu/imu.h"
 #include "usb_device.h"
@@ -390,6 +391,13 @@ int main(void)
 	NBT_init(&main_emergency_nbt, 10);
     debug_printf(" * NBT Main timers initialized\r\n");     
 
+ #ifdef I_DONT_NEED_MY_FINGERS
+    debug_printf("\r\n");
+    debug_printf("=========================================================\r\n");
+    debug_printf(" EMERGENCY/SAFETY FEATURES ARE DISABLED IN board.h ! \r\n");
+    debug_printf("=========================================================\r\n");
+    debug_printf("\r\n");
+ #endif
     // Initialize ROS
     init_ROS();
     debug_printf(" * ROS serial node initialized\r\n");     

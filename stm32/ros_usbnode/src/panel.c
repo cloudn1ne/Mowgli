@@ -6,6 +6,7 @@
 
 #include "panel.h"
 #include "board.h"
+#include "main.h"
 
 uint16_t buttonstate[PANEL_BUTTON_BYTES];
 uint8_t buttonupdated = 0; // 1 if buttonstate was updated by the panel

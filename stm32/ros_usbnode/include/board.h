@@ -16,16 +16,14 @@ extern "C" {
 /********************************************************************************
 * YARDFORCE 500 MAINBOARD
 ********************************************************************************/
-#ifdef BOARD_YARDFORCE500    
-    #warning "Compiling for YardForce 500 (GForce) board"
-        
+#ifdef BOARD_YARDFORCE500            
     #define PANEL_TYPE_YARDFORCE_500_CLASSIC    1
     // #define PANEL_TYPE_YARDFORCE_900_ECO   1
 
     // define to support IMU Calibration (Mag) via https://github.com/pcdangio/ros-calibration_imu
     #define SUPPORT_ROS_CALIBRATION_IMU           1     
 
-   // #define I_DONT_NEED_MY_FINGERS              1       // disables EmergencyController() (no wheel lift, or tilt sensing and stopping the blade anymore)
+    #define I_DONT_NEED_MY_FINGERS              1       // disables EmergencyController() (no wheel lift, or tilt sensing and stopping the blade anymore)
 
     /// nominal max charge current is 1 Amp
     #define MAX_CHARGE_CURRENT                  1.0

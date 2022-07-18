@@ -43,8 +43,8 @@ extern "C" {
     #define IMU_ONBOARD_INCLINATION_THRESHOLD   0x38     // stock firmware uses 0x2C (way more allowed inclination)
 
     // IMU configuration options
-    // #define IMU_ONBOARD_ACCELERATION            1
-    // #define IMU_ONBOARD_TEMP                    1
+    #define IMU_ONBOARD_ACCELERATION            1
+    #define IMU_ONBOARD_TEMP                    1
     #define IMU_ACCELERATION                    1       // external IMU
     #define IMU_ANGULAR                         1       // external IMU
     

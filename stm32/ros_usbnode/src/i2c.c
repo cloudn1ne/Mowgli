@@ -127,7 +127,7 @@ void I2C_ReadAccelerometer(float *x, float *y, float *z)
  */
 float I2C_ReadAccelerometerTemp(void)
 {        
-    uint8_t max_tries = 3;
+    uint8_t max_tries = 10;
 
     stmdev_ctx_t dev_ctx;    
     dev_ctx.write_reg = I2C_platform_write;

@@ -54,10 +54,12 @@
 #define MAX_MPS	  	0.6		 	// Allow maximum speed of 0.6 m/s 
 #define PWM_PER_MPS 300.0		// PWM value of 300 means 1 m/s bot speed
 
+#define TICKS_PER_M 250.0		// Motor Encoder ticks per meter
+
 #define WHEEL_BASE  0.325		// The distance between the center of the wheels in meters
 #define WHEEL_DIAMETER 0.198 	// The diameter of the wheels in meters
 
-#define ODOM_NBT_TIME_MS   20 	// 20ms
+#define ODOM_NBT_TIME_MS   100 	// 200ms
 #define IMU_NBT_TIME_MS    20  
 #define MOTORS_NBT_TIME_MS 50
 #define STATUS_NBT_TIME_MS 100
@@ -95,9 +97,12 @@ char odom[] = "odom";
 double two_pi = 6.28319;
 double speed_act_left = 0.0;
 double speed_act_right = 0.0;
-double speed_req1 = 0.0;
-double speed_req2 = 0.0;
-double speed_dt = 0.0;
+
+double distance_left = 0.0;
+double distance_right = 0.0;
+//double speed_req1 = 0.0;
+//double speed_req2 = 0.0;
+//double speed_dt = 0.0;
 double x_pos = 0.0;
 double y_pos = 0.0;
 double theta = 0.0;
@@ -109,7 +114,7 @@ double linear_scale_positive = 1.0;
 double linear_scale_negative = 1.0;
 double angular_scale_positive = 1.0;
 double angular_scale_negative = 1.0;
-bool publish_tf = false; // publish odom -> base_link transform
+// bool publish_tf = false; // publish odom -> base_link transform
 double dt = 0.0;
 double dx = 0.0;
 double dy = 0.0;
@@ -118,7 +123,13 @@ double dxy = 0.0;
 double vx = 0.0;
 double vy = 0.0;
 
-float imu_onboard_temperature;
+int32_t left_encoder_ticks_old  = 0;
+int32_t right_encoder_ticks_old = 0;
+
+ros::Time odom_last_time = nh.now();	// this is 0 because we have no time upon startup
+ros::Time odom_current_time;
+
+float imu_onboard_temperature; // cached temp value, so we dont poll I2C constantly
 
 // std_msgs::String str_msg;
 //std_msgs::Float32 f32_battery_voltage_msg;
@@ -489,90 +500,128 @@ extern "C" void broadcast_handler()
 	  } // if (NBT_handler(&status_nbt))
 
 	  if (NBT_handler(&odom_nbt))
-	  {					
-		speed_act_left = left_wheel_speed_val/PWM_PER_MPS;			// wheel speed in m/s
-		speed_act_right = right_wheel_speed_val/PWM_PER_MPS;		// wheel speed in m/s
-		// debug_printf("speed_act_left: %f speed_act_right: %f\r\n",  speed_act_left, speed_act_right);		
-		dt = (ODOM_NBT_TIME_MS/1000.0);
-		dxy = (speed_act_left+speed_act_right)*dt/2.0;
-		dth = - 1.0 * ((speed_act_right-speed_act_left)*dt)/WHEEL_BASE;
-
-		//debug_printf("dt: %f dxy: %f dth: %f\r\n",  dt, dxy, dth);		
-
-		if (dth > 0) dth *= angular_scale_positive;
-    	if (dth < 0) dth *= angular_scale_negative;
-    	if (dxy > 0) dxy *= linear_scale_positive;
-    	if (dxy < 0) dxy *= linear_scale_negative;
-
-    	dx = cos(dth) * dxy;
-    	dy = sin(dth) * dxy;
-
-    	x_pos += (cos(theta) * dx - sin(theta) * dy);
-    	y_pos += (sin(theta) * dx + cos(theta) * dy);
-    	theta += dth;
-
-    	if(theta >= two_pi) theta -= two_pi;
-    	if(theta <= -two_pi) theta += two_pi;
-
-		quat = tf::createQuaternionFromYaw(theta);
-		
-		//////////////////////////////////////////////////
-		// odom message
-		//////////////////////////////////////////////////
-		odom_msg.header.stamp = nh.now(); 	
-		odom_msg.header.frame_id = odom;
-		odom_msg.pose.pose.position.x = x_pos;
-		odom_msg.pose.pose.position.y = y_pos;
-		odom_msg.pose.pose.position.z = 0.0;
-		odom_msg.pose.pose.orientation = quat;
-		if (speed_act_left == 0 && speed_act_right == 0){
-			odom_msg.pose.covariance[0] = 1e-9;
-			odom_msg.pose.covariance[7] = 1e-3;
-			odom_msg.pose.covariance[8] = 1e-9;
-			odom_msg.pose.covariance[14] = 1e6;
-			odom_msg.pose.covariance[21] = 1e6;
-			odom_msg.pose.covariance[28] = 1e6;
-			odom_msg.pose.covariance[35] = 1e-9;
-			odom_msg.twist.covariance[0] = 1e-9;
-			odom_msg.twist.covariance[7] = 1e-3;
-			odom_msg.twist.covariance[8] = 1e-9;
-			odom_msg.twist.covariance[14] = 1e6;
-			odom_msg.twist.covariance[21] = 1e6;
-			odom_msg.twist.covariance[28] = 1e6;
-			odom_msg.twist.covariance[35] = 1e-9;
+	  {	
+		/* first odom_nbt call sets our "odom_last_time" */
+		if (odom_last_time.nsec == 0 )						
+		{
+			odom_last_time = nh.now();		
 		}
-		else{
-			odom_msg.pose.covariance[0] = 1e-3;
-			odom_msg.pose.covariance[7] = 1e-3;
-			odom_msg.pose.covariance[8] = 0.0;
-			odom_msg.pose.covariance[14] = 1e6;
-			odom_msg.pose.covariance[21] = 1e6;
-			odom_msg.pose.covariance[28] = 1e6;
-			odom_msg.pose.covariance[35] = 1e3;
-			odom_msg.twist.covariance[0] = 1e-3;
-			odom_msg.twist.covariance[7] = 1e-3;
-			odom_msg.twist.covariance[8] = 0.0;
-			odom_msg.twist.covariance[14] = 1e6;
-			odom_msg.twist.covariance[21] = 1e6;
-			odom_msg.twist.covariance[28] = 1e6;
-			odom_msg.twist.covariance[35] = 1e3;
-		}
+		else		
+		{	/* subsequent odom_nbts publish odom messages */		
 
-		vx = (dt == 0)?  0 : (speed_act_left+speed_act_right)/2.0;
-	//	vth = (dt == 0)? 0 : (speed_act_right-speed_act_left)/WHEEL_BASE;
-		odom_msg.child_frame_id = base_link;
-		odom_msg.twist.twist.linear.x = vx;
-		odom_msg.twist.twist.linear.y = 0.0;
-		odom_msg.twist.twist.angular.z = dth;
-		pubOdom.publish(&odom_msg);
+			/* dynamic dt calculation */
+			odom_current_time = nh.now();	
+			uint32_t odom_current_time_msec = odom_current_time.sec*1000 + odom_current_time.nsec/1000000.0;
+			uint32_t odom_last_time_msec = odom_last_time.sec*1000 + odom_last_time.nsec/1000000.0;			
+			dt = (odom_current_time_msec - odom_last_time_msec) / 1000.0;
 
-		// pub encoder values as well
-		/*
-		left_encoder_ticks_msg.data = left_encoder_ticks;
-		pubLeftEncoderTicks.publish(&left_encoder_ticks_msg);
-		right_encoder_ticks_msg.data = right_encoder_ticks;
-		pubRightEncoderTicks.publish(&right_encoder_ticks_msg);
-		*/
+
+			speed_act_left = left_wheel_speed_val/PWM_PER_MPS;			// wheel speed in m/s
+			speed_act_right = right_wheel_speed_val/PWM_PER_MPS;		// wheel speed in m/s			
+
+			/* calculate distances from accumulating wheel encoder ticks */
+			if (left_encoder_ticks>=left_encoder_ticks_old)
+				distance_left = (left_encoder_ticks-left_encoder_ticks_old)/TICKS_PER_M;
+			else 
+				distance_left = -1.0 * (left_encoder_ticks_old-left_encoder_ticks)/TICKS_PER_M;
+			
+			if (right_encoder_ticks>right_encoder_ticks_old)			
+				distance_right = (right_encoder_ticks-right_encoder_ticks_old)/TICKS_PER_M;
+			else
+				distance_right = -1.0 * (right_encoder_ticks_old-right_encoder_ticks)/TICKS_PER_M;
+
+			// only continue with calculating an odom message if we are moving, 
+			// or 0.5 sec are elapsed since the last odom message was published
+			if (distance_left != 0 || distance_right != 0 || dt > 0.5)
+			{
+				odom_last_time = nh.now();
+				// debug_printf("left_encoder_ticks: (%d/%d) right_encoder_ticks: (%d/%d) distance_left: %f distance_right: %f\r\n", left_encoder_ticks, left_encoder_ticks_old, right_encoder_ticks, right_encoder_ticks_old, distance_left, distance_right);				
+				// dt = (ODOM_NBT_TIME_MS/1000.0);			
+				// 	debug_printf("left_encoder_val: %d right_encoder_val: %d dt: %f speed_act_left: %f speed_act_right: %f\r\n",left_encoder_val, right_encoder_val, dt, speed_act_left, speed_act_right);			
+
+			
+			
+				dx = (distance_left+distance_right)/2.0;
+				dy = 0;
+
+				//	dxy = (speed_act_left+speed_act_right)*dt/2.0;
+				dth = - 1.0 * ((speed_act_right-speed_act_left)*dt)/WHEEL_BASE;
+				
+				if (dth > 0) dth *= angular_scale_positive;
+				if (dth < 0) dth *= angular_scale_negative;
+				//if (dxy > 0) dxy *= linear_scale_positive;
+				//if (dxy < 0) dxy *= linear_scale_negative;
+
+				//	dx = cos(dth) * dxy;
+				//  dy = sin(dth) * dxy;
+
+				x_pos += (cos(theta) * dx - sin(theta) * dy);
+				y_pos += (sin(theta) * dx + cos(theta) * dy);
+
+			//	debug_printf("dx: %f x_pos: %f dth: %f\r\n", dx, x_pos, dth);		
+
+				theta += dth;
+
+				if(theta >= two_pi) theta -= two_pi;
+				if(theta <= -two_pi) theta += two_pi;
+
+				left_encoder_ticks_old = left_encoder_ticks;
+				right_encoder_ticks_old = right_encoder_ticks;
+
+				quat = tf::createQuaternionFromYaw(theta);
+				//////////////////////////////////////////////////
+				// odom message
+				//////////////////////////////////////////////////
+				odom_msg.header.stamp = nh.now(); 	
+				odom_msg.header.frame_id = odom;
+				odom_msg.pose.pose.position.x = x_pos;
+				odom_msg.pose.pose.position.y = y_pos;
+				odom_msg.pose.pose.position.z = 0.0;
+				odom_msg.pose.pose.orientation = quat;
+				if (speed_act_left == 0 && speed_act_right == 0){
+					odom_msg.pose.covariance[0] = 1e-9;
+					odom_msg.pose.covariance[7] = 1e-3;
+					odom_msg.pose.covariance[8] = 1e-9;
+					odom_msg.pose.covariance[14] = 1e6;
+					odom_msg.pose.covariance[21] = 1e6;
+					odom_msg.pose.covariance[28] = 1e6;
+					odom_msg.pose.covariance[35] = 1e-9;
+					odom_msg.twist.covariance[0] = 1e-9;
+					odom_msg.twist.covariance[7] = 1e-3;
+					odom_msg.twist.covariance[8] = 1e-9;
+					odom_msg.twist.covariance[14] = 1e6;
+					odom_msg.twist.covariance[21] = 1e6;
+					odom_msg.twist.covariance[28] = 1e6;
+					odom_msg.twist.covariance[35] = 1e-9;
+				}
+				else{
+					odom_msg.pose.covariance[0] = 1e-3;
+					odom_msg.pose.covariance[7] = 1e-3;
+					odom_msg.pose.covariance[8] = 0.0;
+					odom_msg.pose.covariance[14] = 1e6;
+					odom_msg.pose.covariance[21] = 1e6;
+					odom_msg.pose.covariance[28] = 1e6;
+					odom_msg.pose.covariance[35] = 1e3;
+					odom_msg.twist.covariance[0] = 1e-3;
+					odom_msg.twist.covariance[7] = 1e-3;
+					odom_msg.twist.covariance[8] = 0.0;
+					odom_msg.twist.covariance[14] = 1e6;
+					odom_msg.twist.covariance[21] = 1e6;
+					odom_msg.twist.covariance[28] = 1e6;
+					odom_msg.twist.covariance[35] = 1e3;
+				}
+
+				vx = (dt == 0)?  0 : (speed_act_left+speed_act_right)/2.0;
+			//	vth = (dt == 0)? 0 : (speed_act_right-speed_act_left)/WHEEL_BASE;
+				odom_msg.child_frame_id = base_link;
+				odom_msg.twist.twist.linear.x = vx;
+				odom_msg.twist.twist.linear.y = 0.0;
+				odom_msg.twist.twist.angular.z = dth;
+				pubOdom.publish(&odom_msg);
+
+			
+		   } // movement detected or timeout
+		} // first odom_last_time > 0
 	  } // if (NBT_handler(&broadcast_nbt))
 }
 

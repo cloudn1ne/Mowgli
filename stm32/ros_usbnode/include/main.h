@@ -65,13 +65,14 @@ extern float battery_voltage;
 extern float charge_voltage;
 extern float charge_current;
 
-extern uint16_t chargecontrol_pwm_val;
-extern uint8_t  chargecontrol_is_charging;
-extern int16_t  right_wheel_speed_val;
-extern int16_t  left_wheel_speed_val;
-extern uint32_t right_encoder_ticks;
-extern uint32_t left_encoder_ticks;
-
+extern uint16_t  chargecontrol_pwm_val;
+extern uint8_t   chargecontrol_is_charging;
+extern int16_t   right_wheel_speed_val;
+extern int16_t   left_wheel_speed_val;
+extern int32_t   right_encoder_ticks;  // accumulating
+extern int32_t   left_encoder_ticks;   // accumulating 
+extern uint16_t  right_encoder_val;    // non accumulating 
+extern uint16_t  left_encoder_val;     // non accumulating 
 
 // uart statistics
 extern uint16_t cnt_uart4_overrun;      // master

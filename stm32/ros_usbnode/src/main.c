@@ -81,8 +81,8 @@ float_t charge_current;
 float_t charge_current_offset;
 uint16_t chargecontrol_pwm_val = MIN_CHARGE_PWM;
 uint8_t  chargecontrol_is_charging = 0;
-uint32_t right_encoder_ticks = 0;
-uint32_t left_encoder_ticks = 0;
+int32_t right_encoder_ticks = 0;
+int32_t left_encoder_ticks = 0;
 int8_t left_direction = 0;
 int8_t right_direction = 0;
 uint16_t right_encoder_val = 0;
@@ -480,36 +480,7 @@ int main(void)
             drivemotors_rx_STATUS = RX_WAIT;                    // ready for next message                        
             HAL_GPIO_TogglePin(LED_GPIO_PORT, LED_PIN);         // flash LED                         
         }     
-        /* not used atm - we control the bot via ROS
-        if (master_rx_STATUS == RX_VALID)                        // valid frame received by MASTER USART
-        {
-            
-                int i;
-                //debug_printf("master_rx_buf_crc = 0x%02x\r\n", master_rx_buf_crc);            
-                //debug_printf("master_rx_CRC = 0x%02x\r\n", master_rx_CRC);            
-                //debug_printf("master_rx_LENGTH = %d\r\n", master_rx_LENGTH);            
-                debug_printf("tx: ");
-                for (i=0;i<master_rx_buf_idx;i++)
-                {
-                    debug_printf(" %02x", master_rx_buf[i]);
-                }            
-                debug_printf("\r\n");
-            
-
-            // until we have some kind of protocol we discrimate what goes where simply by message length
-            // drive motors always get a 12 byte message relayed
-            if (master_rx_buf_idx == 12)
-                HAL_UART_Transmit(&DRIVEMOTORS_USART_Handler, master_rx_buf, master_rx_buf_idx, HAL_MAX_DELAY);
-            // blade motor always gets a 12 byte message relayed
-            if (master_rx_buf_idx == 7)
-                HAL_UART_Transmit(&BLADEMOTOR_USART_Handler, master_rx_buf, master_rx_buf_idx, HAL_MAX_DELAY);
-
-            master_rx_STATUS = RX_WAIT; // ready for next message
-            master_rx_buf_idx = 0;
-
-            HAL_GPIO_TogglePin(LED_GPIO_PORT, LED_PIN);         // flash LED             
-        }
-        */
+    
         broadcast_handler();   
         if (NBT_handler(&main_chargecontroller_nbt))
 	    {            
@@ -518,10 +489,7 @@ int main(void)
         if (NBT_handler(&main_statusled_nbt))
 	    {            
 			StatusLEDUpdate();          
-            
-            // RAIN Sense test code
-            //int x = RAIN_Sense();    
-            //debug_printf("rain sensor: %d\r\n", x);
+                       
             // debug_printf("master_rx_STATUS: %d  drivemotors_rx_buf_idx: %d  cnt_usart2_overrun: %x\r\n", master_rx_STATUS, drivemotors_rx_buf_idx, cnt_usart2_overrun);           
 	    }
 #ifndef I_DONT_NEED_MY_FINGERS
@@ -1402,7 +1370,7 @@ void StatusLEDUpdate(void)
         {
             PANEL_Set_LED(PANEL_LED_BATTERY_LOW, PANEL_LED_OFF); // bat ok
         }                
-        debug_printf(" > Chg Voltage: %2.2fV | Chg Current: %2.2fA (offset: %2.2fA) | PWM: %d | Bat Voltage %2.2fV\r\n", charge_voltage, charge_current, charge_current_offset,  chargecontrol_pwm_val, battery_voltage);                           
+       //  debug_printf(" > Chg Voltage: %2.2fV | Chg Current: %2.2fA (offset: %2.2fA) | PWM: %d | Bat Voltage %2.2fV\r\n", charge_voltage, charge_current, charge_current_offset,  chargecontrol_pwm_val, battery_voltage);                           
 }
 
 /*

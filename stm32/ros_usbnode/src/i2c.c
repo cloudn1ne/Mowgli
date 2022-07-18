@@ -36,6 +36,7 @@ void I2C_Init(void)
    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
    /* Peripheral clock enable */
+   __HAL_RCC_I2C1_CLK_DISABLE();
    __HAL_RCC_I2C1_CLK_ENABLE();
 
   /* USER CODE BEGIN I2C1_Init 0 */
@@ -46,7 +47,7 @@ void I2C_Init(void)
 
   /* USER CODE END I2C1_Init 1 */
   I2C_Handle.Instance = I2C1;
-  I2C_Handle.Init.ClockSpeed = 1000000;
+  I2C_Handle.Init.ClockSpeed = 400000;
   I2C_Handle.Init.DutyCycle = I2C_DUTYCYCLE_2;
   I2C_Handle.Init.OwnAddress1 = 0;
   I2C_Handle.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
@@ -116,9 +117,10 @@ void I2C_ReadAccelerometer(float *x, float *y, float *z)
     else
     {
         debug_printf("WARNING: timeout while waiting for I2C onboard acceleration sensor");
+        I2C_Init();
         *z = 0;
         *y = 0;
-        *z = 0;
+        *z = 0;        
     }
 }
 
@@ -156,6 +158,7 @@ float I2C_ReadAccelerometerTemp(void)
     else
     {
         debug_printf("WARNING: timeout while waiting for I2C onboard temp sensor");
+        I2C_Init();
         return(0);
     }
 }

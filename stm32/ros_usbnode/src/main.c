@@ -310,7 +310,6 @@ int main(void)
     }    
     debug_printf(" * SPIFLASH initialized\r\n");
 
-
     I2C_Init();
     debug_printf(" * Hard I2C initialized\r\n");
     if (I2C_Acclerometer_TestDevice())

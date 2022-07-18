@@ -56,7 +56,8 @@
 
 #define TICKS_PER_M 250.0		// Motor Encoder ticks per meter
 
-#define WHEEL_BASE  0.325		// The distance between the center of the wheels in meters
+//#define WHEEL_BASE  0.325		// The distance between the center of the wheels in meters
+#define WHEEL_BASE  0.285		// The distance between the center of the wheels in meters
 #define WHEEL_DIAMETER 0.198 	// The diameter of the wheels in meters
 
 #define ODOM_NBT_TIME_MS   100 	// 200ms
@@ -535,33 +536,33 @@ extern "C" void broadcast_handler()
 			if (distance_left != 0 || distance_right != 0 || dt > 0.5)
 			{
 				odom_last_time = nh.now();
+
 				// debug_printf("left_encoder_ticks: (%d/%d) right_encoder_ticks: (%d/%d) distance_left: %f distance_right: %f\r\n", left_encoder_ticks, left_encoder_ticks_old, right_encoder_ticks, right_encoder_ticks_old, distance_left, distance_right);				
 				// dt = (ODOM_NBT_TIME_MS/1000.0);			
 				// 	debug_printf("left_encoder_val: %d right_encoder_val: %d dt: %f speed_act_left: %f speed_act_right: %f\r\n",left_encoder_val, right_encoder_val, dt, speed_act_left, speed_act_right);			
-
-			
 			
 				dx = (distance_left+distance_right)/2.0;
 				dy = 0;
 
 				//	dxy = (speed_act_left+speed_act_right)*dt/2.0;
-				dth = - 1.0 * ((speed_act_right-speed_act_left)*dt)/WHEEL_BASE;
+				//	dth = - 1.0 * ((speed_act_right-speed_act_left)*dt)/WHEEL_BASE;
+
+				dth = - 1.0 * (distance_left-distance_right)/WHEEL_BASE;
 				
 				if (dth > 0) dth *= angular_scale_positive;
 				if (dth < 0) dth *= angular_scale_negative;
+
 				//if (dxy > 0) dxy *= linear_scale_positive;
 				//if (dxy < 0) dxy *= linear_scale_negative;
-
 				//	dx = cos(dth) * dxy;
 				//  dy = sin(dth) * dxy;
 
 				x_pos += (cos(theta) * dx - sin(theta) * dy);
 				y_pos += (sin(theta) * dx + cos(theta) * dy);
 
-			//	debug_printf("dx: %f x_pos: %f dth: %f\r\n", dx, x_pos, dth);		
+				//	debug_printf("dx: %f x_pos: %f dth: %f\r\n", dx, x_pos, dth);		
 
 				theta += dth;
-
 				if(theta >= two_pi) theta -= two_pi;
 				if(theta <= -two_pi) theta += two_pi;
 
@@ -578,7 +579,8 @@ extern "C" void broadcast_handler()
 				odom_msg.pose.pose.position.y = y_pos;
 				odom_msg.pose.pose.position.z = 0.0;
 				odom_msg.pose.pose.orientation = quat;
-				if (speed_act_left == 0 && speed_act_right == 0){
+				if (speed_act_left == 0 && speed_act_right == 0)
+				{
 					odom_msg.pose.covariance[0] = 1e-9;
 					odom_msg.pose.covariance[7] = 1e-3;
 					odom_msg.pose.covariance[8] = 1e-9;
@@ -586,6 +588,7 @@ extern "C" void broadcast_handler()
 					odom_msg.pose.covariance[21] = 1e6;
 					odom_msg.pose.covariance[28] = 1e6;
 					odom_msg.pose.covariance[35] = 1e-9;
+
 					odom_msg.twist.covariance[0] = 1e-9;
 					odom_msg.twist.covariance[7] = 1e-3;
 					odom_msg.twist.covariance[8] = 1e-9;
@@ -602,6 +605,7 @@ extern "C" void broadcast_handler()
 					odom_msg.pose.covariance[21] = 1e6;
 					odom_msg.pose.covariance[28] = 1e6;
 					odom_msg.pose.covariance[35] = 1e3;
+					
 					odom_msg.twist.covariance[0] = 1e-3;
 					odom_msg.twist.covariance[7] = 1e-3;
 					odom_msg.twist.covariance[8] = 0.0;

@@ -8,7 +8,7 @@
 * Mini HDMI to XXX adapter and a monitor
 * WLAN credentials and internet connectivity
 
-## Install Ubuntu 20.04 Core
+## Install Ubuntu 20.04 Server
 
 * install ubuntu 20.04 with imager -> https://www.pragmaticlinux.com/2021/08/install-the-raspberry-pi-imager-on-ubuntu-debian-fedora-and-opensuse/
 * boot up and set pw for user ubuntu 

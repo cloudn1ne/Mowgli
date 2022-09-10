@@ -10,6 +10,10 @@ This repo tracks my progress in reverse engineering the Yardforce GForce mainbor
 In the end in would like to use it with [OpenMower](https://github.com/ClemensElflein/OpenMower) but without having to use that projects mainboard, instead recycling as much hardware as possible from the original GForce mainboard. 
 There should be no irreversible modifications to the GForce board required.
 
+## Looking for MowgliRover ?
+
+see [here](https://github.com/cloudn1ne/MowgliRover)
+
 ## Updates
 
 see [Updates](UPDATES.md)

@@ -13,3 +13,4 @@
 * 25/06/22 - 2nd Bot build, updated IMU, DCDC converter wiring diagrams and pics
 * 09/07/22 - Rain Sensor, Keyboard Reading (ECOW boards but not all firmwares), Mounting details
 * 10/09/22 - Reduced frequency of pushed topics, and releases [MowgliRover](https://github.com/cloudn1ne/MowgliRover)
+* 12/09/22 - Added TF (odom_dr -> base_link_dr) to support Dead Reckoning testing branch of [MowgliRover](https://github.com/cloudn1ne/MowgliRover/blob/testing/help/DeadReckoning.md)

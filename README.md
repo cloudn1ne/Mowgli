@@ -12,9 +12,14 @@ There should be no irreversible modifications to the GForce board required.
 
 ## Looking for MowgliRover ?
 
+MowgliRover is the part of this project that needs to be deployed on the Raspi.
+
 see [here](https://github.com/cloudn1ne/MowgliRover)
 
 ## Looking for MowgliBase ?
+
+MowgliBase is the repo that contains the IMU Magnetometer calibration tooling.
+It is meant to be deployed onto a Linux ROS Noetic installation.
 
 see [here](https://github.com/cloudn1ne/MowgliBase)
 

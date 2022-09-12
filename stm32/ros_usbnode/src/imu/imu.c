@@ -78,9 +78,8 @@ void IMU_ReadMagnetometerNormalized(double *x, double *y, double *z)
 }
 
 /**
-  * @brief Calculate heading from Magnetometer 
-  * 
-  * units are ms^2 uncalibrated
+  * @brief Calculate heading from (calibrated) Magnetometer data
+  *   
   */
 float IMU_MagHeading(void)
 {

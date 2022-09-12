@@ -61,9 +61,9 @@
 #define WHEEL_DIAMETER 0.198 	// The diameter of the wheels in meters
 
 #define ODOM_NBT_TIME_MS   100 	// 200ms
-#define IMU_NBT_TIME_MS    20  
-#define MOTORS_NBT_TIME_MS 50
-#define STATUS_NBT_TIME_MS 100
+#define IMU_NBT_TIME_MS    100  
+#define MOTORS_NBT_TIME_MS 100
+#define STATUS_NBT_TIME_MS 250
 
 extern uint8_t RxBuffer[RxBufferSize];
 struct ringbuffer rb;
@@ -90,8 +90,8 @@ ros::NodeHandle nh;
 geometry_msgs::Quaternion quat;
 geometry_msgs::TransformStamped t;
 tf::TransformBroadcaster broadcaster;
-char base_link[] = "base_link";
-char odom[] = "odom";
+char base_link[] = "base_link_dr";
+char odom[] = "odom_dr";
 
 //double radius = 0.04;                              //Wheel radius, in m
 //double wheelbase = 0.187;                          //Wheelbase, in m
@@ -115,7 +115,7 @@ double linear_scale_positive = 1.0;
 double linear_scale_negative = 1.0;
 double angular_scale_positive = 1.0;
 double angular_scale_negative = 1.0;
-// bool publish_tf = false; // publish odom -> base_link transform
+bool publish_tf = true; // publish odom -> base_link transform
 double dt = 0.0;
 double dx = 0.0;
 double dy = 0.0;
@@ -168,7 +168,7 @@ mowgli::status status_msg;
 // ros::Publisher pubChargePWM("charge_pwm", &int16_charge_pwm_msg);
 // ros::Publisher pubChargeingState("charging_state", &bool_charging_state_msg);
 // ros::Publisher pubBladeState("blade_state", &bool_blade_state_msg);
-ros::Publisher pubOdom("odom", &odom_msg);
+ros::Publisher pubOdom("mowgli/odom", &odom_msg);
 // ros::Publisher pubLeftEncoderTicks("left_encoder_ticks", &left_encoder_ticks_msg);
 // ros::Publisher pubRightEncoderTicks("right_encoder_ticks", &right_encoder_ticks_msg);
 ros::Publisher pubButtonState("buttonstate", &buttonstate_msg);
@@ -200,12 +200,13 @@ void cbSetCfg(const mowgli::SetCfgRequest &req, mowgli::SetCfgResponse &res);
 void cbGetCfg(const mowgli::GetCfgRequest &req, mowgli::GetCfgResponse &res);
 void cbEnableMowerMotor(const std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
 void cbReboot(const std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
+void cbEnableTF(const std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
 
 ros::ServiceServer<mowgli::SetCfgRequest, mowgli::SetCfgResponse> svcSetCfg("mowgli/SetCfg", cbSetCfg);
 ros::ServiceServer<mowgli::GetCfgRequest, mowgli::GetCfgResponse> svcGetCfg("mowgli/GetCfg", cbGetCfg);
 ros::ServiceServer<std_srvs::SetBool::Request, std_srvs::SetBool::Response> svcEnableMowerMotor("mowgli/EnableMowerMotor", cbEnableMowerMotor);
 ros::ServiceServer<std_srvs::Empty::Request, std_srvs::Empty::Response> svcReboot("mowgli/Reboot", cbReboot);
-
+ros::ServiceServer<std_srvs::SetBool::Request, std_srvs::SetBool::Response> svcEnableTF("mowgli/EnableTF", cbEnableTF);
 
 /*
  * NON BLOCKING TIMERS
@@ -532,8 +533,9 @@ extern "C" void broadcast_handler()
 				distance_right = -1.0 * (right_encoder_ticks_old-right_encoder_ticks)/TICKS_PER_M;
 
 			// only continue with calculating an odom message if we are moving, 
-			// or 0.5 sec are elapsed since the last odom message was published
-			if (distance_left != 0 || distance_right != 0 || dt > 0.5)
+			// or 0.1 sec are elapsed since the last odom message was published
+			//if (distance_left != 0 || distance_right != 0 || dt > 0.05)
+			if (1)
 			{
 				odom_last_time = nh.now();
 
@@ -570,10 +572,26 @@ extern "C" void broadcast_handler()
 				right_encoder_ticks_old = right_encoder_ticks;
 
 				quat = tf::createQuaternionFromYaw(theta);
+				current_time = nh.now(); 
+
+				//////////////////////////////////////////////////
+				// odom transform (optional)
+				//////////////////////////////////////////////////
+				if(publish_tf) {
+					geometry_msgs::TransformStamped t;						
+					t.header.frame_id = odom;
+					t.child_frame_id = base_link;
+					t.transform.translation.x = x_pos;
+					t.transform.translation.y = y_pos;
+					t.transform.translation.z = 0.0;
+					t.transform.rotation = quat;
+					t.header.stamp = current_time;					
+					broadcaster.sendTransform(t);			
+				}
 				//////////////////////////////////////////////////
 				// odom message
 				//////////////////////////////////////////////////
-				odom_msg.header.stamp = nh.now(); 	
+				odom_msg.header.stamp = current_time; 	
 				odom_msg.header.frame_id = odom;
 				odom_msg.pose.pose.position.x = x_pos;
 				odom_msg.pose.pose.position.y = y_pos;
@@ -598,8 +616,8 @@ extern "C" void broadcast_handler()
 					odom_msg.twist.covariance[35] = 1e-9;
 				}
 				else{
-					odom_msg.pose.covariance[0] = 1e-3;
-					odom_msg.pose.covariance[7] = 1e-3;
+					odom_msg.pose.covariance[0] = 1e-1;
+					odom_msg.pose.covariance[7] = 1e-1;
 					odom_msg.pose.covariance[8] = 0.0;
 					odom_msg.pose.covariance[14] = 1e6;
 					odom_msg.pose.covariance[21] = 1e6;
@@ -726,6 +744,22 @@ void cbSetCfg(const mowgli::SetCfgRequest &req, mowgli::SetCfgResponse &res) {
 }
 
 /*
+ *  callback for mowgli/EnableTF Service
+ */
+void cbEnableTF(const std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res)
+{
+	publish_tf = req.data;
+    if (req.data) {        		
+        res.success = true;
+        res.message = "cbEnableTF: publishing transform activated";
+    }
+    else {
+        res.success = false;
+        res.message = "cbEnableTF: publishing transform de-activated";
+    }    
+}
+
+/*
  *  callback for mowgli/EnableMowerMotor Service
  */
 void cbEnableMowerMotor(const std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res)
@@ -803,6 +837,7 @@ extern "C" void init_ROS()
 	nh.advertiseService(svcGetCfg);	  
     nh.advertiseService(svcEnableMowerMotor);
 	nh.advertiseService(svcReboot);
+	nh.advertiseService(svcEnableTF);
 	
 	// Initialize Timers
 	NBT_init(&publish_nbt, 1000);

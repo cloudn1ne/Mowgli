@@ -7,8 +7,8 @@
 
 This repo tracks my progress in reverse engineering the Yardforce GForce mainbord as used in the Yardforce 500 (and others) Mower Robots.
 
-In the end in would like to use it with [OpenMower](https://github.com/ClemensElflein/OpenMower) but without having to use that projects mainboard, instead recycling as much hardware as possible from the original GForce mainboard. 
-There should be no irreversible modifications to the GForce board required.
+Mowgli is compatible with [OpenMower](https://github.com/ClemensElflein/OpenMower) but without having to use that projects mainboard, instead recycling as much hardware as possible from the original GForce mainboard. 
+There should are no irreversible modifications to the GForce board required.
 
 ## Looking for MowgliRover ?
 
@@ -65,8 +65,11 @@ The custom firmware has no protections - no tilt sensing, no stop buttons will w
 
 - Move all UART functions use DMA as HAL_IT is a seriously broken API
 - Publish Blade Motor state
+- LEDs should be controllable via a Topic or Service
 
 ## rosserial node
+
+This is the software that needs to be compiled and flashed onto the STM32 on the Geforce Mainboard
 
 - [See here how to use the ROS serial node](stm32/ros_usbnode)
 

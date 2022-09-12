@@ -14,6 +14,10 @@ There should be no irreversible modifications to the GForce board required.
 
 see [here](https://github.com/cloudn1ne/MowgliRover)
 
+## Looking for MowgliBase ?
+
+see [here](https://github.com/cloudn1ne/MowgliBase)
+
 ## Updates
 
 see [Updates](UPDATES.md)

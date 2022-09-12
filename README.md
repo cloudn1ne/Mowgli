@@ -74,11 +74,12 @@ The custom firmware has no protections - no tilt sensing, no stop buttons will w
 
 Currently only the [Pololu IMU 10v5](https://www.pololu.com/product/2739) is supported, but any I2C or SPI IMU should work.
 
-## Servoces
+## Services
 - /mowgli_cmd/MowerControlSrv - enabled/disable blade
 - /mowgli/GetCfg - read SPI flash config var
 - /mowgli/SetCfg - write SPI flash config var
 - /mowgli/Reboot - reboot Mowgli
+- /mowgli/EnableTF - enable odom_dr -> base_link_dr transform (for /mowgli/odom) - used for Dead Reckoning - default ON
 
 ## Subscribers
 - /cmd_vel - geometry_msgs::Twist (compatible with teleop twist messages, so you can drive the bot)

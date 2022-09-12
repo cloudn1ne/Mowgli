@@ -60,6 +60,7 @@ The custom firmware has no protections - no tilt sensing, no stop buttons will w
 - onboard IMU (accelerometer) for tilt protection
 - Safety switches (Hall Sensors) for STOP button
 - Rain Sensor
+- **Mowgli is now compatible with the OpenMower software stack thanks to the [MowgliRover] Proxy software (https://github.com/cloudn1ne/MowgliRover)**
 
 ## TODO
 

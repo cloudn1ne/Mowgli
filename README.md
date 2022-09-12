@@ -10,6 +10,10 @@ This repo tracks my progress in reverse engineering the Yardforce GForce mainbor
 In the end in would like to use it with [OpenMower](https://github.com/ClemensElflein/OpenMower) but without having to use that projects mainboard, instead recycling as much hardware as possible from the original GForce mainboard. 
 There should be no irreversible modifications to the GForce board required.
 
+## Looking for MowgliRover ?
+
+see [here](https://github.com/cloudn1ne/MowgliRover)
+
 ## Updates
 
 see [Updates](UPDATES.md)
@@ -52,7 +56,6 @@ The custom firmware has no protections - no tilt sensing, no stop buttons will w
 
 - Move all UART functions use DMA as HAL_IT is a seriously broken API
 - Publish Blade Motor state
-- (Probably) Shift all the published topics to some common base such as /mowgli/
 
 ## rosserial node
 
@@ -60,32 +63,25 @@ The custom firmware has no protections - no tilt sensing, no stop buttons will w
 
 ## Published Topics
 
-- /battery_voltage - std_msgs::Float32 (current Battery Voltage)
-- /charge_voltage - std_msgs::Float32 (PWM controlled Charge Voltage if plugged in)
-- /charge_current - std_msgs:Float32 (still a bit unclear how that works, needs more Kicad'ding)
-- /charge_pwm - std_msgs::Int16 (PWM value for Charge Voltage)
-- /charging_state - std_msgs::Bool (True/False depending on if the bot is charging)
-- /odom - nav_msgs::Odometry (Odometry messages, from motor controller feedback)
-- /left_encoder_ticks & /right_encoder_ticks - std_msgs::UInt21 (Accumulated Raw encoder values)
-- /imu_onboard/data_raw - sensor_msgs::Imu - onboard accelerometer data (no gyro, no mag !)
-- /imu_onboard/temp - sensor_msgs::Temperature - onboard accerlerometer temperature
+- /mowgli/status - Mowgli Status messages, simliar to Openmowers
+- /mowgli/odom - Mowgli ODOM (calculated onboard from wheel ticks)
+- /imu/data_raw - Mowgli IMU (the I2C attached one)
+- /imu_onboard/data_raw - Mowlgi (on YF Mainboard) IMU accelerometer only
+- /imu/mag_calibration - Mowgli IMU (the I2C attached on) - raw magnetometer data (uncalibrated)
 - /buttonstates - on supported panels
 
 ### in case a supported I2C IMU is connected to J18
 
-- /imu/data_raw - sensor_msgs::Imu - external IMU data (acceleration, gyro)
-- /imu/mag - sensor_msgs::MagneticField - external IMU data (compass)
-
 Currently only the [Pololu IMU 10v5](https://www.pololu.com/product/2739) is supported, but any I2C or SPI IMU should work.
 
-## Planned (TODO) Topics
-- /blade_state - std_msgs::Bool
+## Servoces
+- /mowgli_cmd/MowerControlSrv - enabled/disable blade
+- /mowgli/GetCfg - read SPI flash config var
+- /mowgli/SetCfg - write SPI flash config var
+- /mowgli/Reboot - reboot Mowgli
 
 ## Subscribers
 - /cmd_vel - geometry_msgs::Twist (compatible with teleop twist messages, so you can drive the bot)
-- /cmd_blade_on - std_msgs::Bool (set True to turn on the Blade Motor)
-- /cmd_blade_off - std_msgs::Bool (set True to turn off the Blade Motor)
-- /cmd_reboot- std_msgs::Bool (set True to reboot the STM32)
 
 ## Serial Debugging
 

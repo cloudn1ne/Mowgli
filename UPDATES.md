@@ -12,3 +12,4 @@
 * 19/06/22 - added /cmd_reboot topic (bool) - allows remote reboot of the STM32 cpu
 * 25/06/22 - 2nd Bot build, updated IMU, DCDC converter wiring diagrams and pics
 * 09/07/22 - Rain Sensor, Keyboard Reading (ECOW boards but not all firmwares), Mounting details
+* 10/09/22 - Reduced frequency of pushed topics, and releases [MowgliRover](https://github.com/cloudn1ne/MowgliRover)

@@ -366,7 +366,7 @@ int main(void)
     debug_printf(" * Panel Interrupt enabled\r\n");
 
     HAL_GPIO_WritePin(LED_GPIO_PORT, LED_PIN, 0);
-    HAL_GPIO_WritePin(TF4_GPIO_PORT, TF4_PIN, 1);
+    HAL_GPIO_WritePin(TF4_GPIO_PORT, TF4_PIN, 1);                       // turn on 28V supply
     HAL_GPIO_WritePin(PAC5223RESET_GPIO_PORT, PAC5223RESET_PIN, 1);     // take Blade PAC out of reset if HIGH
     HAL_GPIO_WritePin(PAC5210RESET_GPIO_PORT, PAC5210RESET_PIN, 0);     // take Drive Motor PAC out of reset if LOW
 
@@ -389,7 +389,7 @@ int main(void)
     debug_printf(" * Charge Current Offset: %2.2fA\r\n", charge_current_offset);
 
     // Initialize Main Timers
-	NBT_init(&main_chargecontroller_nbt, 10);
+	NBT_init(&main_chargecontroller_nbt, 20);
     NBT_init(&main_statusled_nbt, 1000);
 	NBT_init(&main_emergency_nbt, 10);
     debug_printf(" * NBT Main timers initialized\r\n");     
@@ -1304,6 +1304,7 @@ void ChargeController(void)
             charge_current = 0;
         
         if (charge_voltage >= MIN_CHARGE_VOLTAGE ) {
+            HAL_GPIO_WritePin(TF4_GPIO_PORT, TF4_PIN, 0);                       // turn off 28V supply while charging
             // set PWM to approach 29.4V charge voltage
             if ((charge_voltage < 29.4) && (chargecontrol_pwm_val < 1350))
             {
@@ -1320,7 +1321,8 @@ void ChargeController(void)
             }
         }
         else {
-             chargecontrol_pwm_val = MIN_CHARGE_PWM;    
+             HAL_GPIO_WritePin(TF4_GPIO_PORT, TF4_PIN, 1);                       // turn on 28V supply if we are not charging
+            // chargecontrol_pwm_val = MIN_CHARGE_PWM;    
              // constantly get fresh offet if we are not charging      
              if (charge_voltage == 0)
              {

@@ -233,7 +233,7 @@ void PANEL_Tick(void)
       if (ReceiveBuffer[0] == 0x55 && ReceiveBuffer[1] == 0xaa && ReceiveBuffer[3] == 0x50) // & ReceiveBuffer[2]==0x02  & ReceiveBuffer[4]==0x00)
       {
         
-            debug_printf("%x %x %x | %x %x %x \r\n",ReceiveBuffer[2],ReceiveBuffer[3],ReceiveBuffer[4], ReceiveBuffer[5], ReceiveBuffer[6], ReceiveBuffer[7]);
+           //  debug_printf("%x %x %x | %x %x %x \r\n",ReceiveBuffer[2],ReceiveBuffer[3],ReceiveBuffer[4], ReceiveBuffer[5], ReceiveBuffer[6], ReceiveBuffer[7]);
             /* if (ReceiveBuffer[5]==0x02) debug_printf("key: timer\r\n");
             if (ReceiveBuffer[6]==0x02) debug_printf("key: S1\r\n");
             if (ReceiveBuffer[7]==0x02) debug_printf("key: S2\r\n");

@@ -63,7 +63,7 @@
 #define ODOM_NBT_TIME_MS   100 	// 200ms
 #define IMU_NBT_TIME_MS    100  
 #define MOTORS_NBT_TIME_MS 100
-#define STATUS_NBT_TIME_MS 250
+#define STATUS_NBT_TIME_MS 100
 
 extern uint8_t RxBuffer[RxBufferSize];
 struct ringbuffer rb;

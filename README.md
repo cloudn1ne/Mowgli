@@ -7,12 +7,21 @@
 
 This repo tracks my progress in reverse engineering the Yardforce GForce mainbord as used in the Yardforce 500 (and others) Mower Robots.
 
-In the end in would like to use it with [OpenMower](https://github.com/ClemensElflein/OpenMower) but without having to use that projects mainboard, instead recycling as much hardware as possible from the original GForce mainboard. 
-There should be no irreversible modifications to the GForce board required.
+Mowgli is compatible with [OpenMower](https://github.com/ClemensElflein/OpenMower) but without having to use that projects mainboard, instead recycling as much hardware as possible from the original GForce mainboard. 
+There should are no irreversible modifications to the GForce board required.
 
 ## Looking for MowgliRover ?
 
+MowgliRover is the part of this project that needs to be deployed on the Raspi.
+
 see [here](https://github.com/cloudn1ne/MowgliRover)
+
+## Looking for MowgliBase ?
+
+MowgliBase is the repo that contains the IMU Magnetometer calibration tooling.
+It is meant to be deployed onto a Linux ROS Noetic installation.
+
+see [here](https://github.com/cloudn1ne/MowgliBase)
 
 ## Updates
 
@@ -51,13 +60,17 @@ The custom firmware has no protections - no tilt sensing, no stop buttons will w
 - onboard IMU (accelerometer) for tilt protection
 - Safety switches (Hall Sensors) for STOP button
 - Rain Sensor
+- **Mowgli is now compatible with the OpenMower software stack thanks to the [MowgliRover] Proxy software (https://github.com/cloudn1ne/MowgliRover)**
 
 ## TODO
 
 - Move all UART functions use DMA as HAL_IT is a seriously broken API
 - Publish Blade Motor state
+- LEDs should be controllable via a Topic or Service
 
 ## rosserial node
+
+This is the software that needs to be compiled and flashed onto the STM32 on the Geforce Mainboard
 
 - [See here how to use the ROS serial node](stm32/ros_usbnode)
 
@@ -74,11 +87,12 @@ The custom firmware has no protections - no tilt sensing, no stop buttons will w
 
 Currently only the [Pololu IMU 10v5](https://www.pololu.com/product/2739) is supported, but any I2C or SPI IMU should work.
 
-## Servoces
+## Services
 - /mowgli_cmd/MowerControlSrv - enabled/disable blade
 - /mowgli/GetCfg - read SPI flash config var
 - /mowgli/SetCfg - write SPI flash config var
 - /mowgli/Reboot - reboot Mowgli
+- /mowgli/EnableTF - enable odom_dr -> base_link_dr transform (for /mowgli/odom) - used for Dead Reckoning - default ON
 
 ## Subscribers
 - /cmd_vel - geometry_msgs::Twist (compatible with teleop twist messages, so you can drive the bot)

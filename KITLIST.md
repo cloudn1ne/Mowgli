@@ -27,7 +27,7 @@
 * Dupont connectors and crimp kit (IMU connector) - or you solder connectors directly
 * 40pin female crimp connector for Raspi GPIO header
 * Shrinktubes, Cableguards
-* RG174 crimp tool and male SMA connector to shorten the way to long GPS antenna cable
+* RG174 crimp tool and male SMA connector to shorten the way too long GPS antenna cable
 
 ### RTK GPS Base Station
 

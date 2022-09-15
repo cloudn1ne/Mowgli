@@ -1306,11 +1306,11 @@ void ChargeController(void)
         if (charge_voltage >= MIN_CHARGE_VOLTAGE ) {
             //HAL_GPIO_WritePin(TF4_GPIO_PORT, TF4_PIN, 0);                       // turn off 28V supply while charging
             // set PWM to approach 29.4V charge voltage
-            if ((charge_voltage < 29.2) && (chargecontrol_pwm_val < 1350))
+            if ((charge_voltage < 29.4) && (chargecontrol_pwm_val < 1350))
             {
                 chargecontrol_pwm_val++;
             }            
-            if ((charge_voltage > 29.2) && (chargecontrol_pwm_val > 50))
+            if ((charge_voltage > 29.4) && (chargecontrol_pwm_val > 50))
             {
                 chargecontrol_pwm_val--;
             }

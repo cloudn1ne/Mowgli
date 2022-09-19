@@ -161,6 +161,15 @@ currently:	speed 0.5	turn 1.0
 
 Press 'i' to start moving the bot, 'k' to stop and so on.
 ```
+## Enable UART5 on raspi for serial debugging
+
+add this to /boot/firmware/usercfg.txt
+
+```
+dtoverlay=uart5
+```
+
+then reboot.
 
 ## Serial Debugging
 

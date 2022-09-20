@@ -4,8 +4,8 @@
   * @author  Georg Swoboda <cn@warp.at>
   * @brief   main / bootup and initialization, motor control routines, usb init
   ******************************************************************************
-  * Version 1.0 
-  * 
+  * Version 1.0
+  *  
   * compile with -DBOARD_YARDFORCE500 to enable the YF500 GForce pinout
   * 
   * ROS integration howto taken from here: https://github.com/Itamare4/ROS_stm32f1_rosserial_USB_VCP (Itamar Eliakim)
@@ -37,9 +37,13 @@
 #include "cpp_main.h"
 #include "ringbuffer.h"
 
+static void WATCHDOG_vInit(void);
+static void WATCHDOG_Refresh(void); 
+
 static nbt_t main_chargecontroller_nbt;
 static nbt_t main_statusled_nbt;
 static nbt_t main_emergency_nbt;
+static nbt_t main_wdg_nbt;
 
 enum rx_status_enum { RX_WAIT, RX_VALID, RX_CRC_ERROR};
 
@@ -111,6 +115,8 @@ DMA_HandleTypeDef hdma_uart4_tx;
 ADC_HandleTypeDef ADC_Handle;
 TIM_HandleTypeDef TIM1_Handle;  // PWM Charge Controller
 TIM_HandleTypeDef TIM3_Handle;  // PWM Beeper
+IWDG_HandleTypeDef IwdgHandle = {0};
+WWDG_HandleTypeDef WwdgHandle = {0};
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
@@ -283,6 +289,7 @@ int main(void)
     debug_printf(" / /  / / /_/ / |/ |/ / /_/ / / /  \r\n");
     debug_printf("/_/  /_/\\____/|__/|__/\\__, /_/_/   \r\n");
     debug_printf("                     /____/        \r\n");
+    debug_printf(" Version: %d.%d.%d\r\n", MOWGLI_SW_VERSION_MAJOR, MOWGLI_SW_VERSION_BRANCH, MOWGLI_SW_VERSION_MINOR);
     debug_printf("\r\n\r\n");
     debug_printf(" * Master USART (debug) initialized\r\n");
     LED_Init();
@@ -392,6 +399,7 @@ int main(void)
 	NBT_init(&main_chargecontroller_nbt, 20);
     NBT_init(&main_statusled_nbt, 1000);
 	NBT_init(&main_emergency_nbt, 10);
+    NBT_init(&main_wdg_nbt,10);
     debug_printf(" * NBT Main timers initialized\r\n");     
 
  #ifdef I_DONT_NEED_MY_FINGERS
@@ -489,6 +497,10 @@ int main(void)
 	    {            
 			StatusLEDUpdate();                                 
             // debug_printf("master_rx_STATUS: %d  drivemotors_rx_buf_idx: %d  cnt_usart2_overrun: %x\r\n", master_rx_STATUS, drivemotors_rx_buf_idx, cnt_usart2_overrun);           
+	    }
+        if (NBT_handler(&main_wdg_nbt))
+	    {            
+			  WATCHDOG_Refresh();                   
 	    }
 #ifndef I_DONT_NEED_MY_FINGERS
 		if (NBT_handler(&main_emergency_nbt))
@@ -1306,11 +1318,11 @@ void ChargeController(void)
         if (charge_voltage >= MIN_CHARGE_VOLTAGE ) {
             //HAL_GPIO_WritePin(TF4_GPIO_PORT, TF4_PIN, 0);                       // turn off 28V supply while charging
             // set PWM to approach 29.4V charge voltage
-            if ((charge_voltage < 29.4) && (chargecontrol_pwm_val < 1350))
+            if ( (battery_voltage < BAT_CHARGE_CUTOFF_VOLTAGE) && (charge_voltage < MAX_CHARGE_VOLTAGE) && (chargecontrol_pwm_val < 1350) )
             {
                 chargecontrol_pwm_val++;
             }            
-            if ((charge_voltage > 29.4) && (chargecontrol_pwm_val > 50))
+            if ( (battery_voltage > BAT_CHARGE_CUTOFF_VOLTAGE) || ((charge_voltage > MAX_CHARGE_VOLTAGE) && (chargecontrol_pwm_val > 50)) )
             {
                 chargecontrol_pwm_val--;
             }
@@ -1539,4 +1551,74 @@ void DRIVEMOTORS_Transmit(uint8_t *buffer, uint8_t len)
     drivemotors_tx_buffer_len = len;
     memcpy(drivemotors_tx_buffer, buffer, drivemotors_tx_buffer_len);
     HAL_UART_Transmit_DMA(&DRIVEMOTORS_USART_Handler, (uint8_t*)drivemotors_tx_buffer, drivemotors_tx_buffer_len); // send message via UART       
+}
+
+/*
+ * Initialize Watchdog - not tested yet (by Nekraus)
+ */
+static void WATCHDOG_vInit(void)
+{
+  #if defined(DB_ACTIVE)
+    /* setup DBGMCU block - stop IWDG at break in debug mode */
+    __DBGMCU_CLK_ENABLE();
+    __HAL_FREEZE_IWDG_DBGMCU();
+  #endif  /* DB_ACTIVE */
+
+  /* change the period to 50ms */
+  IwdgHandle.Instance = IWDG;
+  IwdgHandle.Init.Prescaler = IWDG_PRESCALER_256;
+  IwdgHandle.Init.Reload = 8U;
+  /* Enable IWDG (LSI automatically enabled by HW) */
+
+  /* if window feature is not applied Init() precedes Start() */
+  if( HAL_IWDG_Init(&IwdgHandle) != HAL_OK )
+  {
+    #ifdef DB_ACTIVE
+      DB_TRACE(" IWDG init Error\n\r");
+    #endif  /* DB_ACTIVE */
+  }
+
+  /* Initialize WWDG for run time if applicable */
+  #if defined(DB_ACTIVE)
+    /* setup DBGMCU block - stop WWDG at break in debug mode */
+    __DBGMCU_CLK_ENABLE();
+    __HAL_FREEZE_WWDG_DBGMCU();
+  #endif  /* DB_ACTIVE */
+
+  /* Setup period - 20ms */
+  __WWDG_CLK_ENABLE();
+  WwdgHandle.Instance = WWDG;
+  WwdgHandle.Init.Prescaler = WWDG_PRESCALER_8;
+  WwdgHandle.Init.Counter = 22; /* 20.02 ms*/
+  WwdgHandle.Init.Window = 9; /* 8.19 ms */
+  if( HAL_WWDG_Init(&WwdgHandle) != HAL_OK )
+  {
+    #ifdef DB_ACTIVE
+      DB_TRACE(" WWDG init Error\n\r");
+    #endif  /* DB_ACTIVE */
+  }
+} /* WATCHDOG_vInit() */
+
+/*
+ * Feed the watchdog every 10ms
+ */
+static void WATCHDOG_Refresh(void){
+  /* Update WWDG counter */
+  WwdgHandle.Instance = WWDG;
+  if( HAL_WWDG_Refresh(&WwdgHandle) != HAL_OK )
+  {
+    #ifdef DB_ACTIVE
+      DB_TRACE(" WWDG refresh error\n\r");
+    #endif  /* DB_ACTIVE */
+
+  }
+
+  /* Reload IWDG counter */
+  IwdgHandle.Instance = IWDG;
+  if( HAL_IWDG_Refresh(&IwdgHandle) != HAL_OK )
+  {
+    #ifdef DB_ACTIVE
+      DB_TRACE(" IWDG refresh error\n\r");
+    #endif  /* DB_ACTIVE */
+  }
 }

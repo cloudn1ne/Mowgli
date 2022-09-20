@@ -358,11 +358,9 @@ extern "C" void motors_handler()
 			// if the last blade cmd is older than 25sec we stop the motor
 			last_cmd_blade_age = nh.now().sec - last_cmd_blade.sec;
 			if (last_cmd_blade_age > 25) {
-				setBladeMotor(0);
-			}
-			else {
-				setBladeMotor(blade_on_off);
-			}
+				blade_on_off = 0;				
+			}			
+			setBladeMotor(blade_on_off);			
 		}
 	  }
 }
@@ -498,6 +496,10 @@ extern "C" void broadcast_handler()
 		status_msg.imu_temp = imu_onboard_temperature;
 		status_msg.blade_motor_ctrl_enabled = true;	// hardcoded for now
 		status_msg.drive_motor_ctrl_enabled = true; // hardcoded for now
+		status_msg.blade_motor_enabled = blade_on_off;				
+		status_msg.sw_ver_maj = MOWGLI_SW_VERSION_MAJOR;
+		status_msg.sw_ver_bra = MOWGLI_SW_VERSION_BRANCH;
+		status_msg.sw_ver_min = MOWGLI_SW_VERSION_MINOR;
 		pubStatus.publish(&status_msg);		
 	  } // if (NBT_handler(&status_nbt))
 
@@ -764,17 +766,18 @@ void cbEnableTF(const std_srvs::SetBool::Request &req, std_srvs::SetBool::Respon
  */
 void cbEnableMowerMotor(const std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res)
 {
-	//debug_printf("cbEnableMowerMotor:\r\n");
+	debug_printf("cbEnableMowerMotor: ");	
 	last_cmd_blade = nh.now();	// if the last blade cmd is older than 25sec the motor will be stopped !
 	blade_on_off = req.data;
     if (req.data) {        		
         res.success = true;
-        res.message = "Mower Blade Motor has been started";
+        res.message = "";
     }
     else {
-        res.success = false;
-        res.message = "Mower Blade Motor is being stopped";
+        res.success = true;
+        res.message = "";
     }    
+	debug_printf("[DONE]\r\n");
 }
 
 /*

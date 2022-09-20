@@ -7,6 +7,12 @@ extern "C" {
 #endif
 
 
+// this is the sofware version that any other Mowgli components like MowgliRover will match against
+
+#define MOWGLI_SW_VERSION_MAJOR              1
+#define MOWGLI_SW_VERSION_BRANCH             0              /* even = stable, odd = testing/unstable */
+#define MOWGLI_SW_VERSION_MINOR              0
+
 /*
  * at the moment this really only works for BOARD_YARDFORCE500
  * the bluepill config is broken because it hasnt been used in a while - will be fixed later or removed ;-)
@@ -34,6 +40,11 @@ extern "C" {
     // if current is greater than this assume the battery is charging
     #define MIN_CHARGE_CURRENT                  0.2
     #define LOW_BAT_THRESHOLD                   23.5
+
+    // when the battery voltage reaches this we stop charging
+    #define BAT_CHARGE_CUTOFF_VOLTAGE           28.9
+    // maximum voltage that we will ever supply to the battery
+    #define MAX_CHARGE_VOLTAGE                  29.4
 
     // Emergency sensor timeouts
     #define WHEEL_LIFT_EMERGENCY_MILLIS         500

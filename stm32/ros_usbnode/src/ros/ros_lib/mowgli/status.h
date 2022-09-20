@@ -47,6 +47,14 @@ namespace mowgli
       _right_encoder_ticks_type right_encoder_ticks;
       typedef float _imu_temp_type;
       _imu_temp_type imu_temp;
+      typedef bool _blade_motor_enabled_type;
+      _blade_motor_enabled_type blade_motor_enabled;
+      typedef uint8_t _sw_ver_maj_type;
+      _sw_ver_maj_type sw_ver_maj;
+      typedef uint8_t _sw_ver_bra_type;
+      _sw_ver_bra_type sw_ver_bra;
+      typedef uint8_t _sw_ver_min_type;
+      _sw_ver_min_type sw_ver_min;
 
     status():
       stamp(),
@@ -65,7 +73,11 @@ namespace mowgli
       drive_motor_ctrl_enabled(0),
       left_encoder_ticks(0),
       right_encoder_ticks(0),
-      imu_temp(0)
+      imu_temp(0),
+      blade_motor_enabled(0),
+      sw_ver_maj(0),
+      sw_ver_bra(0),
+      sw_ver_min(0)
     {
     }
 
@@ -198,6 +210,19 @@ namespace mowgli
       *(outbuffer + offset + 2) = (u_imu_temp.base >> (8 * 2)) & 0xFF;
       *(outbuffer + offset + 3) = (u_imu_temp.base >> (8 * 3)) & 0xFF;
       offset += sizeof(this->imu_temp);
+      union {
+        bool real;
+        uint8_t base;
+      } u_blade_motor_enabled;
+      u_blade_motor_enabled.real = this->blade_motor_enabled;
+      *(outbuffer + offset + 0) = (u_blade_motor_enabled.base >> (8 * 0)) & 0xFF;
+      offset += sizeof(this->blade_motor_enabled);
+      *(outbuffer + offset + 0) = (this->sw_ver_maj >> (8 * 0)) & 0xFF;
+      offset += sizeof(this->sw_ver_maj);
+      *(outbuffer + offset + 0) = (this->sw_ver_bra >> (8 * 0)) & 0xFF;
+      offset += sizeof(this->sw_ver_bra);
+      *(outbuffer + offset + 0) = (this->sw_ver_min >> (8 * 0)) & 0xFF;
+      offset += sizeof(this->sw_ver_min);
       return offset;
     }
 
@@ -343,11 +368,25 @@ namespace mowgli
       u_imu_temp.base |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
       this->imu_temp = u_imu_temp.real;
       offset += sizeof(this->imu_temp);
+      union {
+        bool real;
+        uint8_t base;
+      } u_blade_motor_enabled;
+      u_blade_motor_enabled.base = 0;
+      u_blade_motor_enabled.base |= ((uint8_t) (*(inbuffer + offset + 0))) << (8 * 0);
+      this->blade_motor_enabled = u_blade_motor_enabled.real;
+      offset += sizeof(this->blade_motor_enabled);
+      this->sw_ver_maj =  ((uint8_t) (*(inbuffer + offset)));
+      offset += sizeof(this->sw_ver_maj);
+      this->sw_ver_bra =  ((uint8_t) (*(inbuffer + offset)));
+      offset += sizeof(this->sw_ver_bra);
+      this->sw_ver_min =  ((uint8_t) (*(inbuffer + offset)));
+      offset += sizeof(this->sw_ver_min);
      return offset;
     }
 
     virtual const char * getType() override { return "mowgli/status"; };
-    virtual const char * getMD5() override { return "c3dcd03b1ec51302b0ed51e76ce2ecdb"; };
+    virtual const char * getMD5() override { return "15e78a076a95e8647feed5f6d9b77ddd"; };
 
   };
 

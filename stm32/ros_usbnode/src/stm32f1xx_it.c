@@ -62,11 +62,16 @@ uint16_t cnt_usart2_overrun = 0;
 /* External variables --------------------------------------------------------*/
 extern UART_HandleTypeDef MASTER_USART_Handler;
 extern UART_HandleTypeDef DRIVEMOTORS_USART_Handler;
+extern UART_HandleTypeDef BLADEMOTOR_USART_Handler; 
 extern PCD_HandleTypeDef hpcd_USB_FS;
 
 extern DMA_HandleTypeDef hdma_uart4_tx;
+/* DRIVE MOTOR */
 extern DMA_HandleTypeDef hdma_usart2_rx;
 extern DMA_HandleTypeDef hdma_usart2_tx;
+/* BLADE MOTOR */
+extern DMA_HandleTypeDef hdma_uart3_tx;
+extern DMA_HandleTypeDef hdma_uart3_rx;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -227,9 +232,9 @@ void SysTick_Handler(void)
   }
 
 /**
-  * @brief This function handles UART global interrupt.
+  * @brief This function handles UART global interrupt. (DRIVE MOTOR)
   */
-  void USART2_IRQHandler(void)
+  void USART2_IRQHandler(void) 
   {    
     
     uint32_t status = USART2->SR;
@@ -240,12 +245,18 @@ void SysTick_Handler(void)
     HAL_UART_IRQHandler(&DRIVEMOTORS_USART_Handler);    
   }
 
+ /**
+  * @brief This function handles UART global interrupt. (BLADE MOTOR)
+  */
+  void USART3_IRQHandler(void)
+  {    
+    HAL_UART_IRQHandler(&BLADEMOTOR_USART_Handler);    
+  }
 
+ 
 /**
   * @brief This function handles UART4 global interrupt.
   */
-
-
   void UART4_IRQHandler(void)
   {           
     HAL_UART_IRQHandler(&MASTER_USART_Handler);   
@@ -253,7 +264,7 @@ void SysTick_Handler(void)
 
 
 /**
-  * @brief This function handles DMA1 channel6 global interrupt.
+  * @brief This function handles DMA1 channel6 global interrupt. (DRIVE MOTOR)
   */
 void DMA1_Channel6_IRQHandler(void)
 {
@@ -267,7 +278,7 @@ void DMA1_Channel6_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles DMA1 channel7 global interrupt.
+  * @brief This function handles DMA1 channel7 global interrupt. (DRIVE MOTOR)
   */
 void DMA1_Channel7_IRQHandler(void)
 {

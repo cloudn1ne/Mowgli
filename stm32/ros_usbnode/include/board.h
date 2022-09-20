@@ -31,6 +31,8 @@ extern "C" {
 
     #define I_DONT_NEED_MY_FINGERS              1       // disables EmergencyController() (no wheel lift, or tilt sensing and stopping the blade anymore)
 
+    // #define HAS_ULTRASONIC_SENSOR               1
+
     /// nominal max charge current is 1 Amp
     #define MAX_CHARGE_CURRENT                  1.0
     // if voltage is greater than this assume we are docked
@@ -42,7 +44,7 @@ extern "C" {
     #define LOW_BAT_THRESHOLD                   23.5
 
     // when the battery voltage reaches this we stop charging
-    #define BAT_CHARGE_CUTOFF_VOLTAGE           28.9
+    #define BAT_CHARGE_CUTOFF_VOLTAGE           28.8
     // maximum voltage that we will ever supply to the battery
     #define MAX_CHARGE_VOLTAGE                  29.4
 

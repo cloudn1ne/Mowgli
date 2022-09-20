@@ -38,6 +38,14 @@ extern "C" {
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
 
+typedef enum {
+    RX_WAIT,
+    RX_VALID,
+    RX_CRC_ERROR,
+    RX_INVALID_ERROR,
+    RX_TIMEOUT_ERROR,
+}rx_status_e;
+
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
@@ -64,15 +72,8 @@ void chirp(uint8_t count);
 extern float battery_voltage;
 extern float charge_voltage;
 extern float charge_current;
-
 extern uint16_t  chargecontrol_pwm_val;
 extern uint8_t   chargecontrol_is_charging;
-extern int16_t   right_wheel_speed_val;
-extern int16_t   left_wheel_speed_val;
-extern int32_t   right_encoder_ticks;  // accumulating
-extern int32_t   left_encoder_ticks;   // accumulating 
-extern uint16_t  right_encoder_val;    // non accumulating 
-extern uint16_t  left_encoder_val;     // non accumulating 
 
 // uart statistics
 extern uint16_t cnt_uart4_overrun;      // master

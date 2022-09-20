@@ -60,9 +60,9 @@ void IMU_ReadMagnetometerRaw(double *x, double *y, double *z);
 #define IMU_CAL_SAMPLES     100
 void IMU_Calibrate(void);
 
-/* Magnetometer Calibration Values */
-extern double onboard_imu_mag_bias[3];          // hard iron compensation
-extern double onboard_imu_mag_cal_matrix[3][3]; // soft iron compensation
+/* External Magnetometer Calibration Values */
+extern double external_imu_mag_bias[3];          // hard iron compensation
+extern double external_imu_mag_cal_matrix[3][3]; // soft iron compensation
 #ifdef __cplusplus
 }
 #endif

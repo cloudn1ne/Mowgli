@@ -44,7 +44,7 @@ extern "C" {
     #define LOW_BAT_THRESHOLD                   23.5
 
     // when the battery voltage reaches this we stop charging
-    #define BAT_CHARGE_CUTOFF_VOLTAGE           28.8
+    #define BAT_CHARGE_CUTOFF_VOLTAGE           28.80
     // maximum voltage that we will ever supply to the battery
     #define MAX_CHARGE_VOLTAGE                  29.4
 

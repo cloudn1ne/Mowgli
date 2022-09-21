@@ -362,7 +362,7 @@ extern "C" void motors_handler()
 			if (last_cmd_blade_age > 25) {
 				blade_on_off = 0;				
 			}			
-			setBladeMotor(blade_on_off);			
+			BLADEMOTOR_Set(blade_on_off);			
 		}
 	  }
 }
@@ -377,7 +377,7 @@ extern "C" void panel_handler()
 		PANEL_Tick();
 		if (buttonupdated == 1)
 		{
-			debug_printf("buttonstate changed\r\n");
+			debug_printf("ROS: panel_nbt() - buttonstate changed\r\n");
 			buttonstate_msg.data = (int16_t*) malloc(sizeof(int16_t) * PANEL_BUTTON_BYTES);
 			buttonstate_msg.data_length = PANEL_BUTTON_BYTES;
 			memcpy(buttonstate_msg.data,buttonstate,sizeof(int16_t) * PANEL_BUTTON_BYTES);
@@ -498,7 +498,7 @@ extern "C" void broadcast_handler()
 		status_msg.imu_temp = imu_onboard_temperature;
 		status_msg.blade_motor_ctrl_enabled = true;	// hardcoded for now
 		status_msg.drive_motor_ctrl_enabled = true; // hardcoded for now
-		status_msg.blade_motor_enabled = blade_on_off;				
+		status_msg.blade_motor_enabled = BLADEMOTOR_bActivated;	// set by feedback from blademotor	
 		status_msg.sw_ver_maj = MOWGLI_SW_VERSION_MAJOR;
 		status_msg.sw_ver_bra = MOWGLI_SW_VERSION_BRANCH;
 		status_msg.sw_ver_min = MOWGLI_SW_VERSION_MINOR;
@@ -767,10 +767,10 @@ void cbEnableTF(const std_srvs::SetBool::Request &req, std_srvs::SetBool::Respon
  *  callback for mowgli/EnableMowerMotor Service
  */
 void cbEnableMowerMotor(const std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res)
-{
-	debug_printf("cbEnableMowerMotor: ");	
+{	
 	last_cmd_blade = nh.now();	// if the last blade cmd is older than 25sec the motor will be stopped !
-	blade_on_off = req.data;
+	debug_printf("ROS: cbEnableMowerMotor(from %d to %d)", blade_on_off, req.data);	
+	blade_on_off = req.data;	
     if (req.data) {        		
         res.success = true;
         res.message = "";

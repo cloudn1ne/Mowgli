@@ -29,7 +29,7 @@
 *******************************************************************************/
 #define BLADEMOTOR_LENGTH_INIT_MSG 22
 #define BLADEMOTOR_LENGTH_RQST_MSG 7
-#define BLADEMOTOR_LENGTH_RECEIVED_MSG 14
+#define BLADEMOTOR_LENGTH_RECEIVED_MSG 16
 /******************************************************************************
 * Module Preprocessor Macros
 *******************************************************************************/
@@ -58,9 +58,9 @@ uint16_t BLADEMOTOR_u16Counter1 = 0;
 uint16_t BLADEMOTOR_u16Counter2 = 0;
 
 static uint8_t blademotor_pu8ReceivedData[BLADEMOTOR_LENGTH_RECEIVED_MSG] = {0};
-static uint8_t blademotor_pu8RqstMessage[BLADEMOTOR_LENGTH_RQST_MSG]  = {0x55, 0xaa, 0x03, 0x20, 0x80, 0x00, 0xA2};
+static uint8_t blademotor_pu8RqstMessage[BLADEMOTOR_LENGTH_RQST_MSG]  = {0x55, 0xaa, 0x03, 0x20, 0x80, 0x00, 0xa2};
 
-const uint8_t blademotor_pcu8PreAmbule[5]  = {0x55,0xAA,0x0A,0x2,0xD0};
+const uint8_t blademotor_pcu8Preamble[5]  = {0x55, 0xaa, 0xc, 0x2, 0xd0};
 const uint8_t blademotor_pcu8InitMsg[BLADEMOTOR_LENGTH_INIT_MSG] =  { 0x55, 0xaa, 0x12, 0x20, 0x80, 0x00, 0xac, 0x0d, 0x00, 0x02, 0x32, 0x50, 0x1e, 0x04, 0x00, 0x15, 0x21, 0x05, 0x0a, 0x19, 0x3c, 0xaa };
 /******************************************************************************
 * Function Prototypes
@@ -159,23 +159,21 @@ void BLADEMOTOR_Init(void)
 /// @brief handle drive motor messages
 /// @param  
 void  BLADEMOTOR_App(void){
-
+    uint8_t l_u8crc;
     switch (blademotor_eState)
     {
     case BLADEMOTOR_INIT_1:
 
         HAL_UART_Transmit_DMA(&BLADEMOTOR_USART_Handler, (uint8_t*)blademotor_pcu8InitMsg, BLADEMOTOR_LENGTH_INIT_MSG);
         blademotor_eState = BLADEMOTOR_RUN;
-
-        debug_printf(" * Blade Motor Controller initialized\r\n");
-     
+        debug_printf(" * Blade Motor Controller initialized\r\n");     
         break;
     
     case BLADEMOTOR_RUN:
-        
-        /* prepare to receive the message before to launch the command */
-        HAL_UART_Receive_DMA(&BLADEMOTOR_USART_Handler,blademotor_pu8ReceivedData,BLADEMOTOR_LENGTH_RECEIVED_MSG);
-        HAL_UART_Transmit_DMA(&BLADEMOTOR_USART_Handler, (uint8_t*)blademotor_pu8RqstMessage, BLADEMOTOR_LENGTH_RQST_MSG);
+
+        /* prepare to receive the message before to launch the command */        
+        HAL_UART_Receive_DMA(&BLADEMOTOR_USART_Handler, blademotor_pu8ReceivedData, BLADEMOTOR_LENGTH_RECEIVED_MSG);
+        HAL_UART_Transmit_DMA(&BLADEMOTOR_USART_Handler, (uint8_t*)blademotor_pu8RqstMessage, BLADEMOTOR_LENGTH_RQST_MSG);    
         break;
     
     default:
@@ -186,7 +184,7 @@ void  BLADEMOTOR_App(void){
 /// @brief control blade motor (there is no speed control for this motor)
 /// @param on_off 1 to turn on, 0 to turn off
 void BLADEMOTOR_Set(uint8_t on_off)
-{
+{    
     if (on_off)
     {
         blademotor_pu8RqstMessage[5] = 0x80; /* change speed Motor */
@@ -203,9 +201,10 @@ void BLADEMOTOR_Set(uint8_t on_off)
 /// @param  
 void BLADEMOTOR_ReceiveIT(void)
 {
-    /* decode the frame */
-    if(memcmp(blademotor_pcu8PreAmbule,blademotor_pu8ReceivedData,5) == 0){
-        uint8_t l_u8crc = crcCalc(blademotor_pu8ReceivedData,BLADEMOTOR_LENGTH_RECEIVED_MSG-1);
+    /* decode the frame */    
+    if(memcmp(blademotor_pcu8Preamble, blademotor_pu8ReceivedData, 5) == 0){        
+        uint8_t l_u8crc = crcCalc(blademotor_pu8ReceivedData, BLADEMOTOR_LENGTH_RECEIVED_MSG-1);
+
         if(blademotor_pu8ReceivedData[BLADEMOTOR_LENGTH_RECEIVED_MSG-1] == l_u8crc ){
             if((blademotor_pu8ReceivedData[5] & 0x80) == 0x80){
                 BLADEMOTOR_bActivated = true;
@@ -214,8 +213,7 @@ void BLADEMOTOR_ReceiveIT(void)
                 BLADEMOTOR_bActivated = false;
             }
             BLADEMOTOR_u16Counter1 = blademotor_pu8ReceivedData[7] + (blademotor_pu8ReceivedData[8]<<8);
-            BLADEMOTOR_u16Counter2 = blademotor_pu8ReceivedData[9] + (blademotor_pu8ReceivedData[10]<<8) ;
-            //DB_TRACE (" act : %d, B5 : %x, u16_0 :%d, u16_A: %d \n",BLADEMOTOR_bActivated, blademotor_pu8ReceivedData[5],BLADEMOTOR_u16Counter1,BLADEMOTOR_u16Counter2 );
+            BLADEMOTOR_u16Counter2 = blademotor_pu8ReceivedData[9] + (blademotor_pu8ReceivedData[10]<<8) ;           
         }
   
     }

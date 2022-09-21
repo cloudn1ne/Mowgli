@@ -96,9 +96,12 @@ float_t charge_current_offset;
 uint16_t chargecontrol_pwm_val = MIN_CHARGE_PWM;
 uint8_t  chargecontrol_is_charging = 0;
 
+
 UART_HandleTypeDef MASTER_USART_Handler; // UART  Handle
+/*
 UART_HandleTypeDef DRIVEMOTORS_USART_Handler; // UART  Handle
 UART_HandleTypeDef BLADEMOTOR_USART_Handler; // UART  Handle
+*/
 
 // SPI3 FLASH
 SPI_HandleTypeDef SPI3_Handle;
@@ -201,11 +204,13 @@ int main(void)
     debug_printf(" * 24V switched on\r\n");
     RAIN_Sensor_Init();
     debug_printf(" * RAIN Sensor enable\r\n");
+    /*
     PAC5223RESET_Init();
     debug_printf(" * PAC 5223 out of reset\r\n");
     PAC5210RESET_Init();
     debug_printf(" * PAC 5210 out of reset\r\n");    
-    
+    */
+
     if (SPIFLASH_TestDevice())
     {        
         SPIFLASH_Config();
@@ -307,31 +312,31 @@ int main(void)
         DRIVEMOTOR_App_Rx();
 
         if (NBT_handler(&main_chargecontroller_nbt))
-	    {            
-			ChargeController();
-	    }
+        {            
+            ChargeController();
+        }
         if (NBT_handler(&main_statusled_nbt))
-	    {            
-			StatusLEDUpdate();                                 
-            // debug_printf("master_rx_STATUS: %d  drivemotors_rx_buf_idx: %d  cnt_usart2_overrun: %x\r\n", master_rx_STATUS, drivemotors_rx_buf_idx, cnt_usart2_overrun);           
-	    }
+        {            
+            StatusLEDUpdate();                                 
+              // debug_printf("master_rx_STATUS: %d  drivemotors_rx_buf_idx: %d  cnt_usart2_overrun: %x\r\n", master_rx_STATUS, drivemotors_rx_buf_idx, cnt_usart2_overrun);           
+        }
         if (NBT_handler(&main_wdg_nbt))
-	    {            
-		    WATCHDOG_Refresh();                   
-	    }
+        {            
+            WATCHDOG_Refresh();                   
+        }
         if (NBT_handler(&main_drivemotor_nbt))
-	    {            
+        {            
             DRIVEMOTOR_App_10ms();      
-	    }
+        }
         if (NBT_handler(&main_blademotor_nbt))
-	    {            
-		    BLADEMOTOR_App();                       
-	    }
+        {            
+            BLADEMOTOR_App();                       
+        }
 #ifndef I_DONT_NEED_MY_FINGERS
-		if (NBT_handler(&main_emergency_nbt))
-		{
-			EmergencyController();
-		}
+        if (NBT_handler(&main_emergency_nbt))
+        {
+            EmergencyController();
+        }
 #endif        
     }
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -397,125 +402,6 @@ void MASTER_USART_Init()
 	HAL_NVIC_EnableIRQ(MASTER_USART_IRQ);     
 
     __HAL_UART_ENABLE_IT(&MASTER_USART_Handler, UART_IT_TC);
-}
-
-
-/**
- * @brief Init the Drive Motor Serial Port (PAC5210)
- * @retval None
- */
-void DRIVEMOTORS_USART_Init()
-{
-    GPIO_InitTypeDef GPIO_InitStruct = {0};
-
-    // enable port and usart clocks
-    DRIVEMOTORS_USART_GPIO_CLK_ENABLE();
-    DRIVEMOTORS_USART_USART_CLK_ENABLE();
-    
-    // RX
-    GPIO_InitStruct.Pin = DRIVEMOTORS_USART_RX_PIN;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
-    HAL_GPIO_Init(DRIVEMOTORS_USART_RX_PORT, &GPIO_InitStruct);
-
-    // TX
-    GPIO_InitStruct.Pin = DRIVEMOTORS_USART_TX_PIN;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    // GPIO_InitStruct.Pull = GPIO_PULLUP;
-    GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
-    HAL_GPIO_Init(DRIVEMOTORS_USART_TX_PORT, &GPIO_InitStruct);
-
-    // Alternate Pin Set ?
-    __HAL_AFIO_REMAP_USART2_ENABLE();
-
-    DRIVEMOTORS_USART_Handler.Instance = DRIVEMOTORS_USART_INSTANCE;// USART2
-    DRIVEMOTORS_USART_Handler.Init.BaudRate = 115200;               // Baud rate
-    DRIVEMOTORS_USART_Handler.Init.WordLength = UART_WORDLENGTH_8B; // The word is  8  Bit format
-    DRIVEMOTORS_USART_Handler.Init.StopBits = USART_STOPBITS_1;     // A stop bit
-    DRIVEMOTORS_USART_Handler.Init.Parity = UART_PARITY_NONE;       // No parity bit
-    DRIVEMOTORS_USART_Handler.Init.HwFlowCtl = UART_HWCONTROL_NONE; // No hardware flow control
-    DRIVEMOTORS_USART_Handler.Init.Mode = USART_MODE_TX_RX;         // Transceiver mode
-    
-    HAL_UART_Init(&DRIVEMOTORS_USART_Handler); 
-
-    /* USART2 DMA Init */
-    /* USART2_RX Init */    
-    hdma_usart2_rx.Instance = DMA1_Channel6;
-    hdma_usart2_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
-    hdma_usart2_rx.Init.PeriphInc = DMA_PINC_DISABLE;
-    hdma_usart2_rx.Init.MemInc = DMA_MINC_ENABLE;
-    hdma_usart2_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    hdma_usart2_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    hdma_usart2_rx.Init.Mode = DMA_CIRCULAR;
-    hdma_usart2_rx.Init.Priority = DMA_PRIORITY_LOW;
-    if (HAL_DMA_Init(&hdma_usart2_rx) != HAL_OK)
-    {
-      Error_Handler();
-    }
-
-    __HAL_LINKDMA(&DRIVEMOTORS_USART_Handler,hdmarx,hdma_usart2_rx);
-
-    // USART2_TX Init */
-    hdma_usart2_tx.Instance = DMA1_Channel7;
-    hdma_usart2_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
-    hdma_usart2_tx.Init.PeriphInc = DMA_PINC_DISABLE;
-    hdma_usart2_tx.Init.MemInc = DMA_MINC_ENABLE;
-    hdma_usart2_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    hdma_usart2_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    hdma_usart2_tx.Init.Mode = DMA_NORMAL;
-    hdma_usart2_tx.Init.Priority = DMA_PRIORITY_LOW;
-    if (HAL_DMA_Init(&hdma_usart2_tx) != HAL_OK)
-    {
-      Error_Handler();
-    }
-    __HAL_LINKDMA(&DRIVEMOTORS_USART_Handler,hdmatx,hdma_usart2_tx);
-
-    // enable IRQ      
-    HAL_NVIC_SetPriority(DRIVEMOTORS_USART_IRQ, 0, 0);
-    HAL_NVIC_EnableIRQ(DRIVEMOTORS_USART_IRQ);   
-
-    __HAL_UART_ENABLE_IT(&DRIVEMOTORS_USART_Handler, UART_IT_TC);
-}
-
-/**
- * @brief Init the Blade Motor Serial Port (PAC5223)
- * @retval None
- */
-void BLADEMOTOR_USART_Init()
-{
-    GPIO_InitTypeDef GPIO_InitStruct = {0};
-
-    // enable port and usart clocks
-    BLADEMOTOR_USART_GPIO_CLK_ENABLE();
-    BLADEMOTOR_USART_USART_CLK_ENABLE();
-    
-    // RX
-    GPIO_InitStruct.Pin = BLADEMOTOR_USART_RX_PIN;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
-    HAL_GPIO_Init(BLADEMOTOR_USART_RX_PORT, &GPIO_InitStruct);
-
-    // TX
-    GPIO_InitStruct.Pin = BLADEMOTOR_USART_TX_PIN;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    // GPIO_InitStruct.Pull = GPIO_PULLUP;
-    GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
-    HAL_GPIO_Init(BLADEMOTOR_USART_TX_PORT, &GPIO_InitStruct);
-
-    // Alternate Pin Set ?
-//    __HAL_AFIO_REMAP_USART2_ENABLE();
-
-    BLADEMOTOR_USART_Handler.Instance = BLADEMOTOR_USART_INSTANCE;// USART3
-    BLADEMOTOR_USART_Handler.Init.BaudRate = 115200;               // Baud rate
-    BLADEMOTOR_USART_Handler.Init.WordLength = UART_WORDLENGTH_8B; // The word is  8  Bit format
-    BLADEMOTOR_USART_Handler.Init.StopBits = USART_STOPBITS_1;     // A stop bit
-    BLADEMOTOR_USART_Handler.Init.Parity = UART_PARITY_NONE;       // No parity bit
-    BLADEMOTOR_USART_Handler.Init.HwFlowCtl = UART_HWCONTROL_NONE; // No hardware flow control
-    BLADEMOTOR_USART_Handler.Init.Mode = USART_MODE_TX_RX;         // Transceiver mode
-    
-    HAL_UART_Init(&BLADEMOTOR_USART_Handler); 
 }
 
 
@@ -967,15 +853,23 @@ void MX_DMA_Init(void)
   __HAL_RCC_DMA2_CLK_ENABLE();
 
   /* DMA interrupt init */
-  /* DMA1_Channel6_IRQn interrupt configuration */
+  /* DMA1_Channel6_IRQn interrupt configuration (DRIVE MOTORS) */
   HAL_NVIC_SetPriority(DMA1_Channel6_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel6_IRQn);
-  /* DMA1_Channel7_IRQn interrupt configuration */
+  /* DMA1_Channel7_IRQn interrupt configuration (DRIVE MOTORS)  */
+  
   HAL_NVIC_SetPriority(DMA1_Channel7_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel7_IRQn);
   /* DMA2_Channel4_5_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Channel4_5_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA2_Channel4_5_IRQn);
+
+   /* DMA1_Channel2_IRQn interrupt configuration  (BLADE MOTOR)  */
+  HAL_NVIC_SetPriority(DMA1_Channel2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel2_IRQn);
+  /* DMA1_Channel3_IRQn interrupt configuration (BLADE MOTOR) */
+  HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
 
 }
 
@@ -1210,69 +1104,6 @@ void StatusLEDUpdate(void)
         debug_printf(" > Chg Voltage: %2.2fV | Chg Current: %2.2fA (offset: %2.2fA) | PWM: %d | Bat Voltage %2.2fV\r\n", charge_voltage, charge_current, charge_current_offset,  chargecontrol_pwm_val, battery_voltage);                           
 }
 
-/*
- * Send message to DriveMotors PAC
- *
- * <xxx>_speed = 0x - 0xFF
- * <xxx>_dir = 1 = CW, 1 != CCW
- */
-void setDriveMotors(uint8_t left_speed, uint8_t right_speed, uint8_t left_dir, uint8_t right_dir)
-{
-    uint8_t direction = 0x0;            
-    static uint8_t drivemotors_msg[DRIVEMOTORS_MSG_LEN] =  { 0x55, 0xaa, 0x8, 0x10, 0x80, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0};
-    
-    drivemotors_msg[5] = direction;
-    drivemotors_msg[6] = left_speed;
-    drivemotors_msg[7] = right_speed;
-
-    // calc direction bits
-    if (right_dir == 1)
-    {        
-        direction |= (0x20 + 0x10);
-    }
-    else
-    {
-        direction |= 0x20;
-    }
-    if (left_dir == 1)
-    {   
-        direction |= (0x40 + 0x80);                             
-    }
-    else
-    {
-        direction |= 0x80;
-    }
-    // update direction byte in message
-    drivemotors_msg[5] = direction;
-    // calc crc
-    drivemotors_msg[DRIVEMOTORS_MSG_LEN-1] = crcCalc(drivemotors_msg, DRIVEMOTORS_MSG_LEN-1);    
-  // msgPrint(drivemotors_msg, DRIVEMOTORS_MSG_LEN);
-    // transmit via UART
-    DRIVEMOTORS_Transmit(drivemotors_msg, DRIVEMOTORS_MSG_LEN);
-    // HAL_UART_Transmit(&DRIVEMOTORS_USART_Handler, drivemotors_msg, DRIVEMOTORS_MSG_LEN, HAL_MAX_DELAY);
-     //HAL_UART_Transmit_DMA(&DRIVEMOTORS_USART_Handler, drivemotors_msg, DRIVEMOTORS_MSG_LEN);
-}
-
-/*
- * Send message to Blade PAC
- *
- * <on_off> - no speed settings available
- */
-void setBladeMotor(uint8_t on_off)
-{
-    uint8_t blademotor_on[] =  { 0x55, 0xaa, 0x03, 0x20, 0x80, 0x80, 0x22};
-    uint8_t blademotor_off[] = { 0x55, 0xaa, 0x03, 0x20, 0x80, 0x0, 0xa2};
-
-    if (on_off)
-    {
-        HAL_UART_Transmit(&BLADEMOTOR_USART_Handler, blademotor_on, sizeof(blademotor_on), HAL_MAX_DELAY);    
-    }
-    else
-    {
-        HAL_UART_Transmit(&BLADEMOTOR_USART_Handler, blademotor_off, sizeof(blademotor_off), HAL_MAX_DELAY);
-    }
-        
-}
 
 /*
  * print hex bytes
@@ -1363,23 +1194,6 @@ void MASTER_Transmit(uint8_t *buffer, uint8_t len)
     memcpy(master_tx_buffer, buffer, master_tx_buffer_len);
     HAL_UART_Transmit_DMA(&MASTER_USART_Handler, (uint8_t*)master_tx_buffer, master_tx_buffer_len); // send message via UART       
 }
-
-
-/*
- * Send message via MASTER USART (DMA Normal Mode)
- */
-/*
-void DRIVEMOTORS_Transmit(uint8_t *buffer, uint8_t len)
-{    
-    // wait until tx buffers are free (send complete)
-    while (drivemotors_tx_busy) {  }
-    drivemotors_tx_busy = 1;  
-    // copy into our master_tx_buffer 
-    drivemotors_tx_buffer_len = len;
-    memcpy(drivemotors_tx_buffer, buffer, drivemotors_tx_buffer_len);
-    HAL_UART_Transmit_DMA(&DRIVEMOTORS_USART_Handler, (uint8_t*)drivemotors_tx_buffer, drivemotors_tx_buffer_len); // send message via UART       
-}
-*/
 
 /*
  * Initialize Watchdog - not tested yet (by Nekraus)

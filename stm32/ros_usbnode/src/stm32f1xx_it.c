@@ -262,9 +262,26 @@ void SysTick_Handler(void)
     HAL_UART_IRQHandler(&MASTER_USART_Handler);   
   }
 
+/**
+  * @brief This function handles DMA1 channel2 global interrupt. (BLADE MOTOR UART)
+  */
+void DMA1_Channel2_IRQHandler(void)
+{
+  HAL_DMA_IRQHandler(&hdma_uart3_tx);
+}
 
 /**
-  * @brief This function handles DMA1 channel6 global interrupt. (DRIVE MOTOR)
+  * @brief This function handles DMA1 channel3 global interrupt. (BLADE MOTOR UART)
+  */
+void DMA1_Channel3_IRQHandler(void)
+{
+  HAL_DMA_IRQHandler(&hdma_uart3_rx);
+}
+
+
+
+/**
+  * @brief This function handles DMA1 channel6 global interrupt. (DRIVE MOTOR UART)
   */
 void DMA1_Channel6_IRQHandler(void)
 {
@@ -278,7 +295,7 @@ void DMA1_Channel6_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles DMA1 channel7 global interrupt. (DRIVE MOTOR)
+  * @brief This function handles DMA1 channel7 global interrupt. (DRIVE MOTOR UART)
   */
 void DMA1_Channel7_IRQHandler(void)
 {
@@ -304,6 +321,7 @@ void DMA2_Channel4_5_IRQHandler(void)
 
   /* USER CODE END DMA2_Channel4_5_IRQn 1 */
 }
+
 
 
 /**

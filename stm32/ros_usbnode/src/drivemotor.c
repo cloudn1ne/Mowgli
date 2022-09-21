@@ -94,6 +94,8 @@ uint16_t right_encoder_val = 0;
 uint16_t left_encoder_val = 0;
 int16_t right_wheel_speed_val = 0;
 int16_t left_wheel_speed_val = 0;
+uint8_t right_power = 0;
+uint8_t left_power = 0;
     
 /******************************************************************************
 * Function Prototypes
@@ -275,6 +277,10 @@ void DRIVEMOTOR_App_Rx(void){
             left_encoder_val = drivemotor_psReceivedData.u16_left_ticks;
             right_encoder_val = drivemotor_psReceivedData.u16_right_ticks;
     
+            // power consumption
+            left_power = drivemotor_psReceivedData.u8_left_power;
+            right_power = drivemotor_psReceivedData.u8_right_power;         
+            
             /*
               Encoder value can reset to zero twice when changing direction
               2nd reset occurs when the speed changes from zero to non-zero
@@ -299,7 +305,7 @@ void DRIVEMOTOR_App_Rx(void){
             prev_right_encoder_val = right_encoder_val;
             prev_right_wheel_speed_val = right_wheel_speed_val;
             prev_right_direction = right_direction;
-
+            
             drivemotors_eRxFlag = RX_WAIT;                    // ready for next message      
     }
 }
@@ -356,7 +362,7 @@ void DRIVEMOTOR_ReceiveIT(void)
         uint8_t l_u8crc = crcCalc((uint8_t*)&drivemotor_psReceivedData,DRIVEMOTOR_LENGTH_RECEIVED_MSG-1);
         if(drivemotor_psReceivedData.u8_CRC == l_u8crc )
         {
-            drivemotors_eRxFlag = RX_VALID;   
+            drivemotors_eRxFlag = RX_VALID;                  
         }
         else
         {

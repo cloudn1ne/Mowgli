@@ -48,6 +48,8 @@ extern int32_t   right_encoder_ticks;  // accumulating
 extern int32_t   left_encoder_ticks;   // accumulating 
 extern uint16_t  right_encoder_val;    // non accumulating 
 extern uint16_t  left_encoder_val;     // non accumulating 
+extern uint8_t   right_power;
+extern uint8_t   left_power;
 
 
 /******************************************************************************

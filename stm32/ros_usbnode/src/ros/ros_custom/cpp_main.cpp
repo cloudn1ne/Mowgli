@@ -504,6 +504,8 @@ extern "C" void broadcast_handler()
 		status_msg.blade_motor_ctrl_enabled = true;	// hardcoded for now
 		status_msg.drive_motor_ctrl_enabled = true; // hardcoded for now
 		status_msg.blade_motor_enabled = BLADEMOTOR_bActivated;	// set by feedback from blademotor	
+		status_msg.left_power = left_power;	
+		status_msg.right_power = right_power; 
 		status_msg.sw_ver_maj = MOWGLI_SW_VERSION_MAJOR;
 		status_msg.sw_ver_bra = MOWGLI_SW_VERSION_BRANCH;
 		status_msg.sw_ver_min = MOWGLI_SW_VERSION_MINOR;

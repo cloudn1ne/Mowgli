@@ -45,6 +45,10 @@ namespace mowgli
       _left_encoder_ticks_type left_encoder_ticks;
       typedef uint32_t _right_encoder_ticks_type;
       _right_encoder_ticks_type right_encoder_ticks;
+      typedef uint8_t _left_power_type;
+      _left_power_type left_power;
+      typedef uint8_t _right_power_type;
+      _right_power_type right_power;
       typedef float _imu_temp_type;
       _imu_temp_type imu_temp;
       typedef bool _blade_motor_enabled_type;
@@ -73,6 +77,8 @@ namespace mowgli
       drive_motor_ctrl_enabled(0),
       left_encoder_ticks(0),
       right_encoder_ticks(0),
+      left_power(0),
+      right_power(0),
       imu_temp(0),
       blade_motor_enabled(0),
       sw_ver_maj(0),
@@ -200,6 +206,10 @@ namespace mowgli
       *(outbuffer + offset + 2) = (this->right_encoder_ticks >> (8 * 2)) & 0xFF;
       *(outbuffer + offset + 3) = (this->right_encoder_ticks >> (8 * 3)) & 0xFF;
       offset += sizeof(this->right_encoder_ticks);
+      *(outbuffer + offset + 0) = (this->left_power >> (8 * 0)) & 0xFF;
+      offset += sizeof(this->left_power);
+      *(outbuffer + offset + 0) = (this->right_power >> (8 * 0)) & 0xFF;
+      offset += sizeof(this->right_power);
       union {
         float real;
         uint32_t base;
@@ -357,6 +367,10 @@ namespace mowgli
       this->right_encoder_ticks |= ((uint32_t) (*(inbuffer + offset + 2))) << (8 * 2);
       this->right_encoder_ticks |= ((uint32_t) (*(inbuffer + offset + 3))) << (8 * 3);
       offset += sizeof(this->right_encoder_ticks);
+      this->left_power =  ((uint8_t) (*(inbuffer + offset)));
+      offset += sizeof(this->left_power);
+      this->right_power =  ((uint8_t) (*(inbuffer + offset)));
+      offset += sizeof(this->right_power);
       union {
         float real;
         uint32_t base;
@@ -386,7 +400,7 @@ namespace mowgli
     }
 
     virtual const char * getType() override { return "mowgli/status"; };
-    virtual const char * getMD5() override { return "15e78a076a95e8647feed5f6d9b77ddd"; };
+    virtual const char * getMD5() override { return "15c620b7cc55c2285587da2dc5df3c34"; };
 
   };
 

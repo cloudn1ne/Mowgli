@@ -2,9 +2,14 @@
   ******************************************************************************
   * @file    cpp_main.c
   * @author  Georg Swoboda <cn@warp.at>
+  * @date    21/09/2022
+  * @version 1.0.0
   * @brief   ROS Node main C++ routines
   ******************************************************************************
-  * 
+  * Main ROS routines
+  * Publish/Subscribe to Topics
+  * Provide Services
+  * Odometry (for DR)
   ******************************************************************************
   */
 

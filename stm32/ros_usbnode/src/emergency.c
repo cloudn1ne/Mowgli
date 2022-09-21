@@ -3,6 +3,8 @@
   ******************************************************************************
   * @file    emergency.c
   * @author  Georg Swoboda <cn@warp.at>
+  * @date    21/09/22
+  * @version 1.0.0
   * @brief   Emergency handling, buttons, lift sensors, tilt sensors
   ******************************************************************************  
   * 

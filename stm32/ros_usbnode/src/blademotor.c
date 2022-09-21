@@ -1,10 +1,11 @@
 /****************************************************************************
 * Title                 :   
 * Filename              :   blademotor.c
-* Author                :   Nekraus
-* Origin Date           :   17/08/2022
-* Version               :   1.0.0
+* Author                :   Nekraus (original), Georg Swoboda (addons)
+* Origin Date           :   21/09/2022
+* Version               :   1.0.1
 
+* fixed preamble and received msg length for Mowgli (are there other blade BLDC inits ?)
 *****************************************************************************/
 /** \file blademotor.c
 *  \brief 
@@ -159,7 +160,6 @@ void BLADEMOTOR_Init(void)
 /// @brief handle drive motor messages
 /// @param  
 void  BLADEMOTOR_App(void){
-    uint8_t l_u8crc;
     switch (blademotor_eState)
     {
     case BLADEMOTOR_INIT_1:

@@ -2,6 +2,8 @@
   ******************************************************************************
   * @file    lis3dh_reg.c
   * @author  Sensors Software Solution Team
+  * @date    21/09/22
+  * @version 1.0.0
   * @brief   LIS3DH driver file
   ******************************************************************************
   * @attention

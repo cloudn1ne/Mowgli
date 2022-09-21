@@ -2,6 +2,8 @@
   ******************************************************************************
   * @file    i2c.c
   * @author  Georg Swoboda <cn@warp.at>
+  * @date    21/09/22
+  * @version 1.0.0
   * @brief   I2C Driver for the LIS3DH that is onboard GForce
   ******************************************************************************
   * @attention

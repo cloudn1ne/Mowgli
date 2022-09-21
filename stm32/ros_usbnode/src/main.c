@@ -2,9 +2,10 @@
   ******************************************************************************
   * @file    main.c
   * @author  Georg Swoboda <cn@warp.at>
+  * @date    21/09/2022  
+  * @version 1.0.0
   * @brief   main / bootup and initialization, motor control routines, usb init
-  ******************************************************************************
-  * Version 1.0
+  ****************************************************************************** 
   *  
   * compile with -DBOARD_YARDFORCE500 to enable the YF500 GForce pinout
   * 
@@ -857,7 +858,7 @@ void MX_DMA_Init(void)
   HAL_NVIC_SetPriority(DMA1_Channel6_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel6_IRQn);
   /* DMA1_Channel7_IRQn interrupt configuration (DRIVE MOTORS)  */
-  
+
   HAL_NVIC_SetPriority(DMA1_Channel7_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel7_IRQn);
   /* DMA2_Channel4_5_IRQn interrupt configuration */

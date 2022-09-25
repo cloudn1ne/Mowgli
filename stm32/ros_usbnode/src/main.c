@@ -50,6 +50,7 @@ static nbt_t main_emergency_nbt;
 static nbt_t main_blademotor_nbt;
 static nbt_t main_drivemotor_nbt;
 static nbt_t main_wdg_nbt;
+static nbt_t main_buzzer_nbt;
 
 // enum rx_status_enum { RX_WAIT, RX_VALID, RX_CRC_ERROR};
 
@@ -88,6 +89,9 @@ static char master_tx_buffer[255];
 // int blade_motor = 0;
 
 static uint8_t panel_rcvd_data;
+
+uint8_t do_chirp_duration_counter;
+uint8_t do_chirp = 0;
 
 // exported via rostopics
 float_t battery_voltage;
@@ -288,6 +292,7 @@ int main(void)
     NBT_init(&main_blademotor_nbt, 100);
     NBT_init(&main_drivemotor_nbt, 10);
     NBT_init(&main_wdg_nbt,10);
+    NBT_init(&main_buzzer_nbt,200);
     debug_printf(" * NBT Main timers initialized\r\n");     
 
  #ifdef I_DONT_NEED_MY_FINGERS
@@ -332,6 +337,21 @@ int main(void)
         if (NBT_handler(&main_blademotor_nbt))
         {            
             BLADEMOTOR_App();                       
+        }
+        if (NBT_handler(&main_buzzer_nbt))
+        {            
+              // TODO 
+            if (do_chirp)
+            {
+              TIM3_Handle.Instance->CCR4 = 10; // chirp on
+              do_chirp = 0;
+              do_chirp_duration_counter = 0;
+            }
+            if (do_chirp_duration_counter == 1)
+            {
+              TIM3_Handle.Instance->CCR4 = 0; // chirp off
+            }
+            do_chirp_duration_counter++;
         }
 #ifndef I_DONT_NEED_MY_FINGERS
         if (NBT_handler(&main_emergency_nbt))

@@ -53,6 +53,7 @@
 // Flash Configuration Services
 #include "mowgli/SetCfg.h"
 #include "mowgli/GetCfg.h"
+#include "mowgli/Led.h"
 
 // Status message
 #include "mowgli/status.h"
@@ -208,12 +209,16 @@ void cbGetCfg(const mowgli::GetCfgRequest &req, mowgli::GetCfgResponse &res);
 void cbEnableMowerMotor(const std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
 void cbReboot(const std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
 void cbEnableTF(const std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
+void cbSetLed(const mowgli::LedRequest &req, mowgli::LedResponse &res);
+void cbClrLed(const mowgli::LedRequest &req, mowgli::LedResponse &res);
 
 ros::ServiceServer<mowgli::SetCfgRequest, mowgli::SetCfgResponse> svcSetCfg("mowgli/SetCfg", cbSetCfg);
 ros::ServiceServer<mowgli::GetCfgRequest, mowgli::GetCfgResponse> svcGetCfg("mowgli/GetCfg", cbGetCfg);
 ros::ServiceServer<std_srvs::SetBool::Request, std_srvs::SetBool::Response> svcEnableMowerMotor("mowgli/EnableMowerMotor", cbEnableMowerMotor);
 ros::ServiceServer<std_srvs::Empty::Request, std_srvs::Empty::Response> svcReboot("mowgli/Reboot", cbReboot);
 ros::ServiceServer<std_srvs::SetBool::Request, std_srvs::SetBool::Response> svcEnableTF("mowgli/EnableTF", cbEnableTF);
+ros::ServiceServer<mowgli::LedRequest, mowgli::LedResponse> svcSetLed("mowgli/SetLed", cbSetLed);
+ros::ServiceServer<mowgli::LedRequest, mowgli::LedResponse> svcClrLed("mowgli/ClrLed", cbClrLed);
 
 /*
  * NON BLOCKING TIMERS
@@ -679,6 +684,28 @@ void cbGetCfg(const mowgli::GetCfgRequest &req, mowgli::GetCfgResponse &res)
 	}
 }
 
+void cbSetLed(const mowgli::LedRequest &req, mowgli::LedResponse &res)
+{	
+ //  debug_printf("cbSetLed:\r\n");
+ //  debug_printf(" led: %d\r\n", req.led);
+   PANEL_Set_LED(req.led, PANEL_LED_ON);
+   if ( (req.led & 0x80) == 0x80)
+   {
+     do_chirp = 1;
+   }
+}
+void cbClrLed(const mowgli::LedRequest &req, mowgli::LedResponse &res)
+{	
+ //  debug_printf("cbClrLed:\r\n");
+ //  debug_printf(" led: %d\r\n", req.led);
+   PANEL_Set_LED(req.led, PANEL_LED_OFF);
+   if ( (req.led & 0x80) == 0x80)
+   {
+     do_chirp = 1;
+   }
+}
+
+
 /*
  *  callback for mowgli/SetCfg Service
  */
@@ -846,11 +873,12 @@ extern "C" void init_ROS()
 
 	// Initialize Services	
 	nh.advertiseService(svcSetCfg);	  
-	nh.advertiseService(svcGetCfg);	  
+//	nh.advertiseService(svcGetCfg);	  
     nh.advertiseService(svcEnableMowerMotor);
 	nh.advertiseService(svcReboot);
-	nh.advertiseService(svcEnableTF);
-	
+//	nh.advertiseService(svcEnableTF);
+	nh.advertiseService(svcSetLed);
+	nh.advertiseService(svcClrLed);
 	// Initialize Timers
 	NBT_init(&publish_nbt, 1000);
 	NBT_init(&panel_nbt, 100);	

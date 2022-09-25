@@ -24,6 +24,16 @@ uint16_t buttonstate[PANEL_BUTTON_BYTES];
 uint8_t buttonupdated = 0; // 1 if buttonstate was updated by the panel
 uint8_t buttoncleared = 0;
 
+
+uint8_t Led_States[LED_STATE_SIZE];
+
+static uint8_t SendBuffer[256];
+static uint8_t ReceiveBuffer[256];
+static uint8_t ReceiveIndex = 0;
+static uint8_t ReceiveLength;
+static uint8_t ReceiveCRC;
+// static uint8_t Key_Pressed;
+static uint8_t Frame_Received_Panel = 0;
 /* per panel type initializers */
 #ifdef PANEL_TYPE_YARDFORCE_900_ECO
     const uint8_t KEY_INIT_MSG[] = {0x03, 0x90, 0x28};     
@@ -35,16 +45,6 @@ uint8_t buttoncleared = 0;
     const uint8_t KEY_ACTIVATE[] = {0x0, 0x0, 0x1};    
 #endif
 
-
-static uint8_t Led_States[LED_STATE_SIZE];
-
-static uint8_t SendBuffer[256];
-static uint8_t ReceiveBuffer[256];
-static uint8_t ReceiveIndex = 0;
-static uint8_t ReceiveLength;
-static uint8_t ReceiveCRC;
-// static uint8_t Key_Pressed;
-static uint8_t Frame_Received_Panel = 0;
 
 
 

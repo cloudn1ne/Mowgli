@@ -68,6 +68,7 @@ extern float charge_voltage;
 extern float charge_current;
 extern uint16_t  chargecontrol_pwm_val;
 extern uint8_t   chargecontrol_is_charging;
+extern uint8_t do_chirp;
 
 // uart statistics
 extern uint16_t cnt_uart4_overrun;      // master

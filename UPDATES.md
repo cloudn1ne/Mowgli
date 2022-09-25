@@ -15,3 +15,4 @@
 * 10/09/22 - Reduced frequency of pushed topics, and releases [MowgliRover](https://github.com/cloudn1ne/MowgliRover)
 * 12/09/22 - Added TF (odom_dr -> base_link_dr) to support Dead Reckoning testing branch of [MowgliRover](https://github.com/cloudn1ne/MowgliRover/blob/testing/help/DeadReckoning.md)
 * 20/09/22 - Merged Nekraus DMA code - added version information and BLADE motor feedback to mowgli/status (v1.0.0)
+* 25/09/22 - added simple SetLed/ClrLed service, that allows display of GPS quality (Monday Led) during driving and map recording (v1.0.1)

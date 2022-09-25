@@ -877,12 +877,13 @@ extern "C" void init_ROS()
 
 	// Initialize Services	
 	nh.advertiseService(svcSetCfg);	  
-//	nh.advertiseService(svcGetCfg);	  
+	nh.advertiseService(svcGetCfg);	  
     nh.advertiseService(svcEnableMowerMotor);
 	nh.advertiseService(svcReboot);
-//	nh.advertiseService(svcEnableTF);
-	nh.advertiseService(svcSetLed);
+	nh.advertiseService(svcEnableTF);
+    nh.advertiseService(svcSetLed);
 	nh.advertiseService(svcClrLed);
+	
 	// Initialize Timers
 	NBT_init(&publish_nbt, 1000);
 	NBT_init(&panel_nbt, 100);	

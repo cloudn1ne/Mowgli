@@ -684,29 +684,56 @@ void cbGetCfg(const mowgli::GetCfgRequest &req, mowgli::GetCfgResponse &res)
 	}
 }
 
+/// @brief Set Led and optionally reset all other Leds (0x40) + Chirp (0x80)
+/// @param req req.led the LED number and any option flags
+/// @param res 
 void cbSetLed(const mowgli::LedRequest &req, mowgli::LedResponse &res)
 {	
  //  debug_printf("cbSetLed:\r\n");
  //  debug_printf(" led: %d\r\n", req.led);
    uint8_t v=req.led;
-   v &= ~(1UL<<7);
-   PANEL_Set_LED(v, PANEL_LED_ON);
+   if ( (req.led & 0x40) == 0x40)	// clear all Leds
+   {
+		for (uint8_t i=0;i<LED_STATE_SIZE;i++)
+		{
+			PANEL_Set_LED(i, PANEL_LED_OFF);
+		}
+   }  
    if ( (req.led & 0x80) == 0x80)
    {
      do_chirp = 1;
    }
+
+   // remove flag bits, turn on led
+   v &= ~(1UL<<7);
+   v &= ~(1UL<<6);
+   PANEL_Set_LED(v, PANEL_LED_ON);
 }
+
+/// @brief Clear Led and optionally reset all other Leds (0x40) + Chirp (0x80)
+/// @param req req.led the LED number and any option flags
+/// @param res 
 void cbClrLed(const mowgli::LedRequest &req, mowgli::LedResponse &res)
 {	
  //  debug_printf("cbClrLed:\r\n");
  //  debug_printf(" led: %d\r\n", req.led);
    uint8_t v=req.led;
-   v &= ~(1UL<<7);
-   PANEL_Set_LED(v, PANEL_LED_OFF);
+   if ( (req.led & 0x40) == 0x40)	// clear all Leds
+   {
+		for (uint8_t i=0;i<LED_STATE_SIZE;i++)
+		{
+			PANEL_Set_LED(i, PANEL_LED_OFF);
+		}
+   }  
    if ( (req.led & 0x80) == 0x80)
    {
      do_chirp = 1;
    }
+ 
+   // remove flag bits, turn of led
+   v &= ~(1UL<<7);
+   v &= ~(1UL<<6);
+   PANEL_Set_LED(v, PANEL_LED_OFF);
 }
 
 

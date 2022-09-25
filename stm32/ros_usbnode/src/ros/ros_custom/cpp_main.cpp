@@ -688,7 +688,9 @@ void cbSetLed(const mowgli::LedRequest &req, mowgli::LedResponse &res)
 {	
  //  debug_printf("cbSetLed:\r\n");
  //  debug_printf(" led: %d\r\n", req.led);
-   PANEL_Set_LED(req.led, PANEL_LED_ON);
+   uint8_t v=req.led;
+   v &= ~(1UL<<7);
+   PANEL_Set_LED(v, PANEL_LED_ON);
    if ( (req.led & 0x80) == 0x80)
    {
      do_chirp = 1;
@@ -698,7 +700,9 @@ void cbClrLed(const mowgli::LedRequest &req, mowgli::LedResponse &res)
 {	
  //  debug_printf("cbClrLed:\r\n");
  //  debug_printf(" led: %d\r\n", req.led);
-   PANEL_Set_LED(req.led, PANEL_LED_OFF);
+   uint8_t v=req.led;
+   v &= ~(1UL<<7);
+   PANEL_Set_LED(v, PANEL_LED_OFF);
    if ( (req.led & 0x80) == 0x80)
    {
      do_chirp = 1;

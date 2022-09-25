@@ -12,7 +12,7 @@ extern "C" {
 
 #define MOWGLI_SW_VERSION_MAJOR              1
 #define MOWGLI_SW_VERSION_BRANCH             0              /* even = stable, odd = testing/unstable */
-#define MOWGLI_SW_VERSION_MINOR              0
+#define MOWGLI_SW_VERSION_MINOR              1
 
 /*
  * at the moment this really only works for BOARD_YARDFORCE500

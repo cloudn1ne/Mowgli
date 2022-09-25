@@ -88,11 +88,13 @@ This is the software that needs to be compiled and flashed onto the STM32 on the
 Currently only the [Pololu IMU 10v5](https://www.pololu.com/product/2739) is supported, but any I2C or SPI IMU should work.
 
 ## Services
-- /mowgli_cmd/MowerControlSrv - enabled/disable blade
+- /mowgli/MowerControlSrv - enabled/disable blade
 - /mowgli/GetCfg - read SPI flash config var
 - /mowgli/SetCfg - write SPI flash config var
 - /mowgli/Reboot - reboot Mowgli
 - /mowgli/EnableTF - enable odom_dr -> base_link_dr transform (for /mowgli/odom) - used for Dead Reckoning - default ON
+- /mowgli/SetLed - enable LED (1-17), if the MSB is set (128), the bot will chirp too
+- /mowgli/ClrLed - disabled LED (1-17), if the MSB is set (128), the bot will chirp too
 
 ## Subscribers
 - /cmd_vel - geometry_msgs::Twist (compatible with teleop twist messages, so you can drive the bot)

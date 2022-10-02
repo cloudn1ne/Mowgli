@@ -25,7 +25,7 @@ You can use the drill template (PDF) with an Eurocard singled sided copper PCB (
 ### Cameras (optional)
 
 * [Fish Eye Raspi Cam](./Cam)
-* [(bigger) Fish Eye Raspi Cam](./Cam alternative)
+* [alternative Fish Eye Raspi Cam](./Cam alternative)
 
 ## Overview
 

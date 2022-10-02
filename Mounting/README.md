@@ -22,6 +22,11 @@ You can use the drill template (PDF) with an Eurocard singled sided copper PCB (
 
 * [ST Link Mount STL + Image](./STLink)
 
+### Cameras (optional)
+
+* [Fish Eye Raspi Cam](./Cam)
+* [(bigger) Fish Eye Raspi Cam](./Cam alternative)
+
 ## Overview
 
 <img src="mowgli_overview.jpg" width="100%">

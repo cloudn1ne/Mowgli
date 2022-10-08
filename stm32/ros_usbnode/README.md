@@ -106,14 +106,7 @@ rosrun rosserial_python serial_node.py _port:=/dev/ttyACM0 _baud:=115200
  To see if you can talk to the bot via rosserial run something like:
  
 ```
-rostopic echo /battery_voltage
-data: 28.841758728027344
----
-data: 28.85787582397461
----
-^C
-````
-You should see a new battery voltage reading appear every second.
+
 
 ## Note
 

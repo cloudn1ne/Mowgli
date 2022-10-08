@@ -48,8 +48,7 @@
 #define SW_I2C1_SDA_PIN   SOFT_I2C_SDA_PIN
 
 
-
-void TIMER__Wait_us(uint32_t nCount)
+void  __attribute__ ((optimize(0))) TIMER__Wait_us (uint32_t nCount) 
 {
     for (; nCount != 0;nCount--);
 }

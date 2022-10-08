@@ -177,17 +177,16 @@ float IMU_Onboard_ReadTemp(void)
   * magnetometer is not calibrated here, but uses the madgwick filter with bias values
   * 
   */ 
-void IMU_Calibrate()
+void IMU_CalibrateExternal()
 {
     float imu_sample_x[IMU_CAL_SAMPLES], imu_sample_y[IMU_CAL_SAMPLES], imu_sample_z[IMU_CAL_SAMPLES]; 
     float stddev_x, stddev_y, stddev_z;
-    float mean_x, mean_y, mean_z;
-    //float imu_x, imu_y, imu_z;
+    float mean_x, mean_y, mean_z;    
     float sum_x, sum_y, sum_z;
     uint16_t i;
-    //uint16_t samples = 100; // 100 samples every 10ms x3 = 3sec calibration time
     
-    debug_printf("   >> IMU Calibration started - make sure bot is level and standing still ...\r\n");    
+    
+    debug_printf("   >> External IMU Calibration started - make sure bot is level and standing still ...\r\n");    
     
     /***********************************/
     /* calibrate external accelerometer */
@@ -251,6 +250,43 @@ void IMU_Calibrate()
     imu_cov_gz = stddev_z / IMU_CAL_SAMPLES;
     debug_printf("   >> External IMU Calibration gyro covariance diagonal [%f %f %f]\r\n", imu_cov_gx, imu_cov_gy, imu_cov_gz); 
 
+   
+    /***************************************************/
+    /* load magnetometer calibration (hard/soft iron)  */
+    /****************************************************/    
+    external_imu_mag_bias[0] = SPIFLASH_ReadDouble("mag_bias_x");
+    external_imu_mag_bias[1] = SPIFLASH_ReadDouble("mag_bias_y");
+    external_imu_mag_bias[2] = SPIFLASH_ReadDouble("mag_bias_z");
+    debug_printf("   >> External IMU Calibration magentometer biases (hard iron) [%f %f %f]\r\n", external_imu_mag_bias[0],  external_imu_mag_bias[1],  external_imu_mag_bias[2]); 
+
+    // ROW 0
+    external_imu_mag_cal_matrix[0][0] = SPIFLASH_ReadDouble("mag_dist_00");
+    external_imu_mag_cal_matrix[0][1] = SPIFLASH_ReadDouble("mag_dist_01");
+    external_imu_mag_cal_matrix[0][2] = SPIFLASH_ReadDouble("mag_dist_02");
+    // ROW 1
+    external_imu_mag_cal_matrix[1][0] = SPIFLASH_ReadDouble("mag_dist_10");
+    external_imu_mag_cal_matrix[1][1] = SPIFLASH_ReadDouble("mag_dist_11");
+    external_imu_mag_cal_matrix[1][2] = SPIFLASH_ReadDouble("mag_dist_12");
+    // ROW 2
+    external_imu_mag_cal_matrix[2][0] = SPIFLASH_ReadDouble("mag_dist_20");
+    external_imu_mag_cal_matrix[2][1] = SPIFLASH_ReadDouble("mag_dist_21");
+    external_imu_mag_cal_matrix[2][2] = SPIFLASH_ReadDouble("mag_dist_22");
+    debug_printf("   >> External IMU Calibration magentometer compensation (soft iron)\r\n");
+    debug_printf("       [ %f\t%f\t%f\r\n", external_imu_mag_cal_matrix[0][0], external_imu_mag_cal_matrix[0][1], external_imu_mag_cal_matrix[0][2]); 
+    debug_printf("         %f\t%f\t%f\r\n", external_imu_mag_cal_matrix[1][0], external_imu_mag_cal_matrix[1][1], external_imu_mag_cal_matrix[1][2]); 
+    debug_printf("         %f\t%f\t%f ]\r\n", external_imu_mag_cal_matrix[2][0], external_imu_mag_cal_matrix[2][1], external_imu_mag_cal_matrix[2][2]);     
+}
+
+void IMU_CalibrateOnboard()
+{
+    float imu_sample_x[IMU_CAL_SAMPLES], imu_sample_y[IMU_CAL_SAMPLES], imu_sample_z[IMU_CAL_SAMPLES]; 
+    float stddev_x, stddev_y, stddev_z;
+    float mean_x, mean_y, mean_z;    
+    float sum_x, sum_y, sum_z;
+    uint16_t i;
+
+    debug_printf("   >> Onboard IMU Calibration started - make sure bot is level and standing still ...\r\n");  
+
     /************************************/
     /* calibrate onboard accelerometer  */
     /************************************/
@@ -281,34 +317,7 @@ void IMU_Calibrate()
     onboard_imu_cov_ay = stddev_y / IMU_CAL_SAMPLES;
     onboard_imu_cov_az = stddev_z / IMU_CAL_SAMPLES;
     debug_printf("   >> Onboard IMU Calibration accelerometer covariance diagonal [%f %f %f]\r\n", onboard_imu_cov_ax, onboard_imu_cov_ay, onboard_imu_cov_az); 
-
-
-    /***************************************************/
-    /* load magnetometer calibration (hard/soft iron)  */
-    /****************************************************/    
-    external_imu_mag_bias[0] = SPIFLASH_ReadDouble("mag_bias_x");
-    external_imu_mag_bias[1] = SPIFLASH_ReadDouble("mag_bias_y");
-    external_imu_mag_bias[2] = SPIFLASH_ReadDouble("mag_bias_z");
-    debug_printf("   >> External IMU Calibration magentometer biases (hard iron) [%f %f %f]\r\n", external_imu_mag_bias[0],  external_imu_mag_bias[1],  external_imu_mag_bias[2]); 
-
-    // ROW 0
-    external_imu_mag_cal_matrix[0][0] = SPIFLASH_ReadDouble("mag_dist_00");
-    external_imu_mag_cal_matrix[0][1] = SPIFLASH_ReadDouble("mag_dist_01");
-    external_imu_mag_cal_matrix[0][2] = SPIFLASH_ReadDouble("mag_dist_02");
-    // ROW 1
-    external_imu_mag_cal_matrix[1][0] = SPIFLASH_ReadDouble("mag_dist_10");
-    external_imu_mag_cal_matrix[1][1] = SPIFLASH_ReadDouble("mag_dist_11");
-    external_imu_mag_cal_matrix[1][2] = SPIFLASH_ReadDouble("mag_dist_12");
-    // ROW 2
-    external_imu_mag_cal_matrix[2][0] = SPIFLASH_ReadDouble("mag_dist_20");
-    external_imu_mag_cal_matrix[2][1] = SPIFLASH_ReadDouble("mag_dist_21");
-    external_imu_mag_cal_matrix[2][2] = SPIFLASH_ReadDouble("mag_dist_22");
-    debug_printf("   >> External IMU Calibration magentometer compensation (soft iron)\r\n");
-    debug_printf("       [ %f\t%f\t%f\r\n", external_imu_mag_cal_matrix[0][0], external_imu_mag_cal_matrix[0][1], external_imu_mag_cal_matrix[0][2]); 
-    debug_printf("         %f\t%f\t%f\r\n", external_imu_mag_cal_matrix[1][0], external_imu_mag_cal_matrix[1][1], external_imu_mag_cal_matrix[1][2]); 
-    debug_printf("         %f\t%f\t%f ]\r\n", external_imu_mag_cal_matrix[2][0], external_imu_mag_cal_matrix[2][1], external_imu_mag_cal_matrix[2][2]);     
 }
-
 
 void IMU_Normalize( VECTOR* p )
 {

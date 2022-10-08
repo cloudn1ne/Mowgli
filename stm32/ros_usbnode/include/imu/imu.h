@@ -58,7 +58,8 @@ void IMU_ReadMagnetometerRaw(double *x, double *y, double *z);
 
 /* IMU calibration (accel/gyro only) */
 #define IMU_CAL_SAMPLES     100
-void IMU_Calibrate(void);
+void IMU_CalibrateExternal(void);
+void IMU_CalibrateOnboard(void);
 
 /* External Magnetometer Calibration Values */
 extern double external_imu_mag_bias[3];          // hard iron compensation

@@ -47,40 +47,13 @@ static void WATCHDOG_Refresh(void);
 static nbt_t main_chargecontroller_nbt;
 static nbt_t main_statusled_nbt;
 static nbt_t main_emergency_nbt;
-static nbt_t main_blademotor_nbt;
 static nbt_t main_drivemotor_nbt;
 static nbt_t main_wdg_nbt;
 static nbt_t main_buzzer_nbt;
+#ifdef BLADEMOTOR_USART_ENABLED
+  static nbt_t main_blademotor_nbt;
+#endif
 
-// enum rx_status_enum { RX_WAIT, RX_VALID, RX_CRC_ERROR};
-
-// DRIVEMOTORS rx buffering
-/*
-static uint8_t drivemotors_rcvd_data;
-uint8_t  drivemotors_rx_buf[32];
-volatile uint32_t drivemotors_rx_buf_idx = 0;
-uint8_t  drivemotors_rx_buf_crc = 0;
-uint8_t  drivemotors_rx_LENGTH = 0;
-uint8_t  drivemotors_rx_CRC = 0;
-volatile uint8_t  drivemotors_rx_STATUS = RX_WAIT;
-*/
-// DRIVEMOTORS tx buffering
-/*
-volatile uint8_t  drivemotors_tx_busy = 0;
-static uint8_t drivemotors_tx_buffer_len;
-static char drivemotors_tx_buffer[32];
-*/
-
-// MASTER rx buffering
-/*
-static uint8_t master_rcvd_data;
-volatile uint8_t  master_rx_buf[32];
-volatile uint32_t master_rx_buf_idx = 0;
-volatile uint8_t  master_rx_buf_crc = 0;
-volatile uint8_t  master_rx_LENGTH = 0;
-volatile uint8_t  master_rx_CRC = 0;
-volatile uint8_t  master_rx_STATUS = RX_WAIT;
-*/
 // MASTER tx buffering
 volatile uint8_t  master_tx_busy = 0;
 static uint8_t master_tx_buffer_len;
@@ -153,12 +126,8 @@ void HAL_UART_TxHalfCpltCallback(UART_HandleTypeDef *huart)
  * PANEL UART receive ISR
  */ 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{                 
-       if(huart->Instance == BLADEMOTOR_USART_INSTANCE)
-       {
-            BLADEMOTOR_ReceiveIT();
-       }
-       else if (huart->Instance == DRIVEMOTORS_USART_INSTANCE)
+{                  
+       if (huart->Instance == DRIVEMOTORS_USART_INSTANCE)
        {
             DRIVEMOTOR_ReceiveIT();
        }       
@@ -167,6 +136,12 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
            PANEL_Handle_Received_Data(panel_rcvd_data);
            HAL_UART_Receive_IT(&PANEL_USART_Handler, &panel_rcvd_data, 1);   // rearm interrupt               
        }
+#ifdef BLADEMOTOR_USART_ENABLED
+       else if(huart->Instance == BLADEMOTOR_USART_INSTANCE)
+       {
+            BLADEMOTOR_ReceiveIT();
+       }
+#endif       
 #ifdef HAS_ULTRASONIC_SENSOR    
        else if (huart->Instance == MASTER_USART_INSTANCE)
        {
@@ -177,9 +152,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 int main(void)
 {    
-    //uint8_t blademotor_init[] =  { 0x55, 0xaa, 0x12, 0x20, 0x80, 0x00, 0xac, 0x0d, 0x00, 0x02, 0x32, 0x50, 0x1e, 0x04, 0x00, 0x15, 0x21, 0x05, 0x0a, 0x19, 0x3c, 0xaa };    
-    //uint8_t drivemotors_init[] = { 0x55, 0xaa, 0x08, 0x10, 0x80, 0xa0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x37};
-
     HAL_Init();
     SystemClock_Config();
 
@@ -209,12 +181,6 @@ int main(void)
     debug_printf(" * 24V switched on\r\n");
     RAIN_Sensor_Init();
     debug_printf(" * RAIN Sensor enable\r\n");
-    /*
-    PAC5223RESET_Init();
-    debug_printf(" * PAC 5223 out of reset\r\n");
-    PAC5210RESET_Init();
-    debug_printf(" * PAC 5210 out of reset\r\n");    
-    */
 
     if (SPIFLASH_TestDevice())
     {        
@@ -241,10 +207,16 @@ int main(void)
     debug_printf(" * Accelerometer (onboard/tilt safety) initialized\r\n");    
     SW_I2C_Init();
     debug_printf(" * Soft I2C (J18) initialized\r\n");
-    debug_printf(" * Testing supported IMUs:\r\n");
+#ifdef HAS_EXT_IMU    
+    debug_printf(" * Testing supported external IMUs:\r\n");
     IMU_TestDevice();
     IMU_Init();
-    IMU_Calibrate();
+    IMU_CalibrateExternal();
+#else
+    debug_printf(" * External IMU not enabled !\r\n");
+#endif
+    debug_printf(" * Onboard IMU:\r\n");
+    IMU_CalibrateOnboard();    
     Emergency_Init();
     debug_printf(" * Emergency sensors initialized\r\n");
     ADC1_Init();    
@@ -289,7 +261,9 @@ int main(void)
 	  NBT_init(&main_chargecontroller_nbt, 20);
     NBT_init(&main_statusled_nbt, 1000);
 	  NBT_init(&main_emergency_nbt, 10);
+#ifdef BLADEMOTOR_USART_ENABLED    
     NBT_init(&main_blademotor_nbt, 100);
+#endif    
     NBT_init(&main_drivemotor_nbt, 10);
     NBT_init(&main_wdg_nbt,10);
     NBT_init(&main_buzzer_nbt,200);
@@ -334,10 +308,12 @@ int main(void)
         {            
             DRIVEMOTOR_App_10ms();      
         }
+#ifdef BLADEMOTOR_USART_ENABLED        
         if (NBT_handler(&main_blademotor_nbt))
         {            
             BLADEMOTOR_App();                       
         }
+#endif
         if (NBT_handler(&main_buzzer_nbt))
         {            
               // TODO 
@@ -788,6 +764,9 @@ void ADC1_Init(void)
   #ifdef BOARD_YARDFORCE500 
      __HAL_AFIO_REMAP_TIM1_ENABLE();        // to use PE8/9 it is a full remap
   #endif  
+  #ifdef BOARD_YARDFORCE500_BAGHEERA
+    __HAL_AFIO_REMAP_TIM1_ENABLE();        // to use PE8/9 it is a full remap
+  #endif
 }
 
 
@@ -1179,15 +1158,7 @@ void vprint(const char *fmt, va_list argp)
     char string[200];    
     if(0 < vsprintf(string,fmt,argp)) // build string
     {
-        MASTER_Transmit((unsigned char*)string, strlen(string));
-
-        // HAL_UART_Transmit(&MASTER_USART_Handler, (uint8_t*)string, strlen(string), HAL_MAX_DELAY); // send message via UART               
-        //while (master_tx_busy) {  }
-        //master_tx_busy = 1;        
-        //master_tx_buffer_len = strlen(string);
-        //memcpy(master_tx_buffer, string, master_tx_buffer_len);
-        //HAL_UART_Transmit_DMA(&MASTER_USART_Handler, (uint8_t*)master_tx_buffer, master_tx_buffer_len); // send message via UART                
-        // HAL_Delay(10);
+        MASTER_Transmit((unsigned char*)string, strlen(string));       
     }
 }
 

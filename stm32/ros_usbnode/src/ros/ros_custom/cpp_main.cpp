@@ -69,7 +69,8 @@
 #define WHEEL_DIAMETER 0.198 	// The diameter of the wheels in meters
 
 #define ODOM_NBT_TIME_MS   100 	// 200ms
-#define IMU_NBT_TIME_MS    100  
+#define EXT_IMU_NBT_TIME_MS  100
+#define ONBOARD_IMU_NBT_TIME_MS  100
 #define MOTORS_NBT_TIME_MS 100
 #define STATUS_NBT_TIME_MS 250
 
@@ -77,9 +78,12 @@ extern uint8_t RxBuffer[RxBufferSize];
 struct ringbuffer rb;
 
 ros::Time last_cmd_vel(0, 0);
-ros::Time last_cmd_blade(0, 0);
 uint32_t last_cmd_vel_age;		// age of last velocity command
-uint32_t last_cmd_blade_age;		// age of last blade command
+
+#ifdef BLADEMOTOR_USART_ENABLED
+	ros::Time last_cmd_blade(0, 0);
+	uint32_t last_cmd_blade_age;		// age of last blade command
+#endif
 
 // drive motor control
 static uint8_t left_speed=0;
@@ -87,8 +91,10 @@ static uint8_t right_speed=0;
 static uint8_t left_dir=0;
 static uint8_t right_dir=0;
 
-// blade motor control
-static uint8_t blade_on_off=0;
+#ifdef BLADEMOTOR_USART_ENABLED
+	// blade motor control
+	static uint8_t blade_on_off=0;
+#endif
 
 static uint8_t svcCfgDataBuffer[256];
 
@@ -140,17 +146,9 @@ ros::Time odom_current_time;
 
 float imu_onboard_temperature; // cached temp value, so we dont poll I2C constantly
 
-// std_msgs::String str_msg;
-//std_msgs::Float32 f32_battery_voltage_msg;
-//std_msgs::Float32 f32_charge_voltage_msg;
-//std_msgs::Float32 f32_charge_current_msg;
-//std_msgs::Int16 int16_charge_pwm_msg;
-//std_msgs::Bool bool_blade_state_msg;
-//std_msgs::Bool bool_charging_state_msg;
+
 std_msgs::Int16MultiArray buttonstate_msg;
 nav_msgs::Odometry odom_msg;
-//std_msgs::UInt32 left_encoder_ticks_msg;
-//std_msgs::UInt32 right_encoder_ticks_msg;
 
 // IMU
 // external IMU (i2c)
@@ -169,22 +167,12 @@ mowgli::status status_msg;
 /*
  * PUBLISHERS
  */
-// ros::Publisher chatter("version", &str_msg);
-// ros::Publisher pubBatteryVoltage("battery_voltage", &f32_battery_voltage_msg);
-// ros::Publisher pubChargeVoltage("charge_voltage", &f32_charge_voltage_msg);
-// ros::Publisher pubChargeCurrent("charge_current", &f32_charge_current_msg);
-// ros::Publisher pubChargePWM("charge_pwm", &int16_charge_pwm_msg);
-// ros::Publisher pubChargeingState("charging_state", &bool_charging_state_msg);
-// ros::Publisher pubBladeState("blade_state", &bool_blade_state_msg);
 ros::Publisher pubOdom("mowgli/odom", &odom_msg);
-// ros::Publisher pubLeftEncoderTicks("left_encoder_ticks", &left_encoder_ticks_msg);
-// ros::Publisher pubRightEncoderTicks("right_encoder_ticks", &right_encoder_ticks_msg);
 ros::Publisher pubButtonState("buttonstate", &buttonstate_msg);
 ros::Publisher pubStatus("mowgli/status", &status_msg);
 
 // IMU onboard
 ros::Publisher pubIMUOnboard("imu_onboard/data_raw", &imu_onboard_msg);
-// ros::Publisher pubIMUOnboardTemp("imu_onboard/temp", &imu_onboard_temp_msg);
 
 // IMU external
 ros::Publisher pubIMU("imu/data_raw", &imu_msg);
@@ -206,19 +194,23 @@ ros::Subscriber<geometry_msgs::Twist> subCommandVelocity("cmd_vel", CommandVeloc
 // SERVICES
 void cbSetCfg(const mowgli::SetCfgRequest &req, mowgli::SetCfgResponse &res);
 void cbGetCfg(const mowgli::GetCfgRequest &req, mowgli::GetCfgResponse &res);
-void cbEnableMowerMotor(const std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
 void cbReboot(const std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
 void cbEnableTF(const std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
 void cbSetLed(const mowgli::LedRequest &req, mowgli::LedResponse &res);
 void cbClrLed(const mowgli::LedRequest &req, mowgli::LedResponse &res);
+#ifdef BLADEMOTOR_USART_ENABLED
+	void cbEnableMowerMotor(const std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
+#endif
 
 ros::ServiceServer<mowgli::SetCfgRequest, mowgli::SetCfgResponse> svcSetCfg("mowgli/SetCfg", cbSetCfg);
 ros::ServiceServer<mowgli::GetCfgRequest, mowgli::GetCfgResponse> svcGetCfg("mowgli/GetCfg", cbGetCfg);
-ros::ServiceServer<std_srvs::SetBool::Request, std_srvs::SetBool::Response> svcEnableMowerMotor("mowgli/EnableMowerMotor", cbEnableMowerMotor);
 ros::ServiceServer<std_srvs::Empty::Request, std_srvs::Empty::Response> svcReboot("mowgli/Reboot", cbReboot);
 ros::ServiceServer<std_srvs::SetBool::Request, std_srvs::SetBool::Response> svcEnableTF("mowgli/EnableTF", cbEnableTF);
 ros::ServiceServer<mowgli::LedRequest, mowgli::LedResponse> svcSetLed("mowgli/SetLed", cbSetLed);
 ros::ServiceServer<mowgli::LedRequest, mowgli::LedResponse> svcClrLed("mowgli/ClrLed", cbClrLed);
+#ifdef BLADEMOTOR_USART_ENABLED
+	ros::ServiceServer<std_srvs::SetBool::Request, std_srvs::SetBool::Response> svcEnableMowerMotor("mowgli/EnableMowerMotor", cbEnableMowerMotor);
+#endif
 
 /*
  * NON BLOCKING TIMERS
@@ -228,8 +220,11 @@ static nbt_t publish_nbt;
 static nbt_t motors_nbt;
 static nbt_t panel_nbt;
 static nbt_t odom_nbt;
-static nbt_t imu_nbt;
+static nbt_t onboard_imu_nbt;
 static nbt_t status_nbt;
+#ifdef HAS_EXT_IMU
+	static nbt_t ext_imu_nbt;
+#endif
 
 /*
  * reboot flag, if true we reboot after next publish_nbt
@@ -298,30 +293,7 @@ extern "C" void chatter_handler()
 {
 	  if (NBT_handler(&publish_nbt))
 	  {
-		  /*
-		  char version[] = "version: 0.1";
-		  str_msg.data = version;
-		  chatter.publish(&str_msg);
-		  */
-		  /*
-		  f32_battery_voltage_msg.data = battery_voltage;
-		  pubBatteryVoltage.publish(&f32_battery_voltage_msg);
-
-		  f32_charge_voltage_msg.data = charge_voltage;
-		  pubChargeVoltage.publish(&f32_charge_voltage_msg);
-
-		  f32_charge_current_msg.data = charge_current;
-		  pubChargeCurrent.publish(&f32_charge_current_msg);
-
-		  int16_charge_pwm_msg.data = chargecontrol_pwm_val;
-		  pubChargePWM.publish(&int16_charge_pwm_msg);
-
-		  bool_charging_state_msg.data =  chargecontrol_is_charging;
-		  pubChargeingState.publish(&bool_charging_state_msg);
-*/
- 		  //bool_blade_state_msg.data = true; // TODO: read blade status
-//		  pubBladeState.publish(&bool_blade_state_msg);
-
+		 
 #ifdef IMU_ONBOARD_TEMP
 		  imu_onboard_temperature = IMU_Onboard_ReadTemp();
 #else
@@ -355,7 +327,9 @@ extern "C" void motors_handler()
 		if (Emergency_State())
 		{			
 			DRIVEMOTOR_SetSpeed(0,0,0,0);
+#ifdef BLADEMOTOR_USART_ENABLED			
 			BLADEMOTOR_Set(0);
+#endif			
 		}
 		else {
 			// if the last velocity cmd is older than 1sec we stop the drive motors
@@ -366,13 +340,14 @@ extern "C" void motors_handler()
 			else {
 				DRIVEMOTOR_SetSpeed(left_speed, right_speed, left_dir, right_dir);
 			}
-
-			// if the last blade cmd is older than 25sec we stop the motor
+#ifdef BLADEMOTOR_USART_ENABLED
+			// if the last blade cmd is older than 25sec we stop the motor			
 			last_cmd_blade_age = nh.now().sec - last_cmd_blade.sec;
 			if (last_cmd_blade_age > 25) {
 				blade_on_off = 0;				
 			}			
 			BLADEMOTOR_Set(blade_on_off);			
+#endif			
 		}
 	  }
 }
@@ -399,8 +374,11 @@ extern "C" void panel_handler()
 }
 
 extern "C" void broadcast_handler()
-{
-	  if (NBT_handler(&imu_nbt))
+{	
+
+	 
+#ifdef HAS_EXT_IMU
+	  if (NBT_handler(&ext_imu_nbt))
 	  {
 		////////////////////////////////////////
 		// IMU Messages
@@ -468,8 +446,12 @@ extern "C" void broadcast_handler()
 		imu_mag_calibration_msg.z = z;
 
 		imu_mag_msg.header.stamp = nh.now();
-		pubIMUMagCalibration.publish(&imu_mag_calibration_msg);
+		pubIMUMagCalibration.publish(&imu_mag_calibration_msg);		
+	  } // if (NBT_handler(&ext_imu_nbt))
+#endif
 
+ 	   if (NBT_handler(&onboard_imu_nbt))	  
+	  {
 		/**********************************/
 		/* Onboard (GForce) Accelerometer */
 		/**********************************/
@@ -484,7 +466,7 @@ extern "C" void broadcast_handler()
 		imu_onboard_msg.angular_velocity_covariance[0] = -1;		// indicate *not valid* to EKF
 		imu_onboard_msg.header.stamp = nh.now();
 		pubIMUOnboard.publish(&imu_onboard_msg);		
-	  } // if (NBT_handler(&imu_nbt))
+	  } // if (NBT_handler(&onboard_imu_nbt))
 
   	  if (NBT_handler(&status_nbt))
 	  {
@@ -831,21 +813,23 @@ void cbEnableTF(const std_srvs::SetBool::Request &req, std_srvs::SetBool::Respon
 /*
  *  callback for mowgli/EnableMowerMotor Service
  */
-void cbEnableMowerMotor(const std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res)
-{	
-	last_cmd_blade = nh.now();	// if the last blade cmd is older than 25sec the motor will be stopped !
-	debug_printf("ROS: cbEnableMowerMotor(from %d to %d)", blade_on_off, req.data);	
-	blade_on_off = req.data;	
-    if (req.data) {        		
-        res.success = true;
-        res.message = "";
-    }
-    else {
-        res.success = true;
-        res.message = "";
-    }    
-	debug_printf("[DONE]\r\n");
-}
+#ifdef BLADEMOTOR_USART_ENABLED
+	void cbEnableMowerMotor(const std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res)
+	{	
+		last_cmd_blade = nh.now();	// if the last blade cmd is older than 25sec the motor will be stopped !
+		debug_printf("ROS: cbEnableMowerMotor(from %d to %d)", blade_on_off, req.data);	
+		blade_on_off = req.data;	
+		if (req.data) {        		
+			res.success = true;
+			res.message = "";
+		}
+		else {
+			res.success = true;
+			res.message = "";
+		}    
+		debug_printf("[DONE]\r\n");
+	}
+#endif
 
 /*
  *  callback for mowgli/Reboot Service
@@ -892,10 +876,12 @@ extern "C" void init_ROS()
 	//nh.advertise(pubLeftEncoderTicks);
 	//nh.advertise(pubRightEncoderTicks);
 	nh.advertise(pubButtonState);
+#ifdef HAS_EXT_IMU	
 	nh.advertise(pubIMU);
 	nh.advertise(pubIMUMag);
 	nh.advertise(pubIMUMagCalibration);
-	nh.advertise(pubIMUOnboard);
+#endif
+	nh.advertise(pubIMUOnboard);	
 	//nh.advertise(pubIMUOnboardTemp);
 	nh.advertise(pubStatus);
 	
@@ -905,7 +891,9 @@ extern "C" void init_ROS()
 	// Initialize Services	
 	nh.advertiseService(svcSetCfg);	  
 	nh.advertiseService(svcGetCfg);	  
+#ifdef BLADEMOTOR_USART_ENABLED	
     nh.advertiseService(svcEnableMowerMotor);
+#endif	
 	nh.advertiseService(svcReboot);
 	nh.advertiseService(svcEnableTF);
     nh.advertiseService(svcSetLed);
@@ -915,7 +903,11 @@ extern "C" void init_ROS()
 	NBT_init(&publish_nbt, 1000);
 	NBT_init(&panel_nbt, 100);	
 	NBT_init(&status_nbt, STATUS_NBT_TIME_MS);
-	NBT_init(&imu_nbt, IMU_NBT_TIME_MS);
+#ifdef HAS_EXT_IMU	
+	NBT_init(&ext_imu_nbt, EXT_IMU_NBT_TIME_MS);
+#endif	
+	NBT_init(&onboard_imu_nbt, ONBOARD_IMU_NBT_TIME_MS);
+
 	NBT_init(&motors_nbt, MOTORS_NBT_TIME_MS);
 	NBT_init(&odom_nbt, ODOM_NBT_TIME_MS);
 	NBT_init(&ros_nbt, 10);	

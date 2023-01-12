@@ -6,7 +6,7 @@
 - You will need something that can run python3 and has pygame installed. I use a Mac or a Raspi will work fine too.
 - Wire your serial adapter (or Raspi) to the serial port on the GForce board.
    I used the J18 (Red connector on the mainboard) because the connector from J5 (Signal will fit) and i dont need the signal sense board anymore.
-   Maybe something like a JST PH (2mm pin pitch) fits as well, but i dont have them yet.
+   Maybe something like a Yeonho connector 2.0 mm pitch with lock (SCT2006) fits as well, but i dont have them yet.
    As the pins are unfortunatly in the wrong place on the original J5 connector i used a sharp pick tool to relocate the pins as in the image below.
    
    <img src="/images/J18_serial.jpg" width="60%"/>
